@@ -1,7 +1,7 @@
 #!/bin/bash
 # Codex助手 — 使用 PyInstaller 打包成 macOS .app
 # 用法: bash build_app.sh
-# 产物: dist/CodexHelper.app
+# 产物: dist/Codex助手.app
 
 set -euo pipefail
 
@@ -12,7 +12,7 @@ cd "$SCRIPT_DIR"
 PY=""
 for c in python3.13 python3.12 python3.11 python3.10 python3; do
   if command -v "$c" >/dev/null 2>&1; then
-    if "$c" -c "import pywebview" >/dev/null 2>&1; then
+    if "$c" -c "import webview" >/dev/null 2>&1; then
       PY="$c"; break
     fi
   fi
@@ -70,9 +70,10 @@ mkdir -p "$PYINSTALLER_CONFIG_DIR"
   --clean \
   --noconfirm \
   --windowed \
-  --name "CodexHelper" \
+  --name "Codex助手" \
   --icon "assets/icon.icns" \
   --add-data "web:web" \
+  --add-data "assets/apinest-logo.png:assets" \
   --hidden-import "webview" \
   --hidden-import "webview.platforms.cocoa" \
   --hidden-import "werkzeug" \
@@ -106,7 +107,7 @@ mkdir -p "$PYINSTALLER_CONFIG_DIR"
 rm -rf "$PYINSTALLER_CONFIG_DIR"
 rm -f *.spec
 
-APP="dist/CodexHelper.app"
+APP="dist/Codex助手.app"
 if [ -d "$APP" ]; then
   xattr -dr com.apple.quarantine "$APP" 2>/dev/null || true
   echo ""

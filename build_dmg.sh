@@ -14,7 +14,7 @@ cd "$SCRIPT_DIR"
 APP_NAME="Codex助手"
 VERSION="1.0.0"
 DIST_DIR="dist"
-APP_DIR="${DIST_DIR}/CodexHelper.app"
+APP_DIR="${DIST_DIR}/Codex助手.app"
 DMG_FINAL="${DIST_DIR}/${APP_NAME}-${VERSION}.dmg"
 
 echo "═══════════════════════════════════════"
@@ -59,9 +59,10 @@ mkdir -p "$PYINSTALLER_CONFIG_DIR"
 
 "$PY" -m PyInstaller \
   --clean --noconfirm --windowed \
-  --name "CodexHelper" \
+  --name "Codex助手" \
   --icon "assets/icon.icns" \
   --add-data "web:web" \
+  --add-data "assets/apinest-logo.png:assets" \
   --hidden-import webview \
   --hidden-import webview.platforms.cocoa \
   --hidden-import werkzeug \

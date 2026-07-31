@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
-# This file is derived from LearnPrompt/stepfun-codex-adapter
-# (https://github.com/LearnPrompt/stepfun-codex-adapter), released under the
-# MIT License. The original code was extracted from the project's installer
-# script (the PYADAPTER heredoc) and is redistributed here under the same MIT
-# License. See NOTICE in the project root for attribution.
+# Codex助手 — API 适配器模块
+# 将 Codex Responses API 请求转换为 OpenAI Chat Completions 兼容格式
 import json
 import os
 import socket
@@ -34,7 +31,7 @@ HOST = "127.0.0.1"
 PORT = 18667
 # 使用临时目录避免 macOS 沙箱限制
 _CONFIG_DIR = Path(tempfile.gettempdir()) / "cc-switch"
-CONFIG_PATH = _CONFIG_DIR / "stepfun-codex-adapter-config.json"
+CONFIG_PATH = _CONFIG_DIR / "codex-helper-config.json"
 DB_PATH = _CONFIG_DIR / "cc-switch.db"
 
 
@@ -47,7 +44,7 @@ def load_saved_api_key():
                 """
                 select json_extract(settings_config, '$.auth.OPENAI_API_KEY')
                 from providers
-                where app_type = 'codex' and id = 'stepfun-codex-adapter'
+                where app_type = 'codex' and id = 'codex-helper'
                 limit 1
                 """
             ).fetchone()
@@ -86,9 +83,9 @@ def extract_text(value):
         if value_type in ("input_text", "output_text", "text"):
             return extract_text(value.get("text"))
         if value_type == "image_url":
-            return "[image_url omitted by stepfun-codex-adapter]"
+            return "[image_url omitted]"
         if value_type in ("input_audio", "video_url"):
-            return f"[{value_type} omitted by stepfun-codex-adapter]"
+            return f"[{value_type} omitted]"
         for key in ("text", "content", "output", "result"):
             if key in value:
                 text = extract_text(value[key])
@@ -250,7 +247,7 @@ def mapped_usage(usage):
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "stepfun-codex-adapter/0.1"
+    server_version = "codex-helper/0.1"
 
     # 由 AdapterRunner 在启动时注入;每次请求后上报 token 用量
     on_usage = None
@@ -349,7 +346,7 @@ class Handler(BaseHTTPRequestHandler):
         usage = data.get("usage") or {}
         inp = usage.get("prompt_tokens") or usage.get("input_tokens") or 0
         out = usage.get("completion_tokens") or usage.get("output_tokens") or 0
-        cache = usage.get("cached_tokens") or usage.get("cache_read_tokens") or 0
+        cache = usage.get("cached_tokens") or usage.get("cache_read_tokens") or usage.get("prompt_cache_hit_tokens") or 0
         if self.on_usage and (inp or out):
             try:
                 self.on_usage(config.get("model", ""), int(inp), int(out), int(cache))
@@ -359,9 +356,10 @@ class Handler(BaseHTTPRequestHandler):
         if data.get("error"):
             err = data["error"]
             err_msg = err.get("message", str(err)) if isinstance(err, dict) else str(err)
+            err_detail = json.dumps(err, ensure_ascii=False, indent=2) if isinstance(err, dict) else str(err)
             if self.on_error:
                 try:
-                    self.on_error(config.get("model", ""), "api_error", err_msg)
+                    self.on_error(config.get("model", ""), "api_error", err_msg, err_detail)
                 except Exception:
                     pass
         return data
@@ -498,7 +496,7 @@ class Handler(BaseHTTPRequestHandler):
 
 def main():
     httpd = ThreadingHTTPServer((HOST, PORT), Handler)
-    print(f"stepfun codex adapter listening on http://{HOST}:{PORT}", flush=True)
+    print(f"codex helper adapter listening on http://{HOST}:{PORT}", flush=True)
     httpd.serve_forever()
 
 

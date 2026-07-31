@@ -24,7 +24,7 @@ core.CODEX_DIR = sandbox_codex
 core.CC_SWITCH_DIR = sandbox_cc
 core.CONFIG_TOML = sandbox_config
 core.BACKUP_TOML = sandbox_codex / "config.toml.openai-backup"
-core.ADAPTER_JSON = sandbox_cc / "stepfun-codex-adapter-config.json"
+core.ADAPTER_JSON = sandbox_cc / "codex-helper-config.json"
 core.KEYS_JSON = sandbox_cc / "switcher-keys.json"
 core.CUSTOM_JSON = sandbox_cc / "switcher-custom-providers.json"
 

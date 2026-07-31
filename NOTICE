@@ -1,24 +1,12 @@
-codex-switch
+Codex助手
 ============
 
-This project incorporates source code from the following third-party project:
+本项目为独立开发，所有源代码版权归 Codex助手 所有。
 
---------------------------------------------------------------------------------
+本项目使用的第三方依赖库：
+- PyInstaller (MIT/GPL)
+- pywebview (BSD-3-Clause)
+- tomlkit (MIT)
+- certifi (MPL-2.0)
 
-LearnPrompt/stepfun-codex-adapter
-  Repository: https://github.com/LearnPrompt/stepfun-codex-adapter
-  License:    MIT
-  Used as:    src/adapter.py
-              (extracted from install_stepfun_codex_adapter.sh PYADAPTER heredoc,
-               see https://github.com/LearnPrompt/stepfun-codex-adapter/blob/main/install_stepfun_codex_adapter.sh)
-
-The Python HTTP adapter that translates Codex Responses API requests into
-OpenAI-compatible Chat Completions calls is the work of LearnPrompt and its
-contributors, distributed under the MIT License. codex-switch redistributes
-this code unmodified (or with only minor compatibility tweaks) and wraps it in
-a GUI launcher and provider/key management system.
-
-The original MIT copyright notice from upstream is preserved at the head of
-src/adapter.py.
-
---------------------------------------------------------------------------------
+以上依赖通过 pip 安装，其各自遵循相应的开源协议。

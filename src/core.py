@@ -25,7 +25,7 @@ CC_SWITCH_DIR = Path(tempfile.gettempdir()) / "cc-switch"
 CODEX_DIR = HOME / ".codex"
 CONFIG_TOML = CODEX_DIR / "config.toml"
 BACKUP_TOML = CODEX_DIR / "config.toml.openai-backup"
-ADAPTER_JSON = CC_SWITCH_DIR / "stepfun-codex-adapter-config.json"
+ADAPTER_JSON = CC_SWITCH_DIR / "codex-helper-config.json"
 KEYS_JSON = CC_SWITCH_DIR / "switcher-keys.json"
 CUSTOM_JSON = CC_SWITCH_DIR / "switcher-custom-providers.json"
 
@@ -58,6 +58,9 @@ PROVIDERS = {
 # ---------- 自定义提供商预设模板（GUI 弹窗里给用户挑） ----------
 # 不直接出现在主下拉里；用户点"添加自定义"选模板后，base_url 自动填充。
 PRESETS = [
+    {"label": "APINest", "model": "",
+     "upstream": "https://apinest.eu.cc/v1/chat/completions",
+     "key_url": "https://apinest.eu.cc"},
     {"label": "智谱", "model": "glm-5.2",
      "upstream": "https://open.bigmodel.cn/api/paas/v4/chat/completions",
      "key_url": "https://open.bigmodel.cn"},
@@ -197,12 +200,12 @@ def provider_info(pid: str) -> dict:
 # ---------- TOML 字段（与 provider 无关） ----------
 
 CODEX_TOML_FIELDS = {
-    "model_provider": "stepfun_codex_adapter",
+    "model_provider": "codex_helper_adapter",
     "model_reasoning_effort": "high",
     "disable_response_storage": True,
 }
 PROVIDER_BLOCK = {
-    "name": "StepFun Codex Adapter",
+    "name": "Codex助手 Adapter",
     "base_url": f"http://{ADAPTER_HOST}:{ADAPTER_PORT}/v1",
     "wire_api": "responses",
     "requires_openai_auth": False,
@@ -238,7 +241,7 @@ def codex_in_adapter_mode() -> bool:
         doc = tomlkit.parse(CONFIG_TOML.read_text(encoding="utf-8"))
     except Exception:
         return False
-    return doc.get("model_provider") == "stepfun_codex_adapter"
+    return doc.get("model_provider") == "codex_helper_adapter"
 
 
 def current_model():
@@ -350,9 +353,9 @@ def apply_codex_config(model: str):
     if "model_providers" not in doc:
         doc["model_providers"] = tomlkit.table()
     providers = doc["model_providers"]
-    if "stepfun_codex_adapter" not in providers:
-        providers["stepfun_codex_adapter"] = tomlkit.table()
-    block = providers["stepfun_codex_adapter"]
+    if "codex_helper_adapter" not in providers:
+        providers["codex_helper_adapter"] = tomlkit.table()
+    block = providers["codex_helper_adapter"]
     for k, v in PROVIDER_BLOCK.items():
         block[k] = v
     block["name"] = model

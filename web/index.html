@@ -1316,31 +1316,32 @@ select.form-input {
 }
 
 .stats-totals {
-  display: flex;
-  gap: 0;
-  background: color-mix(in srgb, var(--seed-fg) 3%, transparent);
-  border-radius: 8px;
-  padding: 8px 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 4px;
 }
 
 .stats-total-item {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  position: relative;
+  padding: 10px 6px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  min-width: 0;
+  transition: border-color 0.2s ease;
 }
 
-.stats-total-item:not(:last-child)::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  top: 15%;
-  bottom: 15%;
-  width: 1px;
-  background: var(--color-border);
+.stats-total-item:hover {
+  border-color: var(--color-border-strong);
 }
+
+.stats-total-item.input { background: color-mix(in srgb, var(--seed-primary) 4%, transparent); }
+.stats-total-item.output { background: color-mix(in srgb, var(--color-success) 4%, transparent); }
+.stats-total-item.cache { background: color-mix(in srgb, var(--color-warn) 4%, transparent); }
+.stats-total-item.calls { background: color-mix(in srgb, var(--seed-fg) 3%, transparent); }
 
 .stats-total-label {
   font-size: 10px;
@@ -1351,14 +1352,20 @@ select.form-input {
 }
 
 .stats-total-value {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: -0.02em;
 }
 
 .stats-total-value.input { color: var(--color-primary); }
 .stats-total-value.output { color: var(--color-success); }
-.stats-total-value.calls { color: var(--color-warn); }
+.stats-total-value.cache { color: var(--color-warn); }
+.stats-total-value.calls { color: var(--color-text-muted); }
 
 .stats-empty {
   text-align: center;
@@ -1510,15 +1517,16 @@ select.form-input {
 /* Timeline history row with time */
 .timeline-history-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 6px;
 }
 
 .timeline-time-main {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-primary);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--color-text-subtle);
   flex-shrink: 0;
+  opacity: 0.7;
 }
 
 .timeline-history-meta {
@@ -1527,11 +1535,107 @@ select.form-input {
   font-size: 11px;
   color: var(--color-text-subtle);
   align-items: center;
+  margin-top: 1px;
 }
 
 .dot-sep {
   margin: 0 2px;
   opacity: 0.5;
+}
+
+.timeline-error-details {
+  margin-top: 4px;
+  padding: 6px 8px;
+  background: var(--color-danger-bg);
+  border: 1px solid var(--color-danger-border);
+  border-radius: 6px;
+  font-family: "SF Mono", ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 120px;
+  overflow-y: auto;
+  display: none;
+}
+
+.timeline-error-details.visible {
+  display: block;
+}
+
+.timeline-error-toggle {
+  display: inline-block;
+  margin-top: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-danger);
+  cursor: pointer;
+  user-select: none;
+}
+
+.timeline-error-toggle:hover {
+  text-decoration: underline;
+}
+
+/* Promo Banner */
+.promo-banner {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--seed-primary) 8%, transparent), color-mix(in srgb, var(--seed-accent) 6%, transparent));
+  border: 1px solid color-mix(in srgb, var(--seed-primary) 15%, transparent);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.promo-banner:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-primary);
+  transform: translateY(-1px);
+}
+
+.promo-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.promo-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.promo-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.promo-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 2px;
+}
+
+.promo-desc {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.promo-arrow {
+  flex-shrink: 0;
+  color: var(--color-primary);
+  font-size: 14px;
+  font-weight: 600;
 }
 
 /* Scrollbar */
@@ -1739,6 +1843,15 @@ select.form-input {
   <div class="model-list" id="model-list">
     <!-- model cards will be dynamically populated -->
   </div>
+
+  <a class="promo-banner" href="https://apinest.eu.cc" target="_blank" rel="noopener noreferrer">
+    <div class="promo-icon"><img src="assets/apinest-logo.png" alt="APINest"></div>
+    <div class="promo-content">
+      <div class="promo-title">推荐 Token 聚合平台 · APINest</div>
+      <div class="promo-desc">多模型聚合 API，一个 Key 调用 DeepSeek / Claude / Gemini 等主流大模型，无需代理</div>
+    </div>
+    <span class="promo-arrow">-></span>
+  </a>
 </div>
 
 <!-- ────────── Add/Edit Model Form ────────── -->
@@ -1788,6 +1901,7 @@ select.form-input {
   var API_BASE = "";
 
   var PROVIDER_CONFIGS = {
+    'APINest': { url: 'https://apinest.eu.cc/v1/chat/completions', models: [] },
     'DeepSeek': { url: 'https://api.deepseek.com/chat/completions', models: ['deepseek-v4-pro', 'deepseek-v4-flash'] },
     'Claude': { url: 'https://api.anthropic.com/v1/messages', models: ['claude-opus-5', 'claude-sonnet-5', 'claude-haiku-4.5'] },
     'Gemini': { url: 'https://generativelanguage.googleapis.com/v1beta/models', models: ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-pro'] },
@@ -1868,7 +1982,7 @@ select.form-input {
     var el = document.getElementById('current-model-name');
     if (el) el.textContent = state.modelName || state.model || '未选择';
     var totalEl = document.getElementById('total-consumption');
-    var total = (state.token.input || 0) + (state.token.output || 0) + (state.token.cache || 0);
+    var total = (state.token.input || 0) + (state.token.output || 0);
     if (totalEl) totalEl.textContent = total.toLocaleString();
   }
 
@@ -1913,8 +2027,12 @@ select.form-input {
     }
     var html = '';
     var icons = { success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>', switch: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>', stop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg>', danger: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>', info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>', token: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>' };
-    state.timeline.slice().reverse().forEach(function(item) {
-      html += '<li class="timeline-item"><div class="timeline-icon ' + (item.icon_color || 'success') + '">' + (icons[item.icon_color] || icons.success) + '</div><div class="timeline-content"><span class="timeline-desc">' + item.desc + '</span><span class="timeline-time">' + item.time + '</span></div></li>';
+    state.timeline.slice().reverse().forEach(function(item, idx) {
+      var errorHtml = '';
+      if (item.error_details) {
+        errorHtml = '<span class="timeline-error-toggle" onclick="var d=this.nextElementSibling;d.classList.toggle(\'visible\');this.textContent=d.classList.contains(\'visible\')?\'收起详情 ▲\':\'查看详情 ▼\';">查看详情 ▼</span><div class="timeline-error-details">' + (item.error_details || '').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div>';
+      }
+      html += '<li class="timeline-item"><div class="timeline-icon ' + (item.icon_color || 'success') + '">' + (icons[item.icon_color] || icons.success) + '</div><div class="timeline-content"><span class="timeline-desc">' + item.desc + '</span>' + errorHtml + '<span class="timeline-time">' + item.time + '</span></div></li>';
     });
     logsList.innerHTML = html;
   }
@@ -1927,10 +2045,12 @@ select.form-input {
     }
     var html = '';
     state.history.slice().reverse().forEach(function(item) {
-      var timeParts = (item.time || '').split(' ');
+      var ts = item.timestamp || '';
+      var timeParts = ts.split(' ');
       var datePart = timeParts.length > 0 ? timeParts[0] : '';
-      var timePart = timeParts.length > 1 ? timeParts[1] : (item.time || '');
-      html += '<li class="timeline-item"><div class="timeline-icon token"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div><div class="timeline-content"><div class="timeline-history-row"><span class="timeline-desc">' + (item.model || '未知模型') + '</span><span class="timeline-time-main">' + timePart + '</span></div><div class="timeline-history-meta"><span>输入 ' + (item.input || 0).toLocaleString() + '</span><span class="dot-sep">·</span><span>输出 ' + (item.output || 0).toLocaleString() + '</span><span class="dot-sep">·</span><span>缓存 ' + (item.cache || 0).toLocaleString() + '</span></div></div></li>';
+      var timePart = timeParts.length > 1 ? timeParts[1] : ts;
+      var dateTimeStr = (datePart + ' ' + timePart).trim();
+      html += '<li class="timeline-item"><div class="timeline-icon token"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div><div class="timeline-content"><div class="timeline-history-row"><span class="timeline-desc">' + (item.model || '未知模型') + '</span><span class="timeline-time-main">' + dateTimeStr + '</span></div><div class="timeline-history-meta"><span>输入 ' + (item.input || 0).toLocaleString() + '</span><span class="dot-sep">·</span><span>输出 ' + (item.output || 0).toLocaleString() + '</span><span class="dot-sep">·</span><span>缓存 ' + (item.cache || 0).toLocaleString() + '</span></div></div></li>';
     });
     historyList.innerHTML = html;
   }
@@ -1944,10 +2064,12 @@ select.form-input {
       statsModelList.innerHTML = '';
       return;
     }
-    statsOverview.innerHTML = '<div class="stats-totals"><div class="stats-total-item"><span class="stats-total-label">总输入</span><span class="stats-total-value input">' + (totals.input || 0).toLocaleString() + '</span></div><div class="stats-total-item"><span class="stats-total-label">总输出</span><span class="stats-total-value output">' + (totals.output || 0).toLocaleString() + '</span></div><div class="stats-total-item"><span class="stats-total-label">总调用</span><span class="stats-total-value calls">' + (totalCalls || 0).toLocaleString() + '</span></div></div>';
+    statsOverview.innerHTML = '<div class="stats-totals"><div class="stats-total-item input"><span class="stats-total-label">总输入</span><span class="stats-total-value input">' + (totals.input || 0).toLocaleString() + '</span></div><div class="stats-total-item output"><span class="stats-total-label">总输出</span><span class="stats-total-value output">' + (totals.output || 0).toLocaleString() + '</span></div><div class="stats-total-item cache"><span class="stats-total-label">总缓存</span><span class="stats-total-value cache">' + (totals.cache || 0).toLocaleString() + '</span></div><div class="stats-total-item calls"><span class="stats-total-label">总调用</span><span class="stats-total-value calls">' + (totalCalls || 0).toLocaleString() + '</span></div></div>';
     var html = '';
     if (state.perModelStats) {
-      state.perModelStats.forEach(function(stat) {
+      state.perModelStats.slice().sort(function(a, b) {
+        return (b.last_used || '').localeCompare(a.last_used || '');
+      }).forEach(function(stat) {
         html += '<div class="stats-card"><div class="stats-card-header"><span class="stats-card-model">' + stat.model + '</span><span class="stats-card-time">' + (stat.last_used || '') + '</span></div><div class="stats-card-tokens"><div class="stats-card-token"><span class="stats-card-token-label">输入</span><span class="stats-card-token-value input">' + (stat.input || 0).toLocaleString() + '</span></div><div class="stats-card-token"><span class="stats-card-token-label">输出</span><span class="stats-card-token-value output">' + (stat.output || 0).toLocaleString() + '</span></div><div class="stats-card-token"><span class="stats-card-token-label">缓存</span><span class="stats-card-token-value cache">' + (stat.cache || 0).toLocaleString() + '</span></div></div><div class="stats-card-calls">调用 ' + (stat.calls || 0) + ' 次</div></div>';
       });
     }
@@ -2171,7 +2293,8 @@ select.form-input {
             icon: 'ERR',
             desc: errDesc,
             icon_color: 'danger',
-            time: err.timestamp ? err.timestamp.split(' ')[1] : ''
+            time: err.timestamp ? err.timestamp.split(' ')[1] : '',
+            error_details: err.details || ''
           });
         }
       });

@@ -28,6 +28,7 @@ else:
 
 HTML_DIR = _base / "web"
 HTML_FILE = HTML_DIR / "index.html"
+ASSETS_DIR = _base / "assets"
 
 
 class APIHandler(BaseHTTPRequestHandler):
@@ -110,8 +111,10 @@ class APIHandler(BaseHTTPRequestHandler):
         elif path == "/" or path == "/index.html":
             self._serve_file(HTML_FILE, "text/html; charset=utf-8")
         elif path.startswith("/assets/"):
-            # 静态资源
+            # 静态资源：先查 web/assets，再查项目根 assets 目录
             file_path = HTML_DIR / path.lstrip("/")
+            if not file_path.exists():
+                file_path = ASSETS_DIR / path[len("/assets/"):]
             if file_path.exists():
                 content_type = "application/octet-stream"
                 if path.endswith(".css"):
@@ -331,10 +334,10 @@ class APIHandler(BaseHTTPRequestHandler):
         self.add_timeline("📈", f"{model} 调用完成 · 输入 {input_tokens} / 输出 {output_tokens} / 缓存 {cache_tokens}",
                          {"stats": {"input": input_tokens, "output": output_tokens, "cache": cache_tokens}}, icon_color="token")
 
-    def _on_error(self, model: str, error_type: str, message: str):
+    def _on_error(self, model: str, error_type: str, message: str, details: str = ""):
         """记录错误并添加到时间线"""
-        core.error_tracker.record(model, error_type, message)
-        self.add_timeline("ERR", f"{model} 错误: {message}", icon_color="danger")
+        core.error_tracker.record(model, error_type, message, details)
+        self.add_timeline("ERR", f"{model} 错误: {message}", {"error_details": details}, icon_color="danger")
 
     def _handle_model_select(self):
         body = self.read_body()
