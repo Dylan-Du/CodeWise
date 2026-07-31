@@ -6,8 +6,9 @@
 # License. See NOTICE in the project root for attribution.
 import json
 import os
-import sqlite3
 import socket
+import sqlite3
+import ssl
 import time
 import traceback
 import urllib.error
@@ -17,10 +18,24 @@ import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+# macOS 上 python.org 的 Python 默认找不到系统根证书,conda 等环境还会用
+# SSL_CERT_FILE/SSL_CERT_DIR 污染证书路径,导致 urllib 连 HTTPS 上游时报
+# CERTIFICATE_VERIFY_FAILED。这里显式用 certifi 提供的根证书构造 SSL 上下文,
+# 让翻译官不依赖系统/终端的证书状态。
+try:
+    import certifi
+    _SSL_CONTEXT = ssl.create_default_context(cafile=certifi.where())
+except Exception:
+    # certifi 不可用时退回系统默认(保持原行为)
+    _SSL_CONTEXT = ssl.create_default_context()
+
+import tempfile
 HOST = "127.0.0.1"
 PORT = 18667
-CONFIG_PATH = Path.home() / ".cc-switch" / "stepfun-codex-adapter-config.json"
-DB_PATH = Path.home() / ".cc-switch" / "cc-switch.db"
+# 使用临时目录避免 macOS 沙箱限制
+_CONFIG_DIR = Path(tempfile.gettempdir()) / "cc-switch"
+CONFIG_PATH = _CONFIG_DIR / "stepfun-codex-adapter-config.json"
+DB_PATH = _CONFIG_DIR / "cc-switch.db"
 
 
 def load_saved_api_key():
@@ -237,6 +252,11 @@ def mapped_usage(usage):
 class Handler(BaseHTTPRequestHandler):
     server_version = "stepfun-codex-adapter/0.1"
 
+    # 由 AdapterRunner 在启动时注入;每次请求后上报 token 用量
+    on_usage = None
+    # 错误回调：上报 API 错误
+    on_error = None
+
     def log_message(self, fmt, *args):
         print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {self.address_string()} {fmt % args}", flush=True)
 
@@ -320,11 +340,31 @@ class Handler(BaseHTTPRequestHandler):
                 "Accept": "application/json",
             },
         )
-        return urllib.request.urlopen(req, timeout=600)
+        return urllib.request.urlopen(req, timeout=600, context=_SSL_CONTEXT)
 
     def fetch_upstream(self, auth, config, upstream_body):
         with self.upstream_request(auth, config, upstream_body) as resp:
-            return json.loads(resp.read().decode("utf-8"))
+            data = json.loads(resp.read().decode("utf-8"))
+        # 上报 token 用量
+        usage = data.get("usage") or {}
+        inp = usage.get("prompt_tokens") or usage.get("input_tokens") or 0
+        out = usage.get("completion_tokens") or usage.get("output_tokens") or 0
+        cache = usage.get("cached_tokens") or usage.get("cache_read_tokens") or 0
+        if self.on_usage and (inp or out):
+            try:
+                self.on_usage(config.get("model", ""), int(inp), int(out), int(cache))
+            except Exception:
+                pass
+        # 上报错误（如果上游返回错误）
+        if data.get("error"):
+            err = data["error"]
+            err_msg = err.get("message", str(err)) if isinstance(err, dict) else str(err)
+            if self.on_error:
+                try:
+                    self.on_error(config.get("model", ""), "api_error", err_msg)
+                except Exception:
+                    pass
+        return data
 
     def handle_non_stream(self, auth, config, upstream_body):
         try:

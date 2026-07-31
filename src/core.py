@@ -1,4 +1,4 @@
-"""核心逻辑：配置管理 + 翻译官启停 + 多 provider 路由。GUI 调用本模块。
+"""核心逻辑：配置管理 + Codex助手 启停 + 多 provider 路由。GUI 调用本模块。
 
 加新 provider 只需要在 PROVIDERS 字典里加一行；其它代码不用动。
 """
@@ -6,8 +6,10 @@ import json
 import os
 import shutil
 import socket
+import sys
 import threading
 import time
+import tempfile
 import urllib.request
 import urllib.error
 from http.server import ThreadingHTTPServer
@@ -18,7 +20,8 @@ import tomlkit
 import adapter
 
 HOME = Path(os.path.expanduser("~"))
-CC_SWITCH_DIR = HOME / ".cc-switch"
+# 使用临时目录避免 macOS 沙箱限制
+CC_SWITCH_DIR = Path(tempfile.gettempdir()) / "cc-switch"
 CODEX_DIR = HOME / ".codex"
 CONFIG_TOML = CODEX_DIR / "config.toml"
 BACKUP_TOML = CODEX_DIR / "config.toml.openai-backup"
@@ -29,6 +32,7 @@ CUSTOM_JSON = CC_SWITCH_DIR / "switcher-custom-providers.json"
 ADAPTER_HOST = "127.0.0.1"
 ADAPTER_PORT = 18667
 HEALTH_URL = f"http://{ADAPTER_HOST}:{ADAPTER_PORT}/health"
+
 
 # ---------- Provider 注册表（未来加新家在这里加一行） ----------
 
@@ -42,12 +46,11 @@ PROVIDERS = {
     "kimi": {
         "label": "Kimi",
         "upstream": "https://api.moonshot.cn/v1/chat/completions",
-        "key_url": "https://platform.kimi.com",
+        "key_url": "https://platform.moonshot.cn",
         "models": [
-            "kimi-k2-0711-preview",
-            "moonshot-v1-128k",
-            "moonshot-v1-32k",
-            "moonshot-v1-8k",
+            "kimi-k3",
+            "kimi-k2.7-code",
+            "kimi-k2.6",
         ],
     },
 }
@@ -55,33 +58,39 @@ PROVIDERS = {
 # ---------- 自定义提供商预设模板（GUI 弹窗里给用户挑） ----------
 # 不直接出现在主下拉里；用户点"添加自定义"选模板后，base_url 自动填充。
 PRESETS = [
-    {"label": "智谱", "model": "glm-4-plus",
+    {"label": "智谱", "model": "glm-5.2",
      "upstream": "https://open.bigmodel.cn/api/paas/v4/chat/completions",
      "key_url": "https://open.bigmodel.cn"},
-    {"label": "智谱", "model": "glm-4-air",
+    {"label": "智谱", "model": "glm-5.1",
      "upstream": "https://open.bigmodel.cn/api/paas/v4/chat/completions",
      "key_url": "https://open.bigmodel.cn"},
-    {"label": "通义", "model": "qwen-max",
+    {"label": "智谱", "model": "glm-5-turbo",
+     "upstream": "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+     "key_url": "https://open.bigmodel.cn"},
+    {"label": "通义", "model": "qwen3.8-max-preview",
      "upstream": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
      "key_url": "https://dashscope.console.aliyun.com"},
-    {"label": "通义", "model": "qwen-plus",
+    {"label": "通义", "model": "qwen3.7-max",
      "upstream": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
      "key_url": "https://dashscope.console.aliyun.com"},
-    {"label": "零一", "model": "yi-large",
-     "upstream": "https://api.lingyiwanwu.com/v1/chat/completions",
-     "key_url": "https://platform.lingyiwanwu.com"},
-    {"label": "豆包", "model": "doubao-1-5-pro-32k",
-     "upstream": "https://ark.cn-beijing.volces.com/api/v3/chat/completions",
-     "key_url": "https://console.volcengine.com"},
-    {"label": "Groq", "model": "llama-3.3-70b-versatile",
-     "upstream": "https://api.groq.com/openai/v1/chat/completions",
-     "key_url": "https://console.groq.com"},
-    {"label": "Mistral", "model": "mistral-large-latest",
-     "upstream": "https://api.mistral.ai/v1/chat/completions",
-     "key_url": "https://console.mistral.ai"},
-    {"label": "OpenRouter", "model": "anthropic/claude-3.5-sonnet",
-     "upstream": "https://openrouter.ai/api/v1/chat/completions",
-     "key_url": "https://openrouter.ai"},
+    {"label": "通义", "model": "qwen3.7-plus",
+     "upstream": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+     "key_url": "https://dashscope.console.aliyun.com"},
+    {"label": "小米MIMO", "model": "mimo-v2.5-pro",
+     "upstream": "https://api.gmi-serving.com/v1/chat/completions",
+     "key_url": "https://mimo.mi.com"},
+    {"label": "StepFun", "model": "step-3.7-flash",
+     "upstream": "https://api.stepfun.com/v1/chat/completions",
+     "key_url": "https://platform.stepfun.com"},
+    {"label": "LongCat", "model": "LongCat-2.0",
+     "upstream": "https://api.longcat.chat/openai/v1/chat/completions",
+     "key_url": "https://longcat.ai"},
+    {"label": "Claude", "model": "claude-opus-5",
+     "upstream": "https://api.anthropic.com/v1/messages",
+     "key_url": "https://console.anthropic.com"},
+    {"label": "Gemini", "model": "gemini-3.6-flash",
+     "upstream": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",
+     "key_url": "https://aistudio.google.com"},
     {"label": "自定义", "model": "",
      "upstream": "", "key_url": ""},
 ]
@@ -174,7 +183,7 @@ def flat_models() -> list[tuple[str, str, str]]:
     return out
 
 
-def model_to_provider(model: str) -> str | None:
+def model_to_provider(model: str):
     for pid, info in PROVIDERS.items():
         if model in info["models"]:
             return pid
@@ -222,7 +231,7 @@ def adapter_healthy() -> bool:
 
 
 def codex_in_adapter_mode() -> bool:
-    """是否已切到翻译官（任何 provider 都算）。"""
+    """是否已切到 Codex助手（任何 provider 都算）。"""
     if not CONFIG_TOML.exists():
         return False
     try:
@@ -232,7 +241,7 @@ def codex_in_adapter_mode() -> bool:
     return doc.get("model_provider") == "stepfun_codex_adapter"
 
 
-def current_model() -> str | None:
+def current_model():
     if not CONFIG_TOML.exists():
         return None
     try:
@@ -281,10 +290,10 @@ def save_key(provider: str, key: str):
     )
 
 
-# ---------- 翻译官 + Codex 配置写入 ----------
+# ---------- Codex助手 + Codex 配置写入 ----------
 
 def write_adapter_json(model: str, route_type: str):
-    """根据 route_type 写翻译官配置。支持内置和 custom:<idx>。"""
+    """根据 route_type 写 Codex助手 配置。支持内置和 custom:<idx>。"""
     ensure_dirs()
     route = resolve_route(route_type, model)
     if not route["api_key"]:
@@ -297,10 +306,18 @@ def write_adapter_json(model: str, route_type: str):
         "upstream": route["upstream"],
         "api_key": route["api_key"],
     }
-    ADAPTER_JSON.write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
+    content = json.dumps(payload, ensure_ascii=False, indent=2)
+    # 重试机制：macOS 上文件可能被短暂锁定
+    for attempt in range(5):
+        try:
+            # 直接写入文件（覆盖）
+            ADAPTER_JSON.write_text(content, encoding="utf-8")
+            return  # 成功
+        except OSError as e:
+            if attempt < 4:
+                time.sleep(0.2 * (attempt + 1))  # 递增等待
+            else:
+                raise ValueError(f"写入配置文件失败: {e}")
 
 
 def backup_config_toml_if_needed() -> bool:
@@ -308,8 +325,14 @@ def backup_config_toml_if_needed() -> bool:
         return False
     if BACKUP_TOML.exists():
         return False
-    shutil.copy2(CONFIG_TOML, BACKUP_TOML)
-    return True
+    src = str(CONFIG_TOML)
+    dest = str(BACKUP_TOML)
+    try:
+        shutil.copy2(src, dest)
+        return True
+    except Exception:
+        pass
+    return False
 
 
 def apply_codex_config(model: str):
@@ -332,31 +355,205 @@ def apply_codex_config(model: str):
     block = providers["stepfun_codex_adapter"]
     for k, v in PROVIDER_BLOCK.items():
         block[k] = v
-    # 动态 name：让 Codex 输入框右下角显示当前选中的模型
     block["name"] = model
 
-    CONFIG_TOML.write_text(tomlkit.dumps(doc), encoding="utf-8")
+    content = tomlkit.dumps(doc)
+    
+    # 直接写入
+    try:
+        CONFIG_TOML.write_text(content, encoding="utf-8")
+        return
+    except OSError as e:
+        raise PermissionError(
+            f"无法写入 {CONFIG_TOML}: {e}\n"
+            f"请尝试以下方法：\n"
+            f"1. 在终端运行: chmod 755 ~/.codex\n"
+            f"2. 或手动创建: mkdir -p ~/.codex && chmod 755 ~/.codex\n"
+            f"3. 或将运行本应用的终端添加到「系统设置 → 隐私与安全性 → 完全磁盘访问权限」"
+        )
 
 
 def restore_openai_config() -> str:
     if not BACKUP_TOML.exists():
         return "未发现备份文件，跳过还原（你的 Codex 配置本来就没被改过）。"
-    shutil.copy2(BACKUP_TOML, CONFIG_TOML)
-    return f"已从 {BACKUP_TOML.name} 还原 config.toml。"
+    src = str(BACKUP_TOML)
+    dest = str(CONFIG_TOML)
+    
+    # 直接复制
+    try:
+        shutil.copy2(src, dest)
+        return f"已从 {BACKUP_TOML.name} 还原 config.toml。"
+    except Exception as e:
+        return f"还原失败: {e}\n请手动复制：cp {src} {dest}"
 
 
-# ---------- 翻译官启停（同进程子线程） ----------
+# ---------- Token 用量追踪 ----------
+
+TOKEN_LOG_JSON = CC_SWITCH_DIR / "token-usage.json"
+
+
+class TokenTracker:
+    """线程安全的 token 用量追踪器。adapter 每次请求后调用 record()。"""
+
+    def __init__(self):
+        self.lock = threading.Lock()
+        self.total_input: int = 0
+        self.total_output: int = 0
+        self.total_cache: int = 0
+        self.history: list[dict] = []
+        self._load()
+
+    def record(self, model: str, input_tokens: int, output_tokens: int, cache_tokens: int = 0):
+        with self.lock:
+            self.total_input += input_tokens
+            self.total_output += output_tokens
+            self.total_cache += cache_tokens
+            self.history.append({
+                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+                "model": model,
+                "input": input_tokens,
+                "output": output_tokens,
+                "cache": cache_tokens,
+            })
+            if len(self.history) > 200:
+                self.history = self.history[-200:]
+            self._save()
+
+    def totals(self) -> dict:
+        with self.lock:
+            return {"input": self.total_input, "output": self.total_output, "cache": self.total_cache}
+
+    def per_model_stats(self) -> dict:
+        """返回按模型分组的统计数据。"""
+        with self.lock:
+            stats = {}
+            for record in self.history:
+                model = record.get("model", "unknown")
+                if model not in stats:
+                    stats[model] = {
+                        "model": model,
+                        "calls": 0,
+                        "input": 0,
+                        "output": 0,
+                        "cache": 0,
+                        "last_used": record.get("timestamp", ""),
+                    }
+                stats[model]["calls"] += 1
+                stats[model]["input"] += record.get("input", 0)
+                stats[model]["output"] += record.get("output", 0)
+                stats[model]["cache"] += record.get("cache", 0)
+                stats[model]["last_used"] = record.get("timestamp", "")
+            return stats
+
+    def recent(self, n: int = 50) -> list[dict]:
+        with self.lock:
+            return list(self.history[-n:])
+
+    def clear(self):
+        with self.lock:
+            self.total_input = self.total_output = self.total_cache = 0
+            self.history = []
+            self._save()
+
+    def _load(self):
+        if TOKEN_LOG_JSON.exists():
+            try:
+                d = json.loads(TOKEN_LOG_JSON.read_text(encoding="utf-8"))
+                self.total_input = int(d.get("total_input", 0))
+                self.total_output = int(d.get("total_output", 0))
+                self.total_cache = int(d.get("total_cache", 0))
+                self.history = d.get("history", []) if isinstance(d.get("history"), list) else []
+            except Exception:
+                pass
+
+    def _save(self):
+        ensure_dirs()
+        TOKEN_LOG_JSON.write_text(
+            json.dumps({
+                "total_input": self.total_input,
+                "total_output": self.total_output,
+                "total_cache": self.total_cache,
+                "history": self.history,
+            }, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+
+
+token_tracker = TokenTracker()
+
+
+# ---------- 错误追踪器 ----------
+
+ERROR_LOG_JSON = CC_SWITCH_DIR / "error-log.json"
+
+
+class ErrorTracker:
+    """线程安全的错误追踪器。记录调用错误、API 错误等。"""
+
+    def __init__(self):
+        self.lock = threading.Lock()
+        self.errors: list[dict] = []
+        self._load()
+
+    def record(self, model: str, error_type: str, message: str, details: str = ""):
+        with self.lock:
+            self.errors.append({
+                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+                "model": model,
+                "error_type": error_type,
+                "message": message,
+                "details": details,
+            })
+            if len(self.errors) > 200:
+                self.errors = self.errors[-200:]
+            self._save()
+
+    def recent(self, n: int = 50) -> list[dict]:
+        with self.lock:
+            return list(self.errors[-n:])
+
+    def clear(self):
+        with self.lock:
+            self.errors = []
+            self._save()
+
+    def _load(self):
+        if ERROR_LOG_JSON.exists():
+            try:
+                self.errors = json.loads(ERROR_LOG_JSON.read_text(encoding="utf-8"))
+                if not isinstance(self.errors, list):
+                    self.errors = []
+            except Exception:
+                self.errors = []
+
+    def _save(self):
+        ensure_dirs()
+        ERROR_LOG_JSON.write_text(
+            json.dumps(self.errors, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+
+
+error_tracker = ErrorTracker()
+
+# ---------- Codex助手 启停（同进程子线程） ----------
 
 class AdapterRunner:
-    def __init__(self, log_fn=None):
-        self.httpd: ThreadingHTTPServer | None = None
-        self.thread: threading.Thread | None = None
+    def __init__(self, log_fn=None, on_usage=None, on_error=None):
+        self.httpd = None
+        self.thread = None
         self.log = log_fn or (lambda msg: None)
+        self.on_usage = on_usage
+        self.on_error = on_error
 
     def start(self) -> bool:
         if self.thread and self.thread.is_alive():
-            self.log("翻译官已经在跑了。")
+            self.log("Codex助手 已经在跑了。")
             return True
+        # 把 usage 回调注入到 adapter Handler
+        adapter.Handler.on_usage = self.on_usage
+        # 把 error 回调注入到 adapter Handler
+        adapter.Handler.on_error = self.on_error if hasattr(self, 'on_error') else None
         try:
             self.httpd = ThreadingHTTPServer(
                 (adapter.HOST, adapter.PORT), adapter.Handler
@@ -372,10 +569,10 @@ class AdapterRunner:
         self.thread.start()
         for _ in range(20):
             if adapter_running():
-                self.log(f"翻译官已启动：http://{adapter.HOST}:{adapter.PORT}")
+                self.log(f"Codex助手 已启动：http://{adapter.HOST}:{adapter.PORT}")
                 return True
             time.sleep(0.05)
-        self.log("翻译官启动超时。")
+        self.log("Codex助手 启动超时。")
         return False
 
     def stop(self):
@@ -385,9 +582,9 @@ class AdapterRunner:
             self.httpd.shutdown()
             self.httpd.server_close()
         except Exception as e:
-            self.log(f"停翻译官出错（忽略）：{e}")
+            self.log(f"停 Codex助手 出错（忽略）：{e}")
         self.httpd = None
         if self.thread:
             self.thread.join(timeout=2)
             self.thread = None
-        self.log("翻译官已停止。")
+        self.log("Codex助手 已停止。")

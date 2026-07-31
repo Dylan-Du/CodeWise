@@ -1,0 +1,2319 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="canvas:width" content="520">
+<meta name="canvas:height" content="720">
+<meta name="canvas:aspect-ratio" content="520:720">
+<title>Codex助手</title>
+<style>
+/* ────────────────── Raw Hex Base Tokens (in :root) ────────────────── */
+:root {
+  --hex-bg-light: #EEF1F8;
+  --hex-bg-dark: #0A0C14;
+  --hex-fg-light: #1A1D29;
+  --hex-fg-dark: #F0F1F5;
+  --hex-primary-light: #4F6BFF;
+  --hex-primary-dark: #7C8BFF;
+  --hex-accent-light: #3ECF8E;
+  --hex-accent-dark: #4ADE80;
+  --hex-surface-light: #FFFFFF;
+  --hex-surface-dark: #14172A;
+  --hex-success-light: #22C55E;
+  --hex-success-dark: #4ADE80;
+  --hex-warn-light: #F59E0B;
+  --hex-warn-dark: #FBBF24;
+  --hex-danger-light: #EF4444;
+  --hex-danger-dark: #F87171;
+  --hex-info-light: #6B7280;
+  --hex-info-dark: #8B8D98;
+  --hex-mesh-1-light: #6B8AFF;
+  --hex-mesh-1-dark: #4F6BFF;
+  --hex-mesh-2-light: #3ECF8E;
+  --hex-mesh-2-dark: #2DD4BF;
+  --hex-mesh-3-light: #F97316;
+  --hex-mesh-3-dark: #FB923C;
+  --hex-bg-focus: #08090E;
+  --hex-fg-focus: #A0A4B0;
+  --hex-primary-focus: #5B7BFF;
+  --hex-accent-focus: #3ECF8E;
+  --hex-surface-focus: #111219;
+  --hex-mesh-1-focus: #4F6BFF;
+  --hex-mesh-2-focus: #2DD4BF;
+  --hex-mesh-3-focus: #FB923C;
+  --hex-black: #000000;
+  --hex-white: #FFFFFF;
+  --seed-radius: 16px;
+  --card-gap: 24px;
+  --glass-opacity: 82%;
+}
+
+/* ────────────────── Light Theme ────────────────── */
+:root[data-theme="light"] {
+  --seed-bg: var(--hex-bg-light);
+  --seed-fg: var(--hex-fg-light);
+  --seed-primary: var(--hex-primary-light);
+  --seed-accent: var(--hex-accent-light);
+  --seed-surface: var(--hex-surface-light);
+
+  --color-text: var(--seed-fg);
+  --color-text-muted: color-mix(in srgb, var(--seed-fg) 50%, transparent);
+  --color-text-subtle: color-mix(in srgb, var(--seed-fg) 35%, transparent);
+  --color-border: color-mix(in srgb, var(--seed-fg) 7%, transparent);
+  --color-border-strong: color-mix(in srgb, var(--seed-fg) 12%, transparent);
+  --color-surface: var(--seed-surface);
+  --color-glass: color-mix(in srgb, var(--seed-surface) var(--glass-opacity), transparent);
+  --color-surface-hover: color-mix(in srgb, var(--seed-primary) 4%, var(--seed-surface));
+  --color-on-primary: var(--hex-white);
+  --color-primary: var(--seed-primary);
+  --color-primary-hover: color-mix(in srgb, var(--seed-primary) 82%, var(--hex-black));
+  --color-primary-subtle: color-mix(in srgb, var(--seed-primary) 8%, transparent);
+  --color-success: var(--hex-success-light);
+  --color-success-bg: color-mix(in srgb, var(--hex-success-light) 10%, transparent);
+  --color-success-border: color-mix(in srgb, var(--hex-success-light) 25%, transparent);
+  --color-warn: var(--hex-warn-light);
+  --color-warn-bg: color-mix(in srgb, var(--hex-warn-light) 10%, transparent);
+  --color-warn-border: color-mix(in srgb, var(--hex-warn-light) 25%, transparent);
+  --color-danger: var(--hex-danger-light);
+  --color-danger-bg: color-mix(in srgb, var(--hex-danger-light) 8%, transparent);
+  --color-danger-border: color-mix(in srgb, var(--hex-danger-light) 22%, transparent);
+  --color-info: var(--hex-info-light);
+  --color-info-bg: color-mix(in srgb, var(--hex-info-light) 8%, transparent);
+
+  --mesh-1: var(--hex-mesh-1-light);
+  --mesh-2: var(--hex-mesh-2-light);
+  --mesh-3: var(--hex-mesh-3-light);
+
+  --logo-gradient: linear-gradient(135deg, var(--seed-primary), color-mix(in srgb, var(--seed-primary) 60%, var(--seed-accent)));
+
+  --shadow-sm: 0 1px 3px color-mix(in srgb, var(--seed-fg) 6%, transparent);
+  --shadow-md: 0 4px 16px color-mix(in srgb, var(--seed-fg) 6%, transparent),
+               0 1px 4px color-mix(in srgb, var(--seed-fg) 4%, transparent);
+  --shadow-lg: 0 12px 40px color-mix(in srgb, var(--seed-fg) 8%, transparent),
+               0 4px 12px color-mix(in srgb, var(--seed-fg) 4%, transparent);
+  --shadow-primary: 0 4px 14px color-mix(in srgb, var(--seed-primary) 25%, transparent);
+  --shadow-glow-success: 0 0 20px color-mix(in srgb, var(--color-success) 30%, transparent);
+}
+
+/* ────────────────── Dark Theme ────────────────── */
+:root[data-theme="dark"] {
+  --seed-bg: var(--hex-bg-dark);
+  --seed-fg: var(--hex-fg-dark);
+  --seed-primary: var(--hex-primary-dark);
+  --seed-accent: var(--hex-accent-dark);
+  --seed-surface: var(--hex-surface-dark);
+
+  --color-text: var(--seed-fg);
+  --color-text-muted: color-mix(in srgb, var(--seed-fg) 50%, transparent);
+  --color-text-subtle: color-mix(in srgb, var(--seed-fg) 35%, transparent);
+  --color-border: color-mix(in srgb, var(--seed-fg) 8%, transparent);
+  --color-border-strong: color-mix(in srgb, var(--seed-fg) 14%, transparent);
+  --color-surface: var(--seed-surface);
+  --color-glass: color-mix(in srgb, var(--seed-surface) var(--glass-opacity), transparent);
+  --color-surface-hover: color-mix(in srgb, var(--seed-primary) 6%, var(--seed-surface));
+  --color-on-primary: var(--hex-white);
+  --color-primary: var(--seed-primary);
+  --color-primary-hover: color-mix(in srgb, var(--seed-primary) 88%, var(--hex-black));
+  --color-primary-subtle: color-mix(in srgb, var(--seed-primary) 10%, transparent);
+  --color-success: var(--hex-success-dark);
+  --color-success-bg: color-mix(in srgb, var(--hex-success-dark) 10%, transparent);
+  --color-success-border: color-mix(in srgb, var(--hex-success-dark) 22%, transparent);
+  --color-warn: var(--hex-warn-dark);
+  --color-warn-bg: color-mix(in srgb, var(--hex-warn-dark) 10%, transparent);
+  --color-warn-border: color-mix(in srgb, var(--hex-warn-dark) 22%, transparent);
+  --color-danger: var(--hex-danger-dark);
+  --color-danger-bg: color-mix(in srgb, var(--hex-danger-dark) 8%, transparent);
+  --color-danger-border: color-mix(in srgb, var(--hex-danger-dark) 20%, transparent);
+  --color-info: var(--hex-info-dark);
+  --color-info-bg: color-mix(in srgb, var(--hex-info-dark) 8%, transparent);
+
+  --mesh-1: var(--hex-mesh-1-dark);
+  --mesh-2: var(--hex-mesh-2-dark);
+  --mesh-3: var(--hex-mesh-3-dark);
+
+  --logo-gradient: linear-gradient(135deg, var(--seed-primary), color-mix(in srgb, var(--seed-primary) 60%, var(--seed-accent)));
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3), 0 1px 4px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2);
+  --shadow-primary: 0 4px 14px color-mix(in srgb, var(--seed-primary) 18%, transparent);
+  --shadow-glow-success: 0 0 24px color-mix(in srgb, var(--color-success) 35%, transparent);
+}
+
+/* ────────────────── Focus Theme ────────────────── */
+:root[data-theme="focus"] {
+  --seed-bg: var(--hex-bg-focus);
+  --seed-fg: var(--hex-fg-focus);
+  --seed-primary: var(--hex-primary-focus);
+  --seed-accent: var(--hex-accent-focus);
+  --seed-surface: var(--hex-surface-focus);
+
+  --color-text: var(--seed-fg);
+  --color-text-muted: color-mix(in srgb, var(--seed-fg) 42%, transparent);
+  --color-text-subtle: color-mix(in srgb, var(--seed-fg) 28%, transparent);
+  --color-border: color-mix(in srgb, var(--seed-fg) 6%, transparent);
+  --color-border-strong: color-mix(in srgb, var(--seed-fg) 10%, transparent);
+  --color-surface: var(--seed-surface);
+  --color-glass: color-mix(in srgb, var(--seed-surface) 88%, transparent);
+  --color-surface-hover: color-mix(in srgb, var(--seed-primary) 5%, var(--seed-surface));
+  --color-on-primary: var(--hex-white);
+  --color-primary: var(--seed-primary);
+  --color-primary-hover: color-mix(in srgb, var(--seed-primary) 85%, var(--hex-black));
+  --color-primary-subtle: color-mix(in srgb, var(--seed-primary) 8%, transparent);
+  --color-success: var(--hex-success-dark);
+  --color-success-bg: color-mix(in srgb, var(--hex-success-dark) 8%, transparent);
+  --color-success-border: color-mix(in srgb, var(--hex-success-dark) 20%, transparent);
+  --color-warn: var(--hex-warn-dark);
+  --color-warn-bg: color-mix(in srgb, var(--hex-warn-dark) 8%, transparent);
+  --color-warn-border: color-mix(in srgb, var(--hex-warn-dark) 20%, transparent);
+  --color-danger: var(--hex-danger-dark);
+  --color-danger-bg: color-mix(in srgb, var(--hex-danger-dark) 6%, transparent);
+  --color-danger-border: color-mix(in srgb, var(--hex-danger-dark) 18%, transparent);
+  --color-info: var(--hex-info-dark);
+  --color-info-bg: color-mix(in srgb, var(--hex-info-dark) 6%, transparent);
+
+  --mesh-1: var(--hex-mesh-1-focus);
+  --mesh-2: var(--hex-mesh-2-focus);
+  --mesh-3: var(--hex-mesh-3-focus);
+
+  --logo-gradient: linear-gradient(135deg, var(--seed-primary), color-mix(in srgb, var(--seed-primary) 55%, var(--seed-accent)));
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4), 0 1px 4px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.25);
+  --shadow-primary: 0 4px 14px color-mix(in srgb, var(--seed-primary) 14%, transparent);
+  --shadow-glow-success: 0 0 20px color-mix(in srgb, var(--color-success) 28%, transparent);
+}
+
+/* ────────────────── Reset & Base ────────────────── */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* 确保所有元素都使用 border-box */
+html, body, div, section, header, main, footer, nav, aside, article,
+form, input, select, textarea, button, table, tr, td, th, ul, ol, li,
+h1, h2, h3, h4, h5, h6, p, span, a, img, svg {
+  box-sizing: border-box;
+}
+
+html { font-size: 15px; width: 100%; overflow-x: hidden; }
+
+main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--card-gap);
+  width: 100%;
+  max-width: 100%;
+  align-items: stretch;
+}
+
+body {
+  font-family: -apple-system, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
+  background: var(--seed-bg);
+  color: var(--color-text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.4s ease, color 0.4s ease;
+  width: 100%;
+  min-width: 280px;
+  min-height: 720px;
+  padding: 16px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--card-gap);
+  position: relative;
+  overflow-x: hidden;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+/* ────────────────── Gradient Mesh Background ────────────────── */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -50px;
+  background:
+    radial-gradient(ellipse 300px 200px at 15% 10%, color-mix(in srgb, var(--mesh-1) 22%, transparent), transparent 60%),
+    radial-gradient(ellipse 250px 180px at 85% 25%, color-mix(in srgb, var(--mesh-2) 18%, transparent), transparent 60%),
+    radial-gradient(ellipse 280px 200px at 60% 85%, color-mix(in srgb, var(--mesh-3) 12%, transparent), transparent 60%),
+    radial-gradient(ellipse 200px 150px at 25% 65%, color-mix(in srgb, var(--mesh-1) 10%, transparent), transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+  animation: mesh-drift 24s ease-in-out infinite alternate;
+}
+
+@keyframes mesh-drift {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(15px, -10px) scale(1.05); }
+}
+
+body > * { position: relative; z-index: 1; }
+
+/* ────────────────── Glass Card Mixin ────────────────── */
+.glass {
+  background: var(--color-glass);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+}
+
+/* ────────────────── Brand Header ────────────────── */
+.brand-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.brand-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--logo-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-primary);
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.brand-logo::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 55%;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--hex-white) 22%, transparent), transparent);
+  border-radius: 10px 10px 0 0;
+  pointer-events: none;
+}
+
+.brand-logo svg {
+  width: 20px;
+  height: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.logo-arc {
+  fill: none;
+  stroke: var(--color-on-primary);
+  stroke-width: 2.8;
+}
+
+.logo-dot {
+  fill: var(--seed-accent);
+}
+
+.brand-wordmark {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
+
+.brand-wordmark .accent-dot {
+  color: var(--color-primary);
+}
+
+/* ─── Toast Notification ─── */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100px);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+  transition: transform 0.3s ease;
+}
+.toast-container.show {
+  transform: translateX(-50%) translateY(0);
+}
+.toast {
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--hex-white);
+  box-shadow: var(--shadow-md);
+  white-space: nowrap;
+}
+.toast.success { background: var(--color-success); }
+.toast.error { background: var(--color-danger); }
+.toast.info { background: var(--color-primary); }
+
+.theme-toggle {
+  display: flex;
+  background: var(--color-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.theme-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 26px;
+  border: none;
+  background: transparent;
+  border-radius: 7px;
+  cursor: pointer;
+  color: var(--color-text-subtle);
+  transition: all 0.2s ease;
+}
+
+.theme-btn svg { width: 14px; height: 14px; }
+
+.theme-btn.active {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+}
+
+.theme-btn:not(.active):hover {
+  color: var(--color-text-muted);
+  background: color-mix(in srgb, var(--seed-fg) 4%, transparent);
+}
+
+/* ────────────────── Status Hero Panel ────────────────── */
+.status-hero {
+  border-radius: var(--seed-radius);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.status-hero::after {
+  content: "";
+  position: absolute;
+  top: -40px;
+  right: -30px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--seed-accent) 14%, transparent), transparent 70%);
+  pointer-events: none;
+}
+
+.status-hero.stopped::after {
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-info) 8%, transparent), transparent 70%);
+}
+
+/* 3D Mascot Character */
+.character-wrap {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  flex-shrink: 0;
+  animation: mascot-float 3.5s ease-in-out infinite;
+}
+
+.mascot-svg {
+  width: 84px;
+  height: 84px;
+  filter: drop-shadow(0 4px 10px color-mix(in srgb, var(--seed-primary) 22%, transparent));
+  transition: filter 0.4s ease;
+}
+
+.mascot-shadow {
+  fill: color-mix(in srgb, var(--hex-black) 14%, transparent);
+}
+
+.mascot-antenna-glow {
+  fill: var(--color-success);
+  opacity: 0.15;
+  animation: antenna-glow 2s ease-in-out infinite;
+}
+
+.mascot-antenna {
+  stroke: var(--seed-primary);
+  stroke-width: 2.5;
+  fill: none;
+}
+
+.mascot-antenna-dot {
+  fill: var(--color-success);
+  animation: antenna-glow 2s ease-in-out infinite;
+}
+
+.mascot-body {
+  fill: var(--seed-primary);
+  opacity: 0.88;
+}
+
+.mascot-highlight {
+  fill: color-mix(in srgb, var(--hex-white) 38%, transparent);
+  opacity: 0.55;
+}
+
+.mascot-shine {
+  fill: color-mix(in srgb, var(--hex-white) 55%, transparent);
+  opacity: 0.35;
+}
+
+.mascot-bottom-shadow {
+  fill: color-mix(in srgb, var(--hex-black) 14%, transparent);
+}
+
+.mascot-face {
+  fill: var(--color-surface);
+  opacity: 0.9;
+}
+
+.mascot-cheek {
+  fill: var(--seed-accent);
+  opacity: 0.4;
+  transition: opacity 0.3s ease;
+}
+
+.mascot-eye {
+  fill: var(--seed-fg);
+  transition: opacity 0.3s ease;
+}
+
+.mascot-eye-shine {
+  fill: var(--hex-white);
+  opacity: 0.9;
+  transition: opacity 0.3s ease;
+}
+
+.mascot-mouth {
+  stroke: var(--seed-fg);
+  stroke-width: 2;
+  opacity: 0.5;
+  transition: all 0.3s ease;
+}
+
+/* Stopped state — character dims and "sleeps" */
+.status-hero.stopped .mascot-svg {
+  filter: drop-shadow(0 2px 5px color-mix(in srgb, var(--color-info) 10%, transparent));
+}
+
+.status-hero.stopped .mascot-body {
+  fill: var(--color-info);
+  opacity: 0.4;
+}
+
+.status-hero.stopped .mascot-antenna {
+  stroke: var(--color-info);
+  opacity: 0.5;
+}
+
+.status-hero.stopped .mascot-antenna-glow {
+  fill: var(--color-info);
+  animation: none;
+  opacity: 0.08;
+}
+
+.status-hero.stopped .mascot-antenna-dot {
+  fill: var(--color-info);
+  animation: none;
+  opacity: 0.4;
+}
+
+.status-hero.stopped .mascot-cheek {
+  opacity: 0.1;
+}
+
+.status-hero.stopped .mascot-eye {
+  opacity: 0.15;
+}
+
+.status-hero.stopped .mascot-eye-shine {
+  opacity: 0;
+}
+
+.status-hero.stopped .mascot-mouth {
+  d: path("M46 55 Q50 51 54 55");
+  opacity: 0.25;
+}
+
+@keyframes mascot-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes antenna-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  width: 38px;
+  height: 22px;
+  border-radius: 11px;
+  border: none;
+  background: color-mix(in srgb, var(--seed-fg) 15%, transparent);
+  cursor: pointer;
+  position: relative;
+  transition: background 0.3s ease;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.toggle-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--hex-white);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--hex-black) 25%, transparent);
+  pointer-events: none;
+}
+
+.toggle-switch.on {
+  background: var(--color-success);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-success) 30%, transparent),
+              var(--shadow-glow-success);
+}
+
+.toggle-switch.on .toggle-knob {
+  transform: translateX(16px);
+}
+
+.toggle-switch:hover {
+  opacity: 0.88;
+}
+
+.status-hero.stopped .toggle-switch {
+  background: color-mix(in srgb, var(--seed-fg) 12%, transparent);
+}
+
+/* Status info */
+.status-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-label {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--color-text);
+}
+
+.status-model {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  letter-spacing: 0.01em;
+}
+
+.status-model .model-name {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+/* Mini token stats row */
+.mini-stats {
+  display: flex;
+  gap: 0;
+  background: color-mix(in srgb, var(--seed-fg) 3%, transparent);
+  border-radius: 8px;
+  padding: 6px 0;
+}
+
+.mini-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  position: relative;
+}
+
+.mini-stat:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 1px;
+  background: var(--color-border);
+}
+
+.mini-stat-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
+.mini-stat-value {
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.mini-stat-value.input { color: var(--color-primary); }
+.mini-stat-value.output { color: var(--color-success); }
+.mini-stat-value.cache { color: var(--color-warn); }
+
+/* ────────────────── Model Pill Bar ────────────────── */
+.config-card {
+  border-radius: var(--seed-radius);
+  padding: 14px 18px 16px;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.config-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
+.pill-bar {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.pill-bar::-webkit-scrollbar { display: none; }
+
+.model-pill {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.model-pill:hover {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+.model-pill.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-on-primary);
+  box-shadow: var(--shadow-primary);
+}
+
+.pill-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.config-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.config-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--color-primary-subtle);
+  border: 1px solid color-mix(in srgb, var(--seed-primary) 28%, transparent);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--color-primary);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.config-btn svg {
+  width: 13px;
+  height: 13px;
+}
+
+.config-btn:hover {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-primary);
+}
+
+/* ────────────────── Model Config Panel ────────────────── */
+.model-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--seed-bg);
+  z-index: 100;
+  display: none;
+  flex-direction: column;
+  padding: 16px 20px 20px;
+  gap: var(--card-gap);
+  overflow-y: auto;
+  animation: slideIn 0.3s ease;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.model-panel.active { display: flex; }
+
+.model-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.model-panel-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
+
+.model-panel-back svg {
+  width: 20px;
+  height: 20px;
+  color: var(--color-text-muted);
+}
+
+.model-panel-title {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
+
+.model-list { display: flex; flex-direction: column; gap: 10px; }
+
+.model-card {
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.model-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.model-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.model-card-name {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.model-card-provider {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-text-subtle);
+  letter-spacing: 0.02em;
+}
+
+.model-card-provider .provider-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.model-card-provider .provider-dot.configured { background: var(--color-success); }
+.model-card-provider .provider-dot.missing { background: var(--color-warn); }
+
+.model-card-actions { display: flex; gap: 4px; flex-shrink: 0; }
+
+.model-action-btn {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  transition: all 0.2s ease;
+}
+
+.model-action-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-surface-hover);
+}
+
+.model-action-btn.delete:hover {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+  background: var(--color-danger-bg);
+}
+
+.model-action-btn svg { width: 14px; height: 14px; }
+
+.btn-add-model {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 42px;
+  border: 1.5px dashed var(--color-border-strong);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-add-model:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-surface-hover);
+}
+
+.btn-add-model svg { width: 16px; height: 16px; }
+
+.model-form {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  padding: 16px 20px 20px;
+  border: none;
+  box-shadow: var(--shadow-md);
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+  z-index: 200;
+  background: var(--seed-bg);
+  overflow-y: auto;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.model-form.active { display: flex; }
+
+.form-field { display: flex; flex-direction: column; gap: 6px; }
+
+.form-field label {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--color-text-muted);
+}
+
+.form-input {
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.form-input.mono {
+  font-family: "SF Mono", ui-monospace, monospace;
+  font-size: 13px;
+}
+
+.form-input::placeholder { color: var(--color-text-subtle); }
+.form-input:hover { border-color: var(--color-primary); }
+.form-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--seed-primary) 15%, transparent);
+}
+
+select.form-input {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+.form-hint {
+  font-size: 11px;
+  color: var(--color-text-subtle);
+  margin-top: 2px;
+}
+
+.form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+
+.btn-ghost {
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-ghost:hover {
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--seed-fg) 4%, transparent);
+}
+
+.btn-primary {
+  height: 36px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 9px;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-primary);
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-hover);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active { transform: translateY(0); }
+
+/* ────────────────── Timeline (Tabbed) ────────────────── */
+.timeline-section {
+  border-radius: var(--seed-radius);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.timeline-tabs {
+  display: flex;
+  align-items: center;
+  padding: 0 12px 0 18px;
+  border-bottom: 1px solid var(--color-border);
+  gap: 2px;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.timeline-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--color-text-subtle);
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s ease, border-color 0.2s ease;
+  margin-bottom: -1px;
+}
+
+.timeline-tab:hover { color: var(--color-text-muted); }
+
+.timeline-tab.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+.tab-count {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-subtle);
+  background: color-mix(in srgb, var(--seed-fg) 6%, transparent);
+  padding: 1px 6px;
+  border-radius: 5px;
+  letter-spacing: 0.02em;
+}
+
+.timeline-tab.active .tab-count {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+}
+
+.timeline-chevron {
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-subtle);
+  transition: transform 0.3s ease;
+  margin-left: auto;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.timeline-section.collapsed .timeline-chevron { transform: rotate(-90deg); }
+
+.tab-body {
+  display: none;
+  padding: 8px 18px 12px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  max-height: 360px;
+  transition: max-height 0.3s ease;
+}
+
+.tab-body.active { display: block; }
+
+.timeline-section.collapsed .tab-body {
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  overflow: hidden;
+}
+
+.timeline-list { list-style: none; display: flex; flex-direction: column; }
+
+.timeline-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 8px;
+  margin: 0 -8px;
+  position: relative;
+  transition: background 0.15s ease;
+  border-radius: 8px;
+}
+
+.timeline-item:hover {
+  background: color-mix(in srgb, var(--seed-primary) 3%, transparent);
+}
+
+.timeline-item:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 19px;
+  top: 36px;
+  bottom: -2px;
+  width: 2px;
+  background: var(--color-border);
+  z-index: 0;
+}
+
+.timeline-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  margin-top: 2px;
+}
+
+.timeline-icon svg { width: 12px; height: 12px; }
+
+.timeline-icon.success {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+  border: 1.5px solid var(--color-success-border);
+}
+
+.timeline-icon.switch {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+  border: 1.5px solid color-mix(in srgb, var(--seed-primary) 22%, transparent);
+}
+
+.timeline-icon.info {
+  background: var(--color-info-bg);
+  color: var(--color-info);
+  border: 1.5px solid color-mix(in srgb, var(--color-info) 20%, transparent);
+}
+
+.timeline-icon.stop {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  border: 1.5px solid var(--color-danger-border);
+}
+
+.timeline-icon.token {
+  background: color-mix(in srgb, var(--seed-primary) 8%, transparent);
+  color: var(--color-primary);
+  border: 1.5px solid color-mix(in srgb, var(--seed-primary) 18%, transparent);
+}
+
+.timeline-icon.danger {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  border: 1.5px solid var(--color-danger-border);
+}
+
+.timeline-icon.token {
+  background: color-mix(in srgb, var(--seed-primary) 8%, transparent);
+  color: var(--color-primary);
+  border: 1.5px solid color-mix(in srgb, var(--seed-primary) 18%, transparent);
+}
+
+.timeline-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.timeline-desc {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--color-text);
+  letter-spacing: 0.01em;
+}
+
+.timeline-desc .model-name { font-weight: 600; color: var(--color-primary); }
+.timeline-desc .model-name.accent { color: var(--color-success); }
+.timeline-desc .mono {
+  font-family: "SF Mono", ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.timeline-time {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--color-text-subtle);
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Stats Overview - Top cumulative stats */
+.stats-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.stats-totals {
+  display: flex;
+  gap: 0;
+  background: color-mix(in srgb, var(--seed-fg) 3%, transparent);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.stats-total-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  position: relative;
+}
+
+.stats-total-item:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 15%;
+  bottom: 15%;
+  width: 1px;
+  background: var(--color-border);
+}
+
+.stats-total-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
+.stats-total-value {
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-total-value.input { color: var(--color-primary); }
+.stats-total-value.output { color: var(--color-success); }
+.stats-total-value.calls { color: var(--color-warn); }
+
+.stats-empty {
+  text-align: center;
+  color: var(--color-text-subtle);
+  font-size: 13px;
+  padding: 12px 0;
+}
+
+/* Model Stats Card */
+.stats-card {
+  border-radius: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--seed-fg) 2%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stats-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stats-card-model {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.stats-card-time {
+  font-size: 10px;
+  color: var(--color-text-subtle);
+  opacity: 0.7;
+}
+
+.stats-card-tokens {
+  display: flex;
+  gap: 0;
+  padding: 4px 0;
+}
+
+.stats-card-token {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  position: relative;
+}
+
+.stats-card-token:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 15%;
+  bottom: 15%;
+  width: 1px;
+  background: var(--color-border);
+}
+
+.stats-card-token-label {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
+.stats-card-token-value {
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-card-token-value.input { color: var(--color-primary); }
+.stats-card-token-value.output { color: var(--color-success); }
+.stats-card-token-value.cache { color: var(--color-warn); }
+
+.stats-card-calls {
+  font-size: 11px;
+  color: var(--color-text-subtle);
+  text-align: right;
+}
+
+/* Time-based stats */
+.stats-time-group {
+  margin-top: 8px;
+}
+
+.stats-time-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-subtle);
+  margin-bottom: 4px;
+  padding-left: 4px;
+}
+
+/* History item */
+.history-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 8px;
+  margin: 0 -8px;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+}
+
+.history-item:hover {
+  background: color-mix(in srgb, var(--seed-primary) 3%, transparent);
+}
+
+.history-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.history-icon svg { width: 12px; height: 12px; }
+
+.history-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.history-desc {
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+.history-meta {
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--color-text-subtle);
+}
+
+.history-meta .model { font-weight: 600; color: var(--color-primary); }
+
+/* Timeline history row with time */
+.timeline-history-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.timeline-time-main {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.timeline-history-meta {
+  display: flex;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--color-text-subtle);
+  align-items: center;
+}
+
+.dot-sep {
+  margin: 0 2px;
+  opacity: 0.5;
+}
+
+/* Scrollbar */
+.tab-body::-webkit-scrollbar,
+.model-panel::-webkit-scrollbar { width: 5px; }
+.tab-body::-webkit-scrollbar-track,
+.model-panel::-webkit-scrollbar-track { background: transparent; }
+.tab-body::-webkit-scrollbar-thumb,
+.model-panel::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 3px;
+}
+.tab-body::-webkit-scrollbar-thumb:hover,
+.model-panel::-webkit-scrollbar-thumb:hover { background: var(--color-text-subtle); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ────────── Brand Header ────────── -->
+<header class="brand-header" data-component="Brand Header" data-od-id="brand-header">
+  <div class="brand-left">
+    <div class="brand-logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path class="logo-arc" d="M16.5 7.5A6 6 0 1 0 16.5 16.5"></path>
+        <circle class="logo-dot" cx="12" cy="12" r="2.3"></circle>
+      </svg>
+    </div>
+    <div class="brand-wordmark">codex<span class="accent-dot">助手</span></div>
+  </div>
+  <div class="theme-toggle" role="group" aria-label="主题切换">
+    <button class="theme-btn active" data-theme-val="light" aria-label="浅色主题">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="4"></circle>
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+      </svg>
+    </button>
+    <button class="theme-btn" data-theme-val="dark" aria-label="深色主题">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+      </svg>
+    </button>
+    <button class="theme-btn" data-theme-val="focus" aria-label="专注主题">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <circle cx="12" cy="12" r="7" stroke-dasharray="2 3"></circle>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- ────────── Main Content ────────── -->
+<main data-component="Main Content" data-od-id="main-content">
+
+  <!-- ─── Status Hero Panel ─── -->
+  <section class="status-hero glass" id="status-hero" data-component="Status Hero" data-od-id="status-hero">
+    <!-- 3D Mascot Character -->
+    <div class="character-wrap" data-component="Mascot" data-od-id="mascot">
+      <svg class="mascot-svg" viewBox="0 0 100 100">
+        <ellipse class="mascot-shadow" cx="50" cy="91" rx="22" ry="3.5"/>
+        <circle class="mascot-antenna-glow" cx="50" cy="10" r="6"/>
+        <line class="mascot-antenna" x1="50" y1="12" x2="50" y2="22" stroke-linecap="round"/>
+        <circle class="mascot-antenna-dot" cx="50" cy="10" r="3"/>
+        <path class="mascot-body" d="M50 20 C66 20 74 32 74 48 C74 65 68 85 50 85 C32 85 26 65 26 48 C26 32 34 20 50 20 Z"/>
+        <path class="mascot-highlight" d="M50 20 C62 20 70 28 72 38 C72 38 64 26 50 26 C36 26 28 38 28 38 C30 28 38 20 50 20 Z"/>
+        <ellipse class="mascot-shine" cx="36" cy="36" rx="4" ry="7"/>
+        <path class="mascot-bottom-shadow" d="M28 64 C28 73 34 85 50 85 C66 85 72 73 72 64 C72 64 66 79 50 79 C34 79 28 64 28 64 Z"/>
+        <ellipse class="mascot-face" cx="50" cy="46" rx="18" ry="16"/>
+        <circle class="mascot-cheek" cx="37" cy="52" r="2.5"/>
+        <circle class="mascot-cheek" cx="63" cy="52" r="2.5"/>
+        <ellipse class="mascot-eye" cx="43" cy="44" rx="2.5" ry="3.5"/>
+        <circle class="mascot-eye-shine" cx="44" cy="42.5" r="0.9"/>
+        <ellipse class="mascot-eye" cx="57" cy="44" rx="2.5" ry="3.5"/>
+        <circle class="mascot-eye-shine" cx="58" cy="42.5" r="0.9"/>
+        <path class="mascot-mouth" d="M46 54 Q50 57.5 54 54" stroke-linecap="round" fill="none"/>
+      </svg>
+    </div>
+
+    <!-- Status Info -->
+    <div class="status-info">
+      <div class="status-row">
+        <button class="toggle-switch on" id="power-btn" type="button" aria-label="开启或关闭Codex助手服务">
+          <span class="toggle-knob"></span>
+        </button>
+        <span class="status-label" id="status-label">运行中</span>
+      </div>
+      <span class="status-model" id="status-model">当前模型：<span class="model-name" id="current-model-name">未选择</span></span>
+      <div class="mini-stats">
+        <div class="mini-stat">
+          <span class="mini-stat-label">总消耗</span>
+          <span class="mini-stat-value input" id="total-consumption">0</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Model Pill Bar ─── -->
+  <section class="config-card glass" data-component="Model Selector" data-od-id="model-selector">
+    <div class="config-header">
+      <div class="config-title">模型</div>
+      <button class="config-btn" id="open-model-config" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        模型配置
+      </button>
+    </div>
+    <div class="pill-bar" id="pill-bar">
+      <!-- pills will be dynamically populated -->
+    </div>
+  </section>
+
+  <!-- ─── 日志 Section (with tabs: 模型统计 / 调用历史 / 操作日志) ─── -->
+  <section class="timeline-section glass" id="timeline-section" data-component="Activity Timeline" data-od-id="activity-timeline">
+    <div class="timeline-tabs" id="timeline-tabs">
+      <button class="timeline-tab active" data-tab="stats" type="button">
+        模型统计
+        <span class="tab-count" id="stats-count">0</span>
+      </button>
+      <button class="timeline-tab" data-tab="history" type="button">
+        调用历史
+        <span class="tab-count" id="history-count">0</span>
+      </button>
+      <button class="timeline-tab" data-tab="logs" type="button">
+        操作日志
+        <span class="tab-count" id="logs-count">0</span>
+      </button>
+      <svg class="timeline-chevron" id="timeline-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    </div>
+
+    <!-- 模型统计 Body -->
+    <div class="tab-body active" data-tab-body="stats">
+      <div class="stats-overview" id="stats-overview">
+        <div class="stats-empty">暂无调用数据，使用模型后会自动统计</div>
+      </div>
+      <div id="stats-model-list"></div>
+    </div>
+
+    <!-- 调用历史 Body -->
+    <div class="tab-body" data-tab-body="history">
+      <ul class="timeline-list" id="history-list">
+        <li class="timeline-item empty-state">
+          <div class="timeline-icon info">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+          </div>
+          <div class="timeline-content">
+            <span class="timeline-desc">暂无调用记录</span>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- 操作日志 Body (merged operation logs + error logs) -->
+    <div class="tab-body" data-tab-body="logs">
+      <ul class="timeline-list" id="logs-list">
+        <li class="timeline-item empty-state">
+          <div class="timeline-icon success">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+          <div class="timeline-content">
+            <span class="timeline-desc">暂无日志记录，运行正常</span>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+<!-- ────────── Model Config Panel ────────── -->
+<div class="model-panel" id="model-panel" data-component="Model Config Panel" data-od-id="model-config-panel">
+  <div class="model-panel-header">
+    <button class="model-panel-back" id="close-model-config" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+      返回
+    </button>
+    <span class="model-panel-title">模型配置</span>
+    <button class="btn-primary" id="open-add-form" type="button" style="height:32px;padding:0 14px;font-size:13px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      新增模型
+    </button>
+  </div>
+
+  <div class="model-list" id="model-list">
+    <!-- model cards will be dynamically populated -->
+  </div>
+</div>
+
+<!-- ────────── Add/Edit Model Form ────────── -->
+<div class="model-form glass" id="model-form">
+  <div class="model-panel-header" style="margin-bottom:10px;">
+    <button class="model-panel-back" id="close-form" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+      返回
+    </button>
+    <span class="model-panel-title" id="form-title">新增模型</span>
+    <div style="width:60px;"></div>
+  </div>
+  <div class="form-field">
+    <label for="form-provider-select">服务商</label>
+    <select class="form-input" id="form-provider-select">
+      <option value="">选择服务商</option>
+    </select>
+    <span class="form-hint">选择服务商后自动填充官方地址和模型</span>
+  </div>
+  <div class="form-field">
+    <label for="form-model-select">模型名称</label>
+    <select class="form-input" id="form-model-select">
+      <option value="">选择模型</option>
+    </select>
+    <input class="form-input" id="form-model" type="text" placeholder="或输入自定义模型名称" style="margin-top:6px;">
+  </div>
+  <div class="form-field">
+    <label for="form-url">Base URL</label>
+    <input class="form-input mono" id="form-url" type="text" placeholder="https://api.example.com/v1/chat/completions">
+    <span class="form-hint">选择服务商后自动填充官方请求地址</span>
+  </div>
+  <div class="form-field">
+    <label for="form-key">API Key</label>
+    <input class="form-input mono" id="form-key" type="password" placeholder="输入 API Key">
+  </div>
+  <div class="form-actions">
+    <button class="btn-ghost" type="button" id="cancel-form">取消</button>
+    <button class="btn-primary" type="button" id="save-model">保存</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  var root = document.documentElement;
+  var API_BASE = "";
+
+  var PROVIDER_CONFIGS = {
+    'DeepSeek': { url: 'https://api.deepseek.com/chat/completions', models: ['deepseek-v4-pro', 'deepseek-v4-flash'] },
+    'Claude': { url: 'https://api.anthropic.com/v1/messages', models: ['claude-opus-5', 'claude-sonnet-5', 'claude-haiku-4.5'] },
+    'Gemini': { url: 'https://generativelanguage.googleapis.com/v1beta/models', models: ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-pro'] },
+    '阿里云': { url: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', models: ['qwen3.8-max-preview', 'qwen3.7-max', 'qwen3.7-plus', 'qwen3.6-flash'] },
+    '小米MIMO': { url: 'https://api.gmi-serving.com/v1/chat/completions', models: ['mimo-v2.5-pro', 'mimo-v2.5'] },
+    'Kimi CN': { url: 'https://api.moonshot.cn/v1/chat/completions', models: ['kimi-k3', 'kimi-k2.7-code', 'kimi-k2.6'] },
+    '智谱': { url: 'https://open.bigmodel.cn/api/paas/v4/chat/completions', models: ['glm-5.2', 'glm-5.1', 'glm-5-turbo'] },
+    'LongCat': { url: 'https://api.longcat.chat/openai/v1/chat/completions', models: ['LongCat-2.0', 'LongCat-2.0-Preview', 'LongCat-Flash'] },
+    'StepFun': { url: 'https://api.stepfun.com/v1/chat/completions', models: ['step-3.7-flash', 'step-3.5-flash', 'step-2.5-flash'] },
+    '自定义': { url: '', models: [] }
+  };
+
+  // ─── API helpers ───
+  async function apiGet(path) { var r = await fetch(API_BASE + path); return r.json(); }
+  async function apiPost(path, data) {
+    var r = await fetch(API_BASE + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data || {}) });
+    return r.json();
+  }
+
+  // ─── Toast Notification ───
+  function showToast(message, type, debugInfo) {
+    var container = document.getElementById('toast-container');
+    if (!container) return;
+    var toast = document.createElement('div');
+    toast.className = 'toast ' + (type || 'info');
+    toast.textContent = message;
+    if (debugInfo) {
+      toast.style.cursor = 'pointer';
+      toast.style.maxWidth = '80vw';
+      toast.style.whiteSpace = 'normal';
+      toast.style.wordBreak = 'break-all';
+      toast.onclick = function() {
+        console.error('Debug info:', debugInfo);
+        // 创建弹窗显示完整错误信息
+        var modal = document.createElement('div');
+        modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+        modal.innerHTML = '<div style="background:var(--color-surface);border-radius:12px;padding:20px;max-width:600px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:var(--shadow-lg);"><h3 style="margin:0 0 12px;font-size:16px;color:var(--color-text);">错误详情</h3><pre style="background:color-mix(in srgb,var(--seed-fg) 5%,transparent);border-radius:8px;padding:12px;font-size:12px;color:var(--color-text-muted);white-space:pre-wrap;word-break:break-all;margin:0 0 16px;">' + (debugInfo || '').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre><button id="close-error-modal" style="width:100%;height:36px;border:none;border-radius:8px;background:var(--color-primary);color:var(--color-on-primary);font-size:14px;font-weight:600;cursor:pointer;">关闭</button></div>';
+        document.body.appendChild(modal);
+        document.getElementById('close-error-modal').onclick = function() { modal.remove(); };
+        modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
+      };
+    }
+    container.appendChild(toast);
+    container.classList.add('show');
+    setTimeout(function() {
+      toast.remove();
+      if (container.children.length === 0) container.classList.remove('show');
+    }, type === 'error' ? 8000 : 3000);
+  }
+
+  // ─── State ───
+  var state = { running: false, model: null, modelName: null, token: { input: 0, output: 0, cache: 0 }, models: [], config: [], timeline: [], perModelStats: [], history: [], permission: { writable: true, guide: '', checked: false } };
+
+  // ─── DOM refs ───
+  var powerBtn = document.getElementById('power-btn');
+  var statusHero = document.getElementById('status-hero');
+  var statusLabel = document.getElementById('status-label');
+  var pillBar = document.getElementById('pill-bar');
+  var modelPanel = document.getElementById('model-panel');
+  var modelList = document.getElementById('model-list');
+  var logsList = document.getElementById('logs-list');
+  var historyList = document.getElementById('history-list');
+  var statsOverview = document.getElementById('stats-overview');
+  var statsModelList = document.getElementById('stats-model-list');
+  var formPanel = document.getElementById('model-form');
+  var formTitle = document.getElementById('form-title');
+  var formProvider = document.getElementById('form-provider-select');
+  var formModelSelect = document.getElementById('form-model-select');
+  var formModel = document.getElementById('form-model');
+  var formUrl = document.getElementById('form-url');
+  var formKey = document.getElementById('form-key');
+  var permissionModal = null;
+
+  // ─── Render functions ───
+  function renderStatus() {
+    if (state.running) { powerBtn.classList.add('on'); statusHero.classList.remove('stopped'); statusLabel.textContent = '运行中'; }
+    else { powerBtn.classList.remove('on'); statusHero.classList.add('stopped'); statusLabel.textContent = '已停止'; }
+    var el = document.getElementById('current-model-name');
+    if (el) el.textContent = state.modelName || state.model || '未选择';
+    var totalEl = document.getElementById('total-consumption');
+    var total = (state.token.input || 0) + (state.token.output || 0) + (state.token.cache || 0);
+    if (totalEl) totalEl.textContent = total.toLocaleString();
+  }
+
+  function renderPills() {
+    if (!pillBar) return;
+    pillBar.innerHTML = '';
+    if (state.models.length === 0) {
+      var empty = document.createElement('span');
+      empty.style.color = 'var(--color-text-subtle)';
+      empty.style.fontSize = '13px';
+      empty.textContent = '暂无模型，请点击右上角"模型配置"添加';
+      pillBar.appendChild(empty);
+      return;
+    }
+    state.models.forEach(function(m) {
+      var btn = document.createElement('button');
+      btn.className = 'model-pill' + (m.model === state.model ? ' active' : '');
+      btn.textContent = m.label;
+      btn.onclick = function() { selectModel(m.route, m.model); };
+      pillBar.appendChild(btn);
+    });
+  }
+
+  function renderModelList() {
+    if (!modelList) return;
+    modelList.innerHTML = '';
+    state.config.forEach(function(m, idx) {
+      var card = document.createElement('div');
+      card.className = 'model-card glass';
+      card.setAttribute('data-model-id', idx);
+      var hasKey = m.api_key && m.api_key.length > 0;
+      card.innerHTML = '<div class="model-card-info"><span class="model-card-name">' + (m.label || m.model) + '</span><span class="model-card-provider"><span class="provider-dot ' + (hasKey ? 'configured' : 'missing') + '"></span>' + (m.provider || '自定义') + (m.model ? ' · ' + m.model : '') + '</span></div><div class="model-card-actions"><button class="model-action-btn" type="button" aria-label="编辑模型" onclick="window.openEditForm(' + idx + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button><button class="model-action-btn delete" type="button" aria-label="删除模型" onclick="window.deleteModel(' + idx + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button></div>';
+      modelList.appendChild(card);
+    });
+  }
+
+  function renderLogsList() {
+    if (!logsList) return;
+    if (state.timeline.length === 0) {
+      logsList.innerHTML = '<li class="timeline-item"><div class="timeline-icon success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div><div class="timeline-content"><span class="timeline-desc">暂无日志记录，运行正常</span></div></li>';
+      return;
+    }
+    var html = '';
+    var icons = { success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>', switch: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>', stop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg>', danger: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>', info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>', token: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>' };
+    state.timeline.slice().reverse().forEach(function(item) {
+      html += '<li class="timeline-item"><div class="timeline-icon ' + (item.icon_color || 'success') + '">' + (icons[item.icon_color] || icons.success) + '</div><div class="timeline-content"><span class="timeline-desc">' + item.desc + '</span><span class="timeline-time">' + item.time + '</span></div></li>';
+    });
+    logsList.innerHTML = html;
+  }
+
+  function renderHistoryList() {
+    if (!historyList) return;
+    if (!state.history || state.history.length === 0) {
+      historyList.innerHTML = '<li class="timeline-item empty-state"><div class="timeline-icon info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div><div class="timeline-content"><span class="timeline-desc">暂无调用记录</span></div></li>';
+      return;
+    }
+    var html = '';
+    state.history.slice().reverse().forEach(function(item) {
+      var timeParts = (item.time || '').split(' ');
+      var datePart = timeParts.length > 0 ? timeParts[0] : '';
+      var timePart = timeParts.length > 1 ? timeParts[1] : (item.time || '');
+      html += '<li class="timeline-item"><div class="timeline-icon token"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div><div class="timeline-content"><div class="timeline-history-row"><span class="timeline-desc">' + (item.model || '未知模型') + '</span><span class="timeline-time-main">' + timePart + '</span></div><div class="timeline-history-meta"><span>输入 ' + (item.input || 0).toLocaleString() + '</span><span class="dot-sep">·</span><span>输出 ' + (item.output || 0).toLocaleString() + '</span><span class="dot-sep">·</span><span>缓存 ' + (item.cache || 0).toLocaleString() + '</span></div></div></li>';
+    });
+    historyList.innerHTML = html;
+  }
+
+  function renderStats() {
+    if (!statsOverview || !statsModelList) return;
+    var totals = state.token || { input: 0, output: 0, cache: 0 };
+    var totalCalls = state.perModelStats ? state.perModelStats.reduce(function(s, m) { return s + (m.calls || 0); }, 0) : 0;
+    if ((!state.perModelStats || state.perModelStats.length === 0) && totalCalls === 0) {
+      statsOverview.innerHTML = '<div class="stats-empty">暂无调用数据，使用模型后会自动统计</div>';
+      statsModelList.innerHTML = '';
+      return;
+    }
+    statsOverview.innerHTML = '<div class="stats-totals"><div class="stats-total-item"><span class="stats-total-label">总输入</span><span class="stats-total-value input">' + (totals.input || 0).toLocaleString() + '</span></div><div class="stats-total-item"><span class="stats-total-label">总输出</span><span class="stats-total-value output">' + (totals.output || 0).toLocaleString() + '</span></div><div class="stats-total-item"><span class="stats-total-label">总调用</span><span class="stats-total-value calls">' + (totalCalls || 0).toLocaleString() + '</span></div></div>';
+    var html = '';
+    if (state.perModelStats) {
+      state.perModelStats.forEach(function(stat) {
+        html += '<div class="stats-card"><div class="stats-card-header"><span class="stats-card-model">' + stat.model + '</span><span class="stats-card-time">' + (stat.last_used || '') + '</span></div><div class="stats-card-tokens"><div class="stats-card-token"><span class="stats-card-token-label">输入</span><span class="stats-card-token-value input">' + (stat.input || 0).toLocaleString() + '</span></div><div class="stats-card-token"><span class="stats-card-token-label">输出</span><span class="stats-card-token-value output">' + (stat.output || 0).toLocaleString() + '</span></div><div class="stats-card-token"><span class="stats-card-token-label">缓存</span><span class="stats-card-token-value cache">' + (stat.cache || 0).toLocaleString() + '</span></div></div><div class="stats-card-calls">调用 ' + (stat.calls || 0) + ' 次</div></div>';
+      });
+    }
+    statsModelList.innerHTML = html;
+  }
+
+  // ─── Actions ───
+  function addTimeline(icon, desc, icon_color) {
+    state.timeline.push({ icon: icon || '', desc: desc, icon_color: icon_color || 'success', time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) });
+    if (state.timeline.length > 200) state.timeline = state.timeline.slice(-200);
+    renderLogsList();
+    updateCounts();
+  }
+
+  function updateCounts() {
+    var logsCount = document.getElementById('logs-count');
+    var statsCount = document.getElementById('stats-count');
+    var historyCount = document.getElementById('history-count');
+    if (logsCount) logsCount.textContent = state.timeline ? state.timeline.length : 0;
+    if (statsCount) statsCount.textContent = state.perModelStats ? state.perModelStats.length : 0;
+    if (historyCount) historyCount.textContent = state.history ? state.history.length : 0;
+  }
+
+  // ─── 权限检测与修复 ───
+  async function checkPermissions() {
+    try {
+      var resp = await apiGet('/api/permissions/check');
+      state.permission.writable = resp.writable;
+      state.permission.checked = true;
+      if (!resp.writable) {
+        // 不可写，显示引导弹窗
+        await showPermissionGuide();
+      }
+      return resp.writable;
+    } catch (e) {
+      console.error('权限检测失败:', e);
+      return true; // 检测失败时默认可写，避免阻塞
+    }
+  }
+
+  async function showPermissionGuide() {
+    try {
+      var resp = await apiGet('/api/permissions/guide');
+      var guide = resp.guide || '无法获取权限修复指南';
+      state.permission.guide = guide;
+      // 创建权限引导弹窗
+      if (permissionModal) permissionModal.remove();
+      permissionModal = document.createElement('div');
+      permissionModal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);';
+      permissionModal.innerHTML = '<div style="background:var(--color-surface);border-radius:16px;padding:24px;max-width:520px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:slideIn 0.3s ease;"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;"><div style="width:40px;height:40px;border-radius:10px;background:var(--color-warn-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-warn)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div><h3 style="margin:0;font-size:18px;font-weight:600;color:var(--color-text);">需要磁盘访问权限</h3></div><div style="background:color-mix(in srgb,var(--seed-fg) 5%,transparent);border-radius:10px;padding:16px;margin-bottom:20px;"><pre style="margin:0;font-size:13px;color:var(--color-text-muted);white-space:pre-wrap;word-break:break-all;font-family:inherit;line-height:1.6;">' + guide.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre></div><div style="display:flex;gap:10px;"><button id="permission-fix-btn" style="flex:1;height:40px;border:none;border-radius:10px;background:var(--color-primary);color:var(--color-on-primary);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>一键修复权限</button><button id="permission-close-btn" style="height:40px;padding:0 20px;border:1px solid var(--color-border-strong);border-radius:10px;background:transparent;color:var(--color-text-muted);font-size:14px;font-weight:500;cursor:pointer;">稍后处理</button></div></div>';
+      document.body.appendChild(permissionModal);
+      // 绑定按钮事件
+      document.getElementById('permission-fix-btn').onclick = function() { fixPermissions(); };
+      document.getElementById('permission-close-btn').onclick = function() { permissionModal.remove(); permissionModal = null; };
+      permissionModal.onclick = function(e) { if (e.target === permissionModal) { permissionModal.remove(); permissionModal = null; } };
+    } catch (e) {
+      console.error('显示权限引导失败:', e);
+    }
+  }
+
+  async function fixPermissions() {
+    var btn = document.getElementById('permission-fix-btn');
+    if (!btn) return;
+    btn.textContent = '修复中...';
+    btn.disabled = true;
+    try {
+      var resp = await apiPost('/api/permissions/fix', {});
+      if (resp.ok) {
+        showToast('权限修复成功！', 'success');
+        if (permissionModal) { permissionModal.remove(); permissionModal = null; }
+        // 重新检测权限
+        await checkPermissions();
+      } else {
+        // 修复失败，显示手动修复指引
+        showToast('自动修复失败，请手动修复', 'error');
+        btn.textContent = '一键修复权限';
+        btn.disabled = false;
+        // 显示手动修复指引
+        showManualFixGuide();
+      }
+    } catch (e) {
+      showToast('修复失败: ' + e.message, 'error');
+      btn.textContent = '一键修复权限';
+      btn.disabled = false;
+      showManualFixGuide();
+    }
+  }
+
+  function showManualFixGuide() {
+    // 在弹窗中显示手动修复指引
+    var guideDiv = document.querySelector('#permission-modal pre');
+    if (guideDiv) {
+      guideDiv.textContent = '自动修复失败，请手动修复：\n\n方法A（推荐）：\n打开终端，运行以下命令：\n  sudo chown $(whoami):staff ~/.codex/config.toml\n  chmod 644 ~/.codex/config.toml\n\n方法B：\n打开"系统偏好设置" → "安全性与隐私" → "完全磁盘访问权限"，将本应用添加到允许列表';
+    }
+  }
+
+  async function startService() {
+    try {
+      var resp = await apiPost('/api/toggle', { action: 'start' });
+      if (resp.ok) { state.running = true; showToast('Codex助手 服务已启动', 'success'); addTimeline('OK', 'Codex助手 服务已启动，可在 Codex App 中使用', 'success'); renderStatus(); }
+      else if (resp.permission_error) { showPermissionGuide(); addTimeline('ERR', '权限错误: ' + (resp.error || '未知错误'), 'danger'); }
+      else { showToast('启动失败: ' + (resp.error || '未知错误'), 'error', resp.debug); addTimeline('ERR', '启动失败: ' + (resp.error || '未知错误'), 'danger'); }
+    } catch (e) { showToast('启动失败: ' + e.message, 'error'); addTimeline('ERR', '启动失败: ' + e.message, 'danger'); }
+  }
+
+  async function stopService() {
+    try {
+      var resp = await apiPost('/api/toggle', { action: 'stop' });
+      if (resp.ok) { state.running = false; showToast('Codex助手 服务已停止', 'info'); addTimeline('STOP', 'Codex助手 服务已停止，已恢复 OpenAI 原始配置', 'stop'); renderStatus(); }
+      else { showToast('停止失败: ' + (resp.error || '未知错误'), 'error', resp.debug); addTimeline('ERR', '停止失败: ' + (resp.error || '未知错误'), 'danger'); }
+    } catch (e) { showToast('停止失败: ' + e.message, 'error'); addTimeline('ERR', '停止失败: ' + e.message, 'danger'); }
+  }
+
+  async function selectModel(route, model) {
+    try {
+      var resp = await apiPost('/api/model/select', { route: route, model: model });
+      if (resp.ok) { state.model = model; state.modelName = resp.model_name || model; showToast('已切换到 ' + (resp.model_name || model), 'success'); addTimeline('SWITCH', '已切换到 ' + (resp.model_name || model), 'switch'); renderStatus(); renderPills(); }
+      else if (resp.permission_error) { showPermissionGuide(); addTimeline('ERR', '权限错误: ' + (resp.error || '未知错误'), 'danger'); }
+      else { showToast('切换失败: ' + (resp.error || '未知错误'), 'error', resp.debug); addTimeline('ERR', '切换失败: ' + (resp.error || '未知错误'), 'danger'); }
+    } catch (e) { showToast('切换失败: ' + e.message, 'error'); addTimeline('ERR', '切换失败: ' + e.message, 'danger'); }
+  }
+
+  // ─── Form helpers ───
+  function updateModelSelect(providerName) {
+    formModelSelect.innerHTML = '<option value="">选择模型</option>';
+    var cfg = PROVIDER_CONFIGS[providerName];
+    if (cfg && cfg.models) {
+      cfg.models.forEach(function(model) {
+        var opt = document.createElement('option');
+        opt.value = model; opt.textContent = model;
+        formModelSelect.appendChild(opt);
+      });
+    }
+  }
+
+  function onProviderChange() {
+    var providerName = formProvider.value;
+    var cfg = PROVIDER_CONFIGS[providerName];
+    if (cfg) {
+      formUrl.value = cfg.url || '';
+      updateModelSelect(providerName);
+      // 选择服务商时，清空自定义模型输入（单选逻辑）
+      formModel.value = '';
+    } else {
+      formUrl.value = '';
+      formModelSelect.innerHTML = '<option value="">选择模型</option>';
+      // 未选择服务商时，清空自定义模型输入
+      formModel.value = '';
+    }
+  }
+
+  function onModelSelect() {
+    var val = formModelSelect.value;
+    if (val) {
+      // 选择预设模型时，清空自定义模型输入（单选逻辑）
+      formModel.value = '';
+    }
+  }
+
+  // 自定义模型输入变化时，重置服务商和模型下拉
+  function onCustomModelInput() {
+    var customVal = formModel.value.trim();
+    if (customVal) {
+      // 输入自定义模型时，重置服务商下拉（单选逻辑）
+      formProvider.value = '';
+      formModelSelect.innerHTML = '<option value="">选择模型</option>';
+    }
+  }
+
+  async function saveModel() {
+    var provider = formProvider.value;
+    var model = formModel.value.trim() || formModelSelect.value.trim();
+    var url = formUrl.value.trim();
+    var key = formKey.value.trim();
+    if (!provider || !model || !url) { alert('请填写服务商、模型名称和 Base URL'); return; }
+    try {
+      var resp = await apiPost('/api/config/save', { provider: provider, model: model, url: url, api_key: key });
+      if (resp.ok) {
+        formPanel.classList.remove('active');
+        addTimeline('SAVE', '已保存模型: ' + model, 'success');
+        await loadConfig();
+      } else {
+        addTimeline('ERR', '保存失败: ' + (resp.error || '未知错误'), 'danger');
+      }
+    } catch (e) { addTimeline('ERR', '保存失败: ' + e.message, 'danger'); }
+  }
+
+  // ─── Data loading ───
+  async function loadConfig() {
+    try {
+      var resp = await apiGet('/api/config');
+      state.config = resp.config || [];
+      state.models = resp.models || [];
+      renderModelList();
+      renderPills();
+    } catch (e) { console.error('加载配置失败:', e); }
+  }
+
+  async function loadStats() {
+    try {
+      var resp = await apiGet('/api/stats');
+      state.token = resp.token || { input: 0, output: 0, cache: 0 };
+      state.perModelStats = resp.per_model || [];
+      state.history = resp.history || [];
+      renderStatus();
+      renderStats();
+      renderHistoryList();
+      updateCounts();
+    } catch (e) { console.error('加载统计失败:', e); }
+  }
+
+  // ─── 加载错误日志并合并到时间线 ───
+  async function loadErrors() {
+    try {
+      var resp = await apiGet('/api/errors');
+      var errors = resp.errors || [];
+      errors.forEach(function(err) {
+        var errDesc = (err.model ? err.model + ' - ' : '') + err.message;
+        if (!state.timeline.some(function(t) { return t.desc === errDesc; })) {
+          state.timeline.push({
+            icon: 'ERR',
+            desc: errDesc,
+            icon_color: 'danger',
+            time: err.timestamp ? err.timestamp.split(' ')[1] : ''
+          });
+        }
+      });
+      renderLogsList();
+      updateCounts();
+    } catch (e) { console.error('加载错误失败:', e); }
+  }
+
+  async function loadStatus() {
+    try {
+      var resp = await apiGet('/api/status');
+      state.running = resp.running || false;
+      state.model = resp.model || null;
+      state.modelName = resp.model_name || resp.model || '未选择';
+      renderStatus();
+      renderPills();
+    } catch (e) { console.error('加载状态失败:', e); }
+  }
+
+  // ─── Init ───
+  function initTheme() {
+    var btns = document.querySelectorAll('.theme-btn');
+    btns.forEach(function(btn) {
+      btn.onclick = function() {
+        var val = btn.getAttribute('data-theme-val');
+        root.setAttribute('data-theme', val);
+        btns.forEach(function(b) { b.classList.toggle('active', b.getAttribute('data-theme-val') === val); });
+        localStorage.setItem('codex-theme', val);
+      };
+    });
+    var saved = localStorage.getItem('codex-theme');
+    if (saved) { root.setAttribute('data-theme', saved); btns.forEach(function(b) { b.classList.toggle('active', b.getAttribute('data-theme-val') === saved); }); }
+  }
+
+  function initPowerBtn() {
+    if (powerBtn) powerBtn.onclick = function() { state.running ? stopService() : startService(); };
+  }
+
+  function initTabs() {
+    var tabButtons = document.querySelectorAll('.timeline-tab');
+    tabButtons.forEach(function(tab) {
+      tab.onclick = function(e) {
+        e.stopPropagation();
+        var target = tab.getAttribute('data-tab');
+        tabButtons.forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        document.querySelectorAll('.tab-body').forEach(function(body) { body.classList.toggle('active', body.getAttribute('data-tab-body') === target); });
+      };
+    });
+    var chevron = document.getElementById('timeline-chevron');
+    var section = document.querySelector('.timeline-section');
+    if (chevron && section) chevron.onclick = function(e) { e.stopPropagation(); section.classList.toggle('collapsed'); };
+  }
+
+  function initModelPanel() {
+    var openBtn = document.getElementById('open-model-config');
+    var closeBtn = document.getElementById('close-model-config');
+    if (openBtn) openBtn.onclick = function() { modelPanel.classList.add('active'); };
+    if (closeBtn) closeBtn.onclick = function() { modelPanel.classList.remove('active'); formPanel.classList.remove('active'); };
+  }
+
+  function initForm() {
+    var openBtn = document.getElementById('open-add-form');
+    var cancelBtn = document.getElementById('cancel-form');
+    var saveBtn = document.getElementById('save-model');
+    var closeFormBtn = document.getElementById('close-form');
+    if (openBtn) openBtn.onclick = openAddForm;
+    if (cancelBtn) cancelBtn.onclick = function() { formPanel.classList.remove('active'); };
+    if (closeFormBtn) closeFormBtn.onclick = function() { formPanel.classList.remove('active'); };
+    if (saveBtn) saveBtn.onclick = saveModel;
+    if (formProvider) {
+      Object.keys(PROVIDER_CONFIGS).forEach(function(name) {
+        var opt = document.createElement('option');
+        opt.value = name; opt.textContent = name;
+        formProvider.appendChild(opt);
+      });
+      formProvider.onchange = onProviderChange;
+    }
+    if (formModelSelect) formModelSelect.onchange = onModelSelect;
+    if (formModel) formModel.oninput = onCustomModelInput;
+  }
+
+  function openAddForm() {
+    formTitle.textContent = '新增模型';
+    formProvider.value = '';
+    formModelSelect.innerHTML = '<option value="">选择模型</option>';
+    formModel.value = ''; formUrl.value = ''; formKey.value = '';
+    formPanel.classList.add('active');
+  }
+
+  window.openEditForm = function(id) {
+    var model = state.config[parseInt(id)];
+    if (!model) return;
+    formTitle.textContent = '编辑模型';
+    var providerName = model.provider || model.label || '';
+    formProvider.value = providerName;
+    updateModelSelect(providerName);
+    // Check if the model already exists in the dropdown
+    var modelFound = false;
+    for (var i = 0; i < formModelSelect.options.length; i++) {
+      if (formModelSelect.options[i].value === model.model) {
+        formModelSelect.selectedIndex = i;
+        modelFound = true;
+        break;
+      }
+    }
+    if (!modelFound && model.model) {
+      // Model not in presets, put it in the custom text input
+      formModel.value = model.model;
+    } else {
+      formModel.value = '';
+    }
+    formUrl.value = model.upstream || '';
+    formKey.value = model.api_key || '';
+    formPanel.classList.add('active');
+  };
+
+  window.deleteModel = async function(id) {
+    try {
+      var resp = await apiPost('/api/config/delete', { index: id });
+      if (resp.ok) {
+        addTimeline('DEL', '已删除模型', 'stop');
+        await loadConfig();
+      }
+    } catch (e) { addTimeline('ERR', '删除失败: ' + e.message, 'danger'); }
+  };
+
+  document.addEventListener('DOMContentLoaded', async function() {
+    initTheme();
+    initPowerBtn();
+    initTabs();
+    initModelPanel();
+    initForm();
+    await loadStatus();
+    await loadConfig();
+    await loadStats();
+    await loadErrors();
+    updateCounts();
+    setInterval(async function() { await loadStatus(); await loadStats(); await loadErrors(); }, 3000);
+  });
+})();
+</script>
+<div class="toast-container" id="toast-container"></div>
+</body>
+</html>

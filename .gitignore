@@ -40,6 +40,10 @@ Thumbs.db
 # ===== Release 二进制（走 GitHub Release，不进 git） =====
 release/*.exe
 
+# ===== macOS 打包产物（构建产物，不进 git） =====
+*.app/
+CodexHelper.app/
+
 # ��ʱ API �ϴ��ű�������ֿ�
 .api_push.ps1
 .api-test.txt

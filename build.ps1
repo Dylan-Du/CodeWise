@@ -1,41 +1,44 @@
-# 一键打包脚本（Windows / PowerShell）
-# 跑法：pwsh ./build.ps1   或在 PowerShell 里  .\build.ps1
-#
-# 输出：dist_work/dist/codex-switch.exe
-#       并复制到 release/codex-switch.exe
+# build.ps1 — Windows 一键打包成 .exe
+# 用法: 在 Windows PowerShell 里运行 .\build.ps1
+# 产物: dist\Codex助手.exe
 
 $ErrorActionPreference = "Stop"
 
-$root = Split-Path -Parent $MyInvocation.MyCommand.Path
-$src = Join-Path $root "src"
-$work = Join-Path $root "dist_work"
-$rel = Join-Path $root "release"
-
-New-Item -ItemType Directory -Path $work -Force | Out-Null
-New-Item -ItemType Directory -Path $rel -Force | Out-Null
-
-Write-Host "[1/3] 装依赖（含 pyinstaller）..." -ForegroundColor Cyan
-python -m pip install --quiet -r (Join-Path $root "requirements.txt") pyinstaller
-
-Write-Host "[2/3] PyInstaller 打包..." -ForegroundColor Cyan
-Push-Location $work
-try {
-    python -m PyInstaller `
-        --onefile --windowed `
-        --name "codex-switch" `
-        --paths $src `
-        --hidden-import tomlkit `
-        --hidden-import adapter `
-        --collect-data customtkinter `
-        --clean --noconfirm `
-        (Join-Path $src "gui_ctk.py")
-} finally {
-    Pop-Location
+$pyCandidates = @("python", "python3", "py")
+$PY = $null
+foreach ($c in $pyCandidates) {
+    $cmd = Get-Command $c -ErrorAction SilentlyContinue
+    if ($cmd) {
+        & $c -c "import tkinter" 2>$null
+        if ($LASTEXITCODE -eq 0) { $PY = $c; break }
+    }
+}
+if (-not $PY) {
+    Write-Error "找不到带 tkinter 的 Python。请从 python.org 安装 Python 3.11+ 并勾选 'tcl/tk'。"
+    exit 1
 }
 
-$builtExe = Join-Path $work "dist\codex-switch.exe"
-$relExe = Join-Path $rel "codex-switch.exe"
-Copy-Item $builtExe $relExe -Force
+Write-Host "[1/4] 使用 Python: $( & $PY --version )"
 
-Write-Host "[3/3] 完成 ->  $relExe" -ForegroundColor Green
-Get-Item $relExe | Select-Object Name, @{n='SizeMB';e={[math]::Round($_.Length/1MB,1)}}, LastWriteTime
+Write-Host "[2/4] 安装打包依赖 (pyinstaller / tomlkit / pywebview)"
+& $PY -m pip install --upgrade --quiet pyinstaller tomlkit pywebview
+
+Write-Host "[3/4] 清理旧 build/dist"
+Remove-Item -Recurse -Force build, dist -ErrorAction SilentlyContinue
+
+Write-Host "[4/4] 运行 PyInstaller"
+& $PY -m PyInstaller --clean --noconfirm --windowed --name "Codex助手" `
+    --icon "assets\icon-source.png" `
+    --add-data "src;src" `
+    --add-data "web;web" `
+    "src\web_launcher.py"
+
+$exe = "dist\Codex助手\Codex助手.exe"
+if (Test-Path $exe) {
+    Write-Host ""
+    Write-Host "✅ 打包完成: $exe"
+    Write-Host "双击运行即可。"
+} else {
+    Write-Error "打包失败,没看到 $exe"
+    exit 1
+}
