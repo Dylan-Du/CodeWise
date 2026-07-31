@@ -63,6 +63,7 @@ mkdir -p "$PYINSTALLER_CONFIG_DIR"
   --icon "assets/icon.icns" \
   --add-data "web:web" \
   --add-data "assets/apinest-logo.png:assets" \
+  --add-data "assets/mascot-3d.png:assets" \
   --hidden-import webview \
   --hidden-import webview.platforms.cocoa \
   --hidden-import werkzeug \

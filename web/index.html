@@ -45,7 +45,7 @@
   --hex-black: #000000;
   --hex-white: #FFFFFF;
   --seed-radius: 16px;
-  --card-gap: 24px;
+  --card-gap: 16px;
   --glass-opacity: 82%;
 }
 
@@ -224,7 +224,7 @@ body {
   width: 100%;
   min-width: 280px;
   min-height: 720px;
-  padding: 16px 20px 20px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: var(--card-gap);
@@ -313,25 +313,43 @@ body > * { position: relative; z-index: 1; }
   z-index: 1;
 }
 
-.logo-arc {
+.logo-bracket-left, .logo-bracket-right {
   fill: none;
   stroke: var(--color-on-primary);
-  stroke-width: 2.8;
 }
 
-.logo-dot {
-  fill: var(--seed-accent);
+.logo-slash {
+  fill: none;
+  stroke: var(--seed-accent);
 }
 
 .brand-wordmark {
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--color-text);
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--seed-primary), color-mix(in srgb, var(--seed-primary) 60%, var(--seed-accent)));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: flex;
+  align-items: center;
+  gap: 1px;
 }
 
 .brand-wordmark .accent-dot {
-  color: var(--color-primary);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--hex-white);
+  background: linear-gradient(135deg, var(--seed-primary), color-mix(in srgb, var(--seed-primary) 70%, var(--seed-accent)));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: var(--seed-primary);
+  -webkit-text-fill-color: var(--hex-white);
+  margin-left: 3px;
+  letter-spacing: 0.02em;
 }
 
 /* ─── Toast Notification ─── */
@@ -403,10 +421,10 @@ body > * { position: relative; z-index: 1; }
 /* ────────────────── Status Hero Panel ────────────────── */
 .status-hero {
   border-radius: var(--seed-radius);
-  padding: 20px;
+  padding: 12px 16px;
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-md);
   position: relative;
@@ -432,143 +450,58 @@ body > * { position: relative; z-index: 1; }
   background: radial-gradient(circle, color-mix(in srgb, var(--color-info) 8%, transparent), transparent 70%);
 }
 
-/* 3D Mascot Character */
+/* Mascot Character */
 .character-wrap {
   position: relative;
-  width: 84px;
-  height: 84px;
+  width: 76px;
+  height: 76px;
   flex-shrink: 0;
-  animation: mascot-float 3.5s ease-in-out infinite;
+  animation: mascot-bounce 3s ease-in-out infinite;
 }
 
-.mascot-svg {
-  width: 84px;
-  height: 84px;
-  filter: drop-shadow(0 4px 10px color-mix(in srgb, var(--seed-primary) 22%, transparent));
-  transition: filter 0.4s ease;
+.mascot-img {
+  width: 76px;
+  height: 76px;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 14px color-mix(in srgb, var(--seed-primary) 25%, transparent));
+  transition: filter 0.4s ease, opacity 0.3s ease;
 }
 
-.mascot-shadow {
-  fill: color-mix(in srgb, var(--hex-black) 14%, transparent);
+.mascot-halo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 64px;
+  height: 64px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--seed-primary) 12%, transparent), transparent 70%);
+  animation: halo-pulse 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
 }
 
-.mascot-antenna-glow {
-  fill: var(--color-success);
-  opacity: 0.15;
-  animation: antenna-glow 2s ease-in-out infinite;
+.mascot-img {
+  position: relative;
+  z-index: 1;
 }
 
-.mascot-antenna {
-  stroke: var(--seed-primary);
-  stroke-width: 2.5;
-  fill: none;
+.status-hero.stopped .mascot-img {
+  filter: grayscale(0.8) brightness(0.7) opacity(0.5);
 }
 
-.mascot-antenna-dot {
-  fill: var(--color-success);
-  animation: antenna-glow 2s ease-in-out infinite;
-}
-
-.mascot-body {
-  fill: var(--seed-primary);
-  opacity: 0.88;
-}
-
-.mascot-highlight {
-  fill: color-mix(in srgb, var(--hex-white) 38%, transparent);
-  opacity: 0.55;
-}
-
-.mascot-shine {
-  fill: color-mix(in srgb, var(--hex-white) 55%, transparent);
-  opacity: 0.35;
-}
-
-.mascot-bottom-shadow {
-  fill: color-mix(in srgb, var(--hex-black) 14%, transparent);
-}
-
-.mascot-face {
-  fill: var(--color-surface);
-  opacity: 0.9;
-}
-
-.mascot-cheek {
-  fill: var(--seed-accent);
-  opacity: 0.4;
-  transition: opacity 0.3s ease;
-}
-
-.mascot-eye {
-  fill: var(--seed-fg);
-  transition: opacity 0.3s ease;
-}
-
-.mascot-eye-shine {
-  fill: var(--hex-white);
-  opacity: 0.9;
-  transition: opacity 0.3s ease;
-}
-
-.mascot-mouth {
-  stroke: var(--seed-fg);
-  stroke-width: 2;
-  opacity: 0.5;
-  transition: all 0.3s ease;
-}
-
-/* Stopped state — character dims and "sleeps" */
-.status-hero.stopped .mascot-svg {
-  filter: drop-shadow(0 2px 5px color-mix(in srgb, var(--color-info) 10%, transparent));
-}
-
-.status-hero.stopped .mascot-body {
-  fill: var(--color-info);
-  opacity: 0.4;
-}
-
-.status-hero.stopped .mascot-antenna {
-  stroke: var(--color-info);
-  opacity: 0.5;
-}
-
-.status-hero.stopped .mascot-antenna-glow {
-  fill: var(--color-info);
+.status-hero.stopped .mascot-halo {
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-info) 6%, transparent), transparent 70%);
   animation: none;
-  opacity: 0.08;
 }
 
-.status-hero.stopped .mascot-antenna-dot {
-  fill: var(--color-info);
-  animation: none;
-  opacity: 0.4;
-}
-
-.status-hero.stopped .mascot-cheek {
-  opacity: 0.1;
-}
-
-.status-hero.stopped .mascot-eye {
-  opacity: 0.15;
-}
-
-.status-hero.stopped .mascot-eye-shine {
-  opacity: 0;
-}
-
-.status-hero.stopped .mascot-mouth {
-  d: path("M46 55 Q50 51 54 55");
-  opacity: 0.25;
-}
-
-@keyframes mascot-float {
+@keyframes mascot-bounce {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-5px); }
 }
-
-@keyframes antenna-glow {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.45; }
+@keyframes halo-pulse {
+  0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 0.3; transform: translate(-50%, -50%) scale(1.15); }
 }
 
 /* Toggle Switch */
@@ -620,7 +553,7 @@ body > * { position: relative; z-index: 1; }
 .status-info {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   flex: 1;
   min-width: 0;
 }
@@ -654,9 +587,11 @@ body > * { position: relative; z-index: 1; }
 .mini-stats {
   display: flex;
   gap: 0;
-  background: color-mix(in srgb, var(--seed-fg) 3%, transparent);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--seed-primary) 6%, transparent), color-mix(in srgb, var(--seed-accent) 4%, transparent));
+  border: 1px solid color-mix(in srgb, var(--seed-primary) 12%, transparent);
   border-radius: 8px;
-  padding: 6px 0;
+  padding: 5px 0;
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--seed-fg) 4%, transparent);
 }
 
 .mini-stat {
@@ -687,7 +622,7 @@ body > * { position: relative; z-index: 1; }
 }
 
 .mini-stat-value {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.01em;
@@ -700,7 +635,7 @@ body > * { position: relative; z-index: 1; }
 /* ────────────────── Model Pill Bar ────────────────── */
 .config-card {
   border-radius: var(--seed-radius);
-  padding: 14px 18px 16px;
+  padding: 16px;
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-sm);
   display: flex;
@@ -815,7 +750,7 @@ body > * { position: relative; z-index: 1; }
   z-index: 100;
   display: none;
   flex-direction: column;
-  padding: 16px 20px 20px;
+  padding: 16px;
   gap: var(--card-gap);
   overflow-y: auto;
   animation: slideIn 0.3s ease;
@@ -984,7 +919,7 @@ body > * { position: relative; z-index: 1; }
   right: 0;
   width: 100%;
   height: 100%;
-  padding: 16px 20px 20px;
+  padding: 16px;
   border: none;
   box-shadow: var(--shadow-md);
   display: none;
@@ -1113,7 +1048,7 @@ select.form-input {
 .timeline-tabs {
   display: flex;
   align-items: center;
-  padding: 0 12px 0 18px;
+  padding: 0 16px;
   border-bottom: 1px solid var(--color-border);
   gap: 2px;
   flex-shrink: 0;
@@ -1174,7 +1109,7 @@ select.form-input {
 
 .tab-body {
   display: none;
-  padding: 8px 18px 12px;
+  padding: 8px 16px 12px;
   overflow-y: auto;
   flex: 1;
   min-height: 0;
@@ -1373,6 +1308,126 @@ select.form-input {
   font-size: 13px;
   padding: 12px 0;
 }
+
+.stats-reset-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  height: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text-subtle);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+}
+
+.stats-reset-btn:hover {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 5%, transparent);
+}
+
+.stats-reset-btn svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* Confirm modal */
+.confirm-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.15s ease;
+}
+
+.confirm-modal {
+  background: var(--color-surface);
+  border-radius: 14px;
+  padding: 20px;
+  max-width: 320px;
+  width: 90%;
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+  animation: scaleIn 0.2s ease;
+}
+
+.confirm-modal-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+}
+
+.confirm-modal-icon svg {
+  width: 22px;
+  height: 22px;
+  color: var(--color-danger);
+}
+
+.confirm-modal-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.confirm-modal-desc {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+.confirm-modal-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.confirm-modal-btn {
+  flex: 1;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.confirm-modal-btn.cancel {
+  background: color-mix(in srgb, var(--seed-fg) 8%, transparent);
+  color: var(--color-text-muted);
+}
+
+.confirm-modal-btn.cancel:hover {
+  background: color-mix(in srgb, var(--seed-fg) 12%, transparent);
+}
+
+.confirm-modal-btn.confirm {
+  background: var(--color-danger);
+  color: var(--hex-white);
+}
+
+.confirm-modal-btn.confirm:hover {
+  filter: brightness(1.1);
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 
 /* Model Stats Card */
 .stats-card {
@@ -1666,9 +1721,10 @@ select.form-input {
 <header class="brand-header" data-component="Brand Header" data-od-id="brand-header">
   <div class="brand-left">
     <div class="brand-logo" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path class="logo-arc" d="M16.5 7.5A6 6 0 1 0 16.5 16.5"></path>
-        <circle class="logo-dot" cx="12" cy="12" r="2.3"></circle>
+      <svg viewBox="0 0 1024 1024" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path class="logo-bracket-left" d="M442 350 L258 516 L442 682" stroke-width="76"/>
+        <path class="logo-bracket-right" d="M582 350 L766 516 L582 682" stroke-width="76"/>
+        <path class="logo-slash" d="M556 688 L468 308" stroke-width="58"/>
       </svg>
     </div>
     <div class="brand-wordmark">codex<span class="accent-dot">助手</span></div>
@@ -1699,26 +1755,9 @@ select.form-input {
 
   <!-- ─── Status Hero Panel ─── -->
   <section class="status-hero glass" id="status-hero" data-component="Status Hero" data-od-id="status-hero">
-    <!-- 3D Mascot Character -->
     <div class="character-wrap" data-component="Mascot" data-od-id="mascot">
-      <svg class="mascot-svg" viewBox="0 0 100 100">
-        <ellipse class="mascot-shadow" cx="50" cy="91" rx="22" ry="3.5"/>
-        <circle class="mascot-antenna-glow" cx="50" cy="10" r="6"/>
-        <line class="mascot-antenna" x1="50" y1="12" x2="50" y2="22" stroke-linecap="round"/>
-        <circle class="mascot-antenna-dot" cx="50" cy="10" r="3"/>
-        <path class="mascot-body" d="M50 20 C66 20 74 32 74 48 C74 65 68 85 50 85 C32 85 26 65 26 48 C26 32 34 20 50 20 Z"/>
-        <path class="mascot-highlight" d="M50 20 C62 20 70 28 72 38 C72 38 64 26 50 26 C36 26 28 38 28 38 C30 28 38 20 50 20 Z"/>
-        <ellipse class="mascot-shine" cx="36" cy="36" rx="4" ry="7"/>
-        <path class="mascot-bottom-shadow" d="M28 64 C28 73 34 85 50 85 C66 85 72 73 72 64 C72 64 66 79 50 79 C34 79 28 64 28 64 Z"/>
-        <ellipse class="mascot-face" cx="50" cy="46" rx="18" ry="16"/>
-        <circle class="mascot-cheek" cx="37" cy="52" r="2.5"/>
-        <circle class="mascot-cheek" cx="63" cy="52" r="2.5"/>
-        <ellipse class="mascot-eye" cx="43" cy="44" rx="2.5" ry="3.5"/>
-        <circle class="mascot-eye-shine" cx="44" cy="42.5" r="0.9"/>
-        <ellipse class="mascot-eye" cx="57" cy="44" rx="2.5" ry="3.5"/>
-        <circle class="mascot-eye-shine" cx="58" cy="42.5" r="0.9"/>
-        <path class="mascot-mouth" d="M46 54 Q50 57.5 54 54" stroke-linecap="round" fill="none"/>
-      </svg>
+      <div class="mascot-halo"></div>
+      <img class="mascot-img" src="assets/mascot-3d.png" alt="mascot">
     </div>
 
     <!-- Status Info -->
@@ -1782,9 +1821,14 @@ select.form-input {
         <div class="stats-empty">暂无调用数据，使用模型后会自动统计</div>
       </div>
       <div id="stats-model-list"></div>
+      <button class="stats-reset-btn" id="stats-reset-btn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>
+        重置统计
+      </button>
     </div>
-
-    <!-- 调用历史 Body -->
     <div class="tab-body" data-tab-body="history">
       <ul class="timeline-list" id="history-list">
         <li class="timeline-item empty-state">
@@ -1953,7 +1997,7 @@ select.form-input {
   }
 
   // ─── State ───
-  var state = { running: false, model: null, modelName: null, token: { input: 0, output: 0, cache: 0 }, models: [], config: [], timeline: [], perModelStats: [], history: [], permission: { writable: true, guide: '', checked: false } };
+  var state = { running: false, model: null, modelName: null, modelSelected: false, token: { input: 0, output: 0, cache: 0 }, models: [], config: [], timeline: [], perModelStats: [], history: [], permission: { writable: true, guide: '', checked: false } };
 
   // ─── DOM refs ───
   var powerBtn = document.getElementById('power-btn');
@@ -2167,8 +2211,12 @@ select.form-input {
   }
 
   async function startService() {
+    if (!state.modelSelected || !state.model) {
+      showToast('请先选择一个模型再启动', 'error');
+      return;
+    }
     try {
-      var resp = await apiPost('/api/toggle', { action: 'start' });
+      var resp = await apiPost('/api/toggle', { action: 'start', model: state.model });
       if (resp.ok) { state.running = true; showToast('Codex助手 服务已启动', 'success'); addTimeline('OK', 'Codex助手 服务已启动，可在 Codex App 中使用', 'success'); renderStatus(); }
       else if (resp.permission_error) { showPermissionGuide(); addTimeline('ERR', '权限错误: ' + (resp.error || '未知错误'), 'danger'); }
       else { showToast('启动失败: ' + (resp.error || '未知错误'), 'error', resp.debug); addTimeline('ERR', '启动失败: ' + (resp.error || '未知错误'), 'danger'); }
@@ -2186,7 +2234,7 @@ select.form-input {
   async function selectModel(route, model) {
     try {
       var resp = await apiPost('/api/model/select', { route: route, model: model });
-      if (resp.ok) { state.model = model; state.modelName = resp.model_name || model; showToast('已切换到 ' + (resp.model_name || model), 'success'); addTimeline('SWITCH', '已切换到 ' + (resp.model_name || model), 'switch'); renderStatus(); renderPills(); }
+      if (resp.ok) { state.model = model; state.modelSelected = true; state.modelName = resp.model_name || model; showToast('已切换到 ' + (resp.model_name || model), 'success'); addTimeline('SWITCH', '已切换到 ' + (resp.model_name || model), 'switch'); renderStatus(); renderPills(); }
       else if (resp.permission_error) { showPermissionGuide(); addTimeline('ERR', '权限错误: ' + (resp.error || '未知错误'), 'danger'); }
       else { showToast('切换失败: ' + (resp.error || '未知错误'), 'error', resp.debug); addTimeline('ERR', '切换失败: ' + (resp.error || '未知错误'), 'danger'); }
     } catch (e) { showToast('切换失败: ' + e.message, 'error'); addTimeline('ERR', '切换失败: ' + e.message, 'danger'); }
@@ -2333,6 +2381,46 @@ select.form-input {
     if (powerBtn) powerBtn.onclick = function() { state.running ? stopService() : startService(); };
   }
 
+  function showConfirmModal(title, desc, onConfirm) {
+    var overlay = document.createElement('div');
+    overlay.className = 'confirm-modal-overlay';
+    overlay.innerHTML = '<div class="confirm-modal">' +
+      '<div class="confirm-modal-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div>' +
+      '<div class="confirm-modal-title">' + title + '</div>' +
+      '<div class="confirm-modal-desc">' + desc + '</div>' +
+      '<div class="confirm-modal-btns"><button class="confirm-modal-btn cancel">取消</button><button class="confirm-modal-btn confirm">确认清空</button></div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+    overlay.querySelector('.cancel').onclick = function() { overlay.remove(); };
+    overlay.querySelector('.confirm').onclick = function() { overlay.remove(); if (onConfirm) onConfirm(); };
+    overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+  }
+
+  async function resetStats() {
+    try {
+      var resp = await apiPost('/api/token/clear', {});
+      if (resp.ok) {
+        state.token = { input: 0, output: 0, cache: 0 };
+        state.perModelStats = [];
+        state.history = [];
+        renderStats();
+        renderHistoryList();
+        updateCounts();
+        showToast('统计已清空', 'success');
+        addTimeline('CLEAR', '已清空所有统计数据', 'info');
+      } else {
+        showToast('清空失败: ' + (resp.error || '未知错误'), 'error');
+      }
+    } catch (e) { showToast('清空失败: ' + e.message, 'error'); }
+  }
+
+  function initResetBtn() {
+    var btn = document.getElementById('stats-reset-btn');
+    if (btn) btn.onclick = function() {
+      showConfirmModal('确认清空统计？', '将清空所有模型的 Token 用量、调用次数和调用历史，此操作不可撤销。', resetStats);
+    };
+  }
+
   function initTabs() {
     var tabButtons = document.querySelectorAll('.timeline-tab');
     tabButtons.forEach(function(tab) {
@@ -2425,6 +2513,7 @@ select.form-input {
   document.addEventListener('DOMContentLoaded', async function() {
     initTheme();
     initPowerBtn();
+    initResetBtn();
     initTabs();
     initModelPanel();
     initForm();

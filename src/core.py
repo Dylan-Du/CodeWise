@@ -404,15 +404,17 @@ class TokenTracker:
         self.total_output: int = 0
         self.total_cache: int = 0
         self.history: list[dict] = []
+        self.per_model: dict[str, dict] = {}
         self._load()
 
     def record(self, model: str, input_tokens: int, output_tokens: int, cache_tokens: int = 0):
         with self.lock:
+            ts = time.strftime("%Y-%m-%d %H:%M:%S")
             self.total_input += input_tokens
             self.total_output += output_tokens
             self.total_cache += cache_tokens
             self.history.append({
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+                "timestamp": ts,
                 "model": model,
                 "input": input_tokens,
                 "output": output_tokens,
@@ -420,6 +422,18 @@ class TokenTracker:
             })
             if len(self.history) > 200:
                 self.history = self.history[-200:]
+            # 独立累加按模型分组统计（不受 history 截断影响）
+            if model not in self.per_model:
+                self.per_model[model] = {
+                    "model": model, "calls": 0, "input": 0,
+                    "output": 0, "cache": 0, "last_used": ts,
+                }
+            s = self.per_model[model]
+            s["calls"] += 1
+            s["input"] += input_tokens
+            s["output"] += output_tokens
+            s["cache"] += cache_tokens
+            s["last_used"] = ts
             self._save()
 
     def totals(self) -> dict:
@@ -427,26 +441,10 @@ class TokenTracker:
             return {"input": self.total_input, "output": self.total_output, "cache": self.total_cache}
 
     def per_model_stats(self) -> dict:
-        """返回按模型分组的统计数据。"""
+        """返回按模型分组的统计数据（独立累加，不受 history 截断影响）。"""
         with self.lock:
-            stats = {}
-            for record in self.history:
-                model = record.get("model", "unknown")
-                if model not in stats:
-                    stats[model] = {
-                        "model": model,
-                        "calls": 0,
-                        "input": 0,
-                        "output": 0,
-                        "cache": 0,
-                        "last_used": record.get("timestamp", ""),
-                    }
-                stats[model]["calls"] += 1
-                stats[model]["input"] += record.get("input", 0)
-                stats[model]["output"] += record.get("output", 0)
-                stats[model]["cache"] += record.get("cache", 0)
-                stats[model]["last_used"] = record.get("timestamp", "")
-            return stats
+            # 深拷贝避免外部修改
+            return {k: dict(v) for k, v in self.per_model.items()}
 
     def recent(self, n: int = 50) -> list[dict]:
         with self.lock:
@@ -456,6 +454,7 @@ class TokenTracker:
         with self.lock:
             self.total_input = self.total_output = self.total_cache = 0
             self.history = []
+            self.per_model = {}
             self._save()
 
     def _load(self):
@@ -466,6 +465,9 @@ class TokenTracker:
                 self.total_output = int(d.get("total_output", 0))
                 self.total_cache = int(d.get("total_cache", 0))
                 self.history = d.get("history", []) if isinstance(d.get("history"), list) else []
+                pm = d.get("per_model", {})
+                if isinstance(pm, dict):
+                    self.per_model = pm
             except Exception:
                 pass
 
@@ -477,6 +479,7 @@ class TokenTracker:
                 "total_output": self.total_output,
                 "total_cache": self.total_cache,
                 "history": self.history,
+                "per_model": self.per_model,
             }, ensure_ascii=False, indent=2),
             encoding="utf-8",
         )

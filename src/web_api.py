@@ -245,26 +245,37 @@ class APIHandler(BaseHTTPRequestHandler):
     def _handle_toggle(self):
         body = self.read_body()
         action = body.get("action", "toggle")
+        requested_model = body.get("model", "")
 
         if action == "start" or (action == "toggle" and not core.adapter_running()):
-            self._do_start()
+            self._do_start(requested_model)
         elif action == "stop" or (action == "toggle" and core.adapter_running()):
             self._do_stop()
         else:
             self.send_json(200, {"ok": True, "running": core.adapter_running()})
 
-    def _do_start(self):
+    def _do_start(self, requested_model: str = ""):
         # 获取已配置的自定义模型
         custom = core.load_custom()
         if not custom:
             self.send_json(400, {"error": "没有可用模型,请先添加模型"})
             return
 
-        # 使用第一个已配置的模型
-        first = custom[0]
-        label = first["label"]
-        model = first["model"]
-        route = "custom:0"
+        # 查找用户选中的模型，没选就用第一个
+        target = None
+        route = None
+        if requested_model:
+            for idx, it in enumerate(custom):
+                if it["model"] == requested_model:
+                    target = it
+                    route = f"custom:{idx}"
+                    break
+        if not target:
+            target = custom[0]
+            route = "custom:0"
+
+        label = target["label"]
+        model = target["model"]
 
         try:
             info = core.resolve_route(route, model)
@@ -317,8 +328,20 @@ class APIHandler(BaseHTTPRequestHandler):
         self.send_json(200, {"ok": True, "running": True})
 
     def _do_stop(self):
+        # 停止 adapter（adapter 和 control API 在同一进程，不能 kill）
         if self.adapter_runner:
             self.adapter_runner.stop()
+            self.adapter_runner = None
+        else:
+            # adapter_runner 为 None，尝试创建一个来停止
+            # （处理状态不一致的情况）
+            pass
+        # 短暂等待端口释放
+        import time as _time
+        for _ in range(10):
+            if not core.adapter_running():
+                break
+            _time.sleep(0.1)
         try:
             msg = core.restore_openai_config()
             self.add_timeline("🔙", msg, icon_color="info")

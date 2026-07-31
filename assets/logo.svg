@@ -1,11 +1,41 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#4F6BFF"/>
-      <stop offset="100%" style="stop-color:#3ECF8E"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5A77F5"/>
+      <stop offset="1" stop-color="#3A68DF"/>
+    </linearGradient>
+    <radialGradient id="bgGlow" cx="0.5" cy="0.12" r="0.85">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.14"/>
+      <stop offset="0.55" stop-color="#FFFFFF" stop-opacity="0.03"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="glyph" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F4F8FF"/>
+      <stop offset="1" stop-color="#DCE8FF"/>
+    </linearGradient>
+    <linearGradient id="slash" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4ADE80"/>
+      <stop offset="1" stop-color="#22C55E"/>
     </linearGradient>
   </defs>
-  <rect width="1024" height="1024" rx="230" fill="url(#bg)"/>
-  <path d="M700 324 A380 380 0 1 0 700 700" fill="none" stroke="white" stroke-width="60" stroke-linecap="round"/>
-  <circle cx="512" cy="512" r="80" fill="#3ECF8E"/>
+
+  <!-- App icon background: royal blue gradient sampled from reference -->
+  <rect x="0" y="0" width="1024" height="1024" rx="230" fill="url(#bg)"/>
+  <rect x="0" y="0" width="1024" height="1024" rx="230" fill="url(#bgGlow)"/>
+
+  <!-- Soft drop shadow under the glyph -->
+  <g stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#1D3F9E" opacity="0.30">
+    <path d="M442 372 L258 538 L442 704" stroke-width="76"/>
+    <path d="M582 372 L766 538 L582 704" stroke-width="76"/>
+    <path d="M556 710 L468 330" stroke-width="58"/>
+  </g>
+
+  <!-- Code brackets < > -->
+  <g stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="url(#glyph)">
+    <path d="M442 350 L258 516 L442 682" stroke-width="76"/>
+    <path d="M582 350 L766 516 L582 682" stroke-width="76"/>
+  </g>
+
+  <!-- Slash in fresh green -->
+  <path d="M556 688 L468 308" stroke="url(#slash)" stroke-width="58" stroke-linecap="round" fill="none"/>
 </svg>
