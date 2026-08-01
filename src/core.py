@@ -12,7 +12,12 @@ import time
 import tempfile
 import urllib.request
 import urllib.error
-from http.server import ThreadingHTTPServer
+from http.server import ThreadingHTTPServer, HTTPServer
+
+class ReusableHTTPServer(ThreadingHTTPServer):
+    """支持端口复用，避免 stop 后重启时端口 TIME_WAIT 导致绑定失败。"""
+    allow_reuse_address = True
+    allow_reuse_port = True
 from pathlib import Path
 
 import tomlkit
@@ -80,8 +85,8 @@ PRESETS = [
      "upstream": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
      "key_url": "https://dashscope.console.aliyun.com"},
     {"label": "小米MIMO", "model": "mimo-v2.5-pro",
-     "upstream": "https://api.gmi-serving.com/v1/chat/completions",
-     "key_url": "https://mimo.mi.com"},
+     "upstream": "https://api.xiaomimimo.com/v1/chat/completions",
+     "key_url": "https://platform.xiaomimimo.com"},
     {"label": "StepFun", "model": "step-3.7-flash",
      "upstream": "https://api.stepfun.com/v1/chat/completions",
      "key_url": "https://platform.stepfun.com"},
@@ -561,12 +566,25 @@ class AdapterRunner:
         # 把 error 回调注入到 adapter Handler
         adapter.Handler.on_error = self.on_error if hasattr(self, 'on_error') else None
         try:
-            self.httpd = ThreadingHTTPServer(
+            self.httpd = ReusableHTTPServer(
                 (adapter.HOST, adapter.PORT), adapter.Handler
             )
         except OSError as e:
-            self.log(f"端口 {adapter.PORT} 占用或权限不足：{e}")
-            return False
+            # 端口可能还在 TIME_WAIT，重试几次
+            started = False
+            for attempt in range(5):
+                time.sleep(0.3)
+                try:
+                    self.httpd = ReusableHTTPServer(
+                        (adapter.HOST, adapter.PORT), adapter.Handler
+                    )
+                    started = True
+                    break
+                except OSError:
+                    continue
+            if not started:
+                self.log(f"端口 {adapter.PORT} 占用或权限不足：{e}")
+                return False
         self.thread = threading.Thread(
             target=self.httpd.serve_forever,
             name="adapter-server",
@@ -593,4 +611,9 @@ class AdapterRunner:
         if self.thread:
             self.thread.join(timeout=2)
             self.thread = None
+        # 等待端口完全释放
+        for _ in range(20):
+            if not adapter_running():
+                break
+            time.sleep(0.1)
         self.log("Codex助手 已停止。")

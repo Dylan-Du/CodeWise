@@ -281,9 +281,9 @@ body > * { position: relative; z-index: 1; }
 }
 
 .brand-logo {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
   background: var(--logo-gradient);
   display: flex;
   align-items: center;
@@ -307,8 +307,8 @@ body > * { position: relative; z-index: 1; }
 }
 
 .brand-logo svg {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   position: relative;
   z-index: 1;
 }
@@ -323,33 +323,10 @@ body > * { position: relative; z-index: 1; }
   stroke: var(--seed-accent);
 }
 
-.brand-wordmark {
-  font-size: 19px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  background: linear-gradient(135deg, var(--seed-primary), color-mix(in srgb, var(--seed-primary) 60%, var(--seed-accent)));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  display: flex;
-  align-items: center;
-  gap: 1px;
-}
-
-.brand-wordmark .accent-dot {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--hex-white);
-  background: linear-gradient(135deg, var(--seed-primary), color-mix(in srgb, var(--seed-primary) 70%, var(--seed-accent)));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  padding: 2px 7px;
-  border-radius: 6px;
-  background: var(--seed-primary);
-  -webkit-text-fill-color: var(--hex-white);
-  margin-left: 3px;
-  letter-spacing: 0.02em;
+.brand-wordmark img {
+  height: 28px;
+  width: auto;
+  display: block;
 }
 
 /* ─── Toast Notification ─── */
@@ -1252,7 +1229,7 @@ select.form-input {
 
 .stats-totals {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 6px;
   margin-bottom: 4px;
 }
@@ -1438,6 +1415,11 @@ select.form-input {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  margin-bottom: 8px;
+}
+
+#stats-model-list {
+  margin-top: 4px;
 }
 
 .stats-card-header {
@@ -1727,7 +1709,7 @@ select.form-input {
         <path class="logo-slash" d="M556 688 L468 308" stroke-width="58"/>
       </svg>
     </div>
-    <div class="brand-wordmark">codex<span class="accent-dot">助手</span></div>
+    <div class="brand-wordmark"><img id="brand-text-img" src="assets/brand-text.png" alt="Codex助手"></div>
   </div>
   <div class="theme-toggle" role="group" aria-label="主题切换">
     <button class="theme-btn active" data-theme-val="light" aria-label="浅色主题">
@@ -1950,7 +1932,7 @@ select.form-input {
     'Claude': { url: 'https://api.anthropic.com/v1/messages', models: ['claude-opus-5', 'claude-sonnet-5', 'claude-haiku-4.5'] },
     'Gemini': { url: 'https://generativelanguage.googleapis.com/v1beta/models', models: ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-pro'] },
     '阿里云': { url: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', models: ['qwen3.8-max-preview', 'qwen3.7-max', 'qwen3.7-plus', 'qwen3.6-flash'] },
-    '小米MIMO': { url: 'https://api.gmi-serving.com/v1/chat/completions', models: ['mimo-v2.5-pro', 'mimo-v2.5'] },
+    '小米MIMO': { url: 'https://api.xiaomimimo.com/v1/chat/completions', models: ['mimo-v2.5-pro', 'mimo-v2.5'] },
     'Kimi CN': { url: 'https://api.moonshot.cn/v1/chat/completions', models: ['kimi-k3', 'kimi-k2.7-code', 'kimi-k2.6'] },
     '智谱': { url: 'https://open.bigmodel.cn/api/paas/v4/chat/completions', models: ['glm-5.2', 'glm-5.1', 'glm-5-turbo'] },
     'LongCat': { url: 'https://api.longcat.chat/openai/v1/chat/completions', models: ['LongCat-2.0', 'LongCat-2.0-Preview', 'LongCat-Flash'] },
@@ -1997,7 +1979,7 @@ select.form-input {
   }
 
   // ─── State ───
-  var state = { running: false, model: null, modelName: null, modelSelected: false, token: { input: 0, output: 0, cache: 0 }, models: [], config: [], timeline: [], perModelStats: [], history: [], permission: { writable: true, guide: '', checked: false } };
+  var state = { running: false, model: null, modelName: null, token: { input: 0, output: 0, cache: 0 }, models: [], config: [], timeline: [], perModelStats: [], history: [], permission: { writable: true, guide: '', checked: false } };
 
   // ─── DOM refs ───
   var powerBtn = document.getElementById('power-btn');
@@ -2108,13 +2090,13 @@ select.form-input {
       statsModelList.innerHTML = '';
       return;
     }
-    statsOverview.innerHTML = '<div class="stats-totals"><div class="stats-total-item input"><span class="stats-total-label">总输入</span><span class="stats-total-value input">' + (totals.input || 0).toLocaleString() + '</span></div><div class="stats-total-item output"><span class="stats-total-label">总输出</span><span class="stats-total-value output">' + (totals.output || 0).toLocaleString() + '</span></div><div class="stats-total-item cache"><span class="stats-total-label">总缓存</span><span class="stats-total-value cache">' + (totals.cache || 0).toLocaleString() + '</span></div><div class="stats-total-item calls"><span class="stats-total-label">总调用</span><span class="stats-total-value calls">' + (totalCalls || 0).toLocaleString() + '</span></div></div>';
+    statsOverview.innerHTML = '<div class="stats-totals"><div class="stats-total-item input"><span class="stats-total-label">总输入</span><span class="stats-total-value input">' + (totals.input || 0).toLocaleString() + '</span></div><div class="stats-total-item output"><span class="stats-total-label">总输出</span><span class="stats-total-value output">' + (totals.output || 0).toLocaleString() + '</span></div><div class="stats-total-item cache"><span class="stats-total-label">总调用</span><span class="stats-total-value cache">' + (totalCalls || 0).toLocaleString() + '</span></div></div>';
     var html = '';
     if (state.perModelStats) {
       state.perModelStats.slice().sort(function(a, b) {
         return (b.last_used || '').localeCompare(a.last_used || '');
       }).forEach(function(stat) {
-        html += '<div class="stats-card"><div class="stats-card-header"><span class="stats-card-model">' + stat.model + '</span><span class="stats-card-time">' + (stat.last_used || '') + '</span></div><div class="stats-card-tokens"><div class="stats-card-token"><span class="stats-card-token-label">输入</span><span class="stats-card-token-value input">' + (stat.input || 0).toLocaleString() + '</span></div><div class="stats-card-token"><span class="stats-card-token-label">输出</span><span class="stats-card-token-value output">' + (stat.output || 0).toLocaleString() + '</span></div><div class="stats-card-token"><span class="stats-card-token-label">缓存</span><span class="stats-card-token-value cache">' + (stat.cache || 0).toLocaleString() + '</span></div></div><div class="stats-card-calls">调用 ' + (stat.calls || 0) + ' 次</div></div>';
+        html += '<div class="stats-card"><div class="stats-card-header"><span class="stats-card-model">' + stat.model + '</span><span class="stats-card-time">' + (stat.last_used || '') + '</span></div><div class="stats-card-tokens"><div class="stats-card-token"><span class="stats-card-token-label">输入</span><span class="stats-card-token-value input">' + (stat.input || 0).toLocaleString() + '</span></div><div class="stats-card-token"><span class="stats-card-token-label">输出</span><span class="stats-card-token-value output">' + (stat.output || 0).toLocaleString() + '</span></div><div class="stats-card-token"><span class="stats-card-token-label">调用</span><span class="stats-card-token-value cache">' + (stat.calls || 0) + ' 次</span></div></div></div>';
       });
     }
     statsModelList.innerHTML = html;
@@ -2211,8 +2193,12 @@ select.form-input {
   }
 
   async function startService() {
-    if (!state.modelSelected || !state.model) {
-      showToast('请先选择一个模型再启动', 'error');
+    if (!state.model) {
+      if (state.models.length === 0) {
+        showToast('请先添加模型，再启动服务', 'error');
+      } else {
+        showToast('请先选择一个模型再启动', 'error');
+      }
       return;
     }
     try {
@@ -2226,7 +2212,7 @@ select.form-input {
   async function stopService() {
     try {
       var resp = await apiPost('/api/toggle', { action: 'stop' });
-      if (resp.ok) { state.running = false; showToast('Codex助手 服务已停止', 'info'); addTimeline('STOP', 'Codex助手 服务已停止，已恢复 OpenAI 原始配置', 'stop'); renderStatus(); }
+      if (resp.ok) { state.running = false; state.stopGuard = Date.now() + 5000; showToast('Codex助手 服务已停止', 'info'); addTimeline('STOP', 'Codex助手 服务已停止，已恢复 OpenAI 原始配置', 'stop'); renderStatus(); }
       else { showToast('停止失败: ' + (resp.error || '未知错误'), 'error', resp.debug); addTimeline('ERR', '停止失败: ' + (resp.error || '未知错误'), 'danger'); }
     } catch (e) { showToast('停止失败: ' + e.message, 'error'); addTimeline('ERR', '停止失败: ' + e.message, 'danger'); }
   }
@@ -2234,7 +2220,7 @@ select.form-input {
   async function selectModel(route, model) {
     try {
       var resp = await apiPost('/api/model/select', { route: route, model: model });
-      if (resp.ok) { state.model = model; state.modelSelected = true; state.modelName = resp.model_name || model; showToast('已切换到 ' + (resp.model_name || model), 'success'); addTimeline('SWITCH', '已切换到 ' + (resp.model_name || model), 'switch'); renderStatus(); renderPills(); }
+      if (resp.ok) { state.model = model; state.modelName = resp.model_name || model; showToast('已切换到 ' + (resp.model_name || model), 'success'); addTimeline('SWITCH', '已切换到 ' + (resp.model_name || model), 'switch'); renderStatus(); renderPills(); }
       else if (resp.permission_error) { showPermissionGuide(); addTimeline('ERR', '权限错误: ' + (resp.error || '未知错误'), 'danger'); }
       else { showToast('切换失败: ' + (resp.error || '未知错误'), 'error', resp.debug); addTimeline('ERR', '切换失败: ' + (resp.error || '未知错误'), 'danger'); }
     } catch (e) { showToast('切换失败: ' + e.message, 'error'); addTimeline('ERR', '切换失败: ' + e.message, 'danger'); }
@@ -2354,6 +2340,12 @@ select.form-input {
   async function loadStatus() {
     try {
       var resp = await apiGet('/api/status');
+      // 停止后5秒内忽略轮询的 running=true，防止端口未完全释放导致误判
+      if (state.stopGuard && Date.now() < state.stopGuard && resp.running) {
+        resp.running = false;
+      } else if (state.stopGuard && Date.now() >= state.stopGuard) {
+        state.stopGuard = 0;
+      }
       state.running = resp.running || false;
       state.model = resp.model || null;
       state.modelName = resp.model_name || resp.model || '未选择';
@@ -2363,6 +2355,13 @@ select.form-input {
   }
 
   // ─── Init ───
+  function updateBrandImage(theme) {
+    var img = document.getElementById('brand-text-img');
+    if (img) {
+      img.src = (theme === 'dark' || theme === 'focus') ? 'assets/brand-text-dark.png' : 'assets/brand-text.png';
+    }
+  }
+
   function initTheme() {
     var btns = document.querySelectorAll('.theme-btn');
     btns.forEach(function(btn) {
@@ -2371,10 +2370,11 @@ select.form-input {
         root.setAttribute('data-theme', val);
         btns.forEach(function(b) { b.classList.toggle('active', b.getAttribute('data-theme-val') === val); });
         localStorage.setItem('codex-theme', val);
+        updateBrandImage(val);
       };
     });
     var saved = localStorage.getItem('codex-theme');
-    if (saved) { root.setAttribute('data-theme', saved); btns.forEach(function(b) { b.classList.toggle('active', b.getAttribute('data-theme-val') === saved); }); }
+    if (saved) { root.setAttribute('data-theme', saved); btns.forEach(function(b) { b.classList.toggle('active', b.getAttribute('data-theme-val') === saved); }); updateBrandImage(saved); }
   }
 
   function initPowerBtn() {

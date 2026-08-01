@@ -56,17 +56,17 @@ def load_saved_api_key():
 def load_config():
     if not CONFIG_PATH.exists():
         return {
-            "upstream": "https://api.stepfun.com/v1/chat/completions",
-            "model": "step-3.5-flash-2603",
+            "upstream": "https://api.xiaomimimo.com/v1/chat/completions",
+            "model": "mimo-v2.5-pro",
             "subscription": "normal",
         }
     with CONFIG_PATH.open("r", encoding="utf-8") as f:
         data = json.load(f)
     return {
-        "upstream": data.get("upstream") or "https://api.stepfun.com/v1/chat/completions",
-        "model": data.get("model") or "step-3.5-flash-2603",
+        "upstream": data.get("upstream") or "https://api.xiaomimimo.com/v1/chat/completions",
+        "model": data.get("model") or "mimo-v2.5-pro",
         "subscription": data.get("subscription") or "normal",
-        "api_key": data.get("api_key") or os.environ.get("STEPFUN_API_KEY") or load_saved_api_key(),
+        "api_key": data.get("api_key") or os.environ.get("MIMO_API_KEY") or load_saved_api_key(),
     }
 
 
@@ -276,7 +276,7 @@ class Handler(BaseHTTPRequestHandler):
                     "id": config["model"],
                     "object": "model",
                     "created": int(time.time()),
-                    "owned_by": "stepfun",
+                    "owned_by": "xiaomi",
                 }],
             })
             return
@@ -295,7 +295,7 @@ class Handler(BaseHTTPRequestHandler):
 
             config = load_config()
             if not auth and not config.get("api_key"):
-                self.send_error(401, "Missing StepFun API key")
+                self.send_error(401, "Missing API key")
                 return
             messages = responses_to_messages(body)
             max_tokens = body.get("max_output_tokens") or body.get("max_tokens") or 4096
@@ -335,6 +335,7 @@ class Handler(BaseHTTPRequestHandler):
                 "Authorization": upstream_auth,
                 "Content-Type": "application/json",
                 "Accept": "application/json",
+                "User-Agent": "Codex/1.0",
             },
         )
         return urllib.request.urlopen(req, timeout=600, context=_SSL_CONTEXT)
@@ -405,11 +406,11 @@ class Handler(BaseHTTPRequestHandler):
         except urllib.error.HTTPError as err:
             detail = err.read().decode("utf-8", "replace")
             print(f"upstream HTTP {err.code}: {detail}", flush=True)
-            data = {"choices": [{"message": {"content": f"StepFun upstream HTTP {err.code}: {detail[:1200]}"}}]}
+            data = {"choices": [{"message": {"content": f"Upstream HTTP {err.code}: {detail[:1200]}"}}]}
         except urllib.error.URLError as err:
             detail = str(err)
             print(f"upstream URL error: {detail}", flush=True)
-            data = {"choices": [{"message": {"content": f"StepFun upstream connection failed: {detail[:1200]}"}}]}
+            data = {"choices": [{"message": {"content": f"Upstream connection failed: {detail[:1200]}"}}]}
 
         message = (data.get("choices") or [{}])[0].get("message") or {}
         output = output_from_chat_message(message)

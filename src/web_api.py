@@ -10,6 +10,11 @@ import threading
 import time
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+class ReusableThreadingHTTPServer(ThreadingHTTPServer):
+    """支持端口复用，避免重启时 TIME_WAIT 导致绑定失败。"""
+    allow_reuse_address = True
+    allow_reuse_port = True
 from pathlib import Path
 
 import core
@@ -36,6 +41,8 @@ class APIHandler(BaseHTTPRequestHandler):
 
     # ─── 类级别共享状态 ───
     adapter_runner = None
+    adapter_active = False  # 真实的启停标志，区别于端口检测
+    _transitioning = False  # 防止轮询在 stop/start 期间误判
     timeline_items: list[dict] = []
     log_listeners: list = []
 
@@ -155,7 +162,11 @@ class APIHandler(BaseHTTPRequestHandler):
     # ─── API 处理器 ───
 
     def _handle_status(self):
-        running = core.adapter_running()
+        # 如果正在执行启停操作，返回上一次的真实状态，避免轮询误判
+        if APIHandler._transitioning:
+            running = APIHandler.adapter_active
+        else:
+            running = APIHandler.adapter_active and core.adapter_running()
         cur_model = core.current_model()
         codex_in_adapter = core.codex_in_adapter_mode()
         token_totals = core.token_tracker.totals()
@@ -247,12 +258,13 @@ class APIHandler(BaseHTTPRequestHandler):
         action = body.get("action", "toggle")
         requested_model = body.get("model", "")
 
-        if action == "start" or (action == "toggle" and not core.adapter_running()):
+        is_active = APIHandler.adapter_active
+        if action == "start" or (action == "toggle" and not is_active):
             self._do_start(requested_model)
-        elif action == "stop" or (action == "toggle" and core.adapter_running()):
+        elif action == "stop" or (action == "toggle" and is_active):
             self._do_stop()
         else:
-            self.send_json(200, {"ok": True, "running": core.adapter_running()})
+            self.send_json(200, {"ok": True, "running": is_active})
 
     def _do_start(self, requested_model: str = ""):
         # 获取已配置的自定义模型
@@ -289,9 +301,10 @@ class APIHandler(BaseHTTPRequestHandler):
 
         # 写入配置
         try:
+            APIHandler._transitioning = True  # 防止轮询在 stop/start 期间误判
             # 先停止 adapter（如果运行中），避免文件被占用
-            if self.adapter_runner:
-                self.adapter_runner.stop()
+            if APIHandler.adapter_runner:
+                APIHandler.adapter_runner.stop()
                 import time
                 time.sleep(0.3)
             core.write_adapter_json(model, route)
@@ -301,10 +314,14 @@ class APIHandler(BaseHTTPRequestHandler):
             core.apply_codex_config(model)
             self.add_timeline("✅", "配置已同步到 config.toml", icon_color="success")
         except PermissionError as e:
+            APIHandler._transitioning = False
+            APIHandler.adapter_active = False
             self.add_timeline("ERR", f"权限错误: {e}", icon_color="danger")
             self.send_json(500, {"error": str(e)})
             return
         except Exception as e:
+            APIHandler._transitioning = False
+            APIHandler.adapter_active = False
             import traceback
             tb = traceback.format_exc()
             self.add_timeline("ERR", f"配置写入失败: {e}", icon_color="danger")
@@ -312,26 +329,32 @@ class APIHandler(BaseHTTPRequestHandler):
             return
 
         # 启动 adapter
-        if self.adapter_runner is None:
-            self.adapter_runner = core.AdapterRunner(
+        if APIHandler.adapter_runner is None:
+            APIHandler.adapter_runner = core.AdapterRunner(
                 log_fn=lambda msg: self.add_timeline("📝", msg, icon_color="info"),
                 on_usage=self._on_usage,
                 on_error=self._on_error,
             )
 
-        if not self.adapter_runner.start():
+        if not APIHandler.adapter_runner.start():
+            APIHandler._transitioning = False
+            APIHandler.adapter_active = False
             self.add_timeline("ERR", "Codex助手 启动失败", icon_color="danger")
             self.send_json(500, {"error": "Codex助手 启动失败，请检查端口 18667 是否被占用"})
             return
 
+        APIHandler.adapter_active = True
+        APIHandler._transitioning = False
         self.add_timeline("🚀", "Codex助手 服务已启动，可在 Codex App 中使用", icon_color="success")
         self.send_json(200, {"ok": True, "running": True})
 
     def _do_stop(self):
+        # 先标记为已停止，防止轮询误判
+        APIHandler.adapter_active = False
         # 停止 adapter（adapter 和 control API 在同一进程，不能 kill）
-        if self.adapter_runner:
-            self.adapter_runner.stop()
-            self.adapter_runner = None
+        if APIHandler.adapter_runner:
+            APIHandler.adapter_runner.stop()
+            APIHandler.adapter_runner = None
         else:
             # adapter_runner 为 None，尝试创建一个来停止
             # （处理状态不一致的情况）
@@ -383,16 +406,19 @@ class APIHandler(BaseHTTPRequestHandler):
 
         try:
             # 先停止 adapter（如果运行中），避免文件被占用
-            if self.adapter_runner:
-                self.adapter_runner.stop()
+            if APIHandler.adapter_runner:
+                APIHandler.adapter_runner.stop()
                 import time
                 time.sleep(0.5)  # 等待文件释放
             core.write_adapter_json(model, route)
             core.apply_codex_config(model)
             # 重新启动 adapter
-            if self.adapter_runner:
+            if APIHandler.adapter_runner:
                 time.sleep(0.2)
-                self.adapter_runner.start()
+                if APIHandler.adapter_runner.start():
+                    APIHandler.adapter_active = True
+                else:
+                    APIHandler.adapter_active = False
             self.add_timeline("🔀", f"已切换至 {info.get('label', model)}", icon_color="switch")
         except PermissionError as e:
             self.add_timeline("ERR", f"权限错误: {e}", icon_color="danger")
@@ -537,7 +563,7 @@ class WebServer:
     def start(self):
         if self.thread and self.thread.is_alive():
             return
-        self.httpd = ThreadingHTTPServer((HOST, PORT), APIHandler)
+        self.httpd = ReusableThreadingHTTPServer((HOST, PORT), APIHandler)
         self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
         self.thread.start()
         print(f"控制 API 已启动: http://{HOST}:{PORT}", flush=True)
