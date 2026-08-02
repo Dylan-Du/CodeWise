@@ -1229,7 +1229,7 @@ select.form-input {
 
 .stats-totals {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 6px;
   margin-bottom: 4px;
 }
@@ -1277,7 +1277,7 @@ select.form-input {
 .stats-total-value.input { color: var(--color-primary); }
 .stats-total-value.output { color: var(--color-success); }
 .stats-total-value.cache { color: var(--color-warn); }
-.stats-total-value.calls { color: var(--color-text-muted); }
+.stats-total-value.calls { color: var(--color-primary); }
 
 .stats-empty {
   text-align: center;
@@ -1699,6 +1699,33 @@ select.form-input {
 </head>
 <body>
 
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ────────── Activation Modal ────────── -->
+<div class="confirm-modal-overlay" id="activation-overlay" style="display:none;">
+  <div class="confirm-modal" style="max-width:360px;text-align:left;">
+    <div style="text-align:center;margin-bottom:16px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:40px;height:40px;">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+      </svg>
+      <div style="font-size:17px;font-weight:700;margin-top:8px;color:var(--color-text);">激活 Codex助手</div>
+      <div style="font-size:13px;color:var(--color-text-secondary);margin-top:4px;">请输入激活码以继续使用</div>
+    </div>
+    <div style="margin-bottom:12px;">
+      <input id="activation-code-input" type="text" class="form-input mono" placeholder="XXXX-XXXX-XXXX-XXXX" style="text-align:center;font-size:15px;letter-spacing:1px;text-transform:uppercase;" autocomplete="off">
+    </div>
+    <div id="activation-error" style="font-size:12px;color:var(--color-danger);margin-bottom:8px;min-height:16px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-ghost" id="activation-cancel" type="button" style="flex:1;">稍后</button>
+      <button class="btn-primary" id="activation-submit" type="button" style="flex:1;">激活</button>
+    </div>
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--color-border);font-size:11px;color:var(--color-text-tertiary);text-align:center;">
+      设备码: <span id="activation-device-id" class="mono" style="user-select:all;"></span>
+    </div>
+  </div>
+</div>
+
 <!-- ────────── Brand Header ────────── -->
 <header class="brand-header" data-component="Brand Header" data-od-id="brand-header">
   <div class="brand-left">
@@ -1737,6 +1764,7 @@ select.form-input {
 
   <!-- ─── Status Hero Panel ─── -->
   <section class="status-hero glass" id="status-hero" data-component="Status Hero" data-od-id="status-hero">
+    <div id="license-badge" style="position:absolute;top:8px;right:8px;font-size:10px;color:var(--color-success);font-weight:500;display:none;"></div>
     <div class="character-wrap" data-component="Mascot" data-od-id="mascot">
       <div class="mascot-halo"></div>
       <img class="mascot-img" src="assets/mascot-3d.png" alt="mascot">
@@ -1751,12 +1779,6 @@ select.form-input {
         <span class="status-label" id="status-label">运行中</span>
       </div>
       <span class="status-model" id="status-model">当前模型：<span class="model-name" id="current-model-name">未选择</span></span>
-      <div class="mini-stats">
-        <div class="mini-stat">
-          <span class="mini-stat-label">总消耗</span>
-          <span class="mini-stat-value input" id="total-consumption">0</span>
-        </div>
-      </div>
     </div>
   </section>
 
@@ -2007,9 +2029,6 @@ select.form-input {
     else { powerBtn.classList.remove('on'); statusHero.classList.add('stopped'); statusLabel.textContent = '已停止'; }
     var el = document.getElementById('current-model-name');
     if (el) el.textContent = state.modelName || state.model || '未选择';
-    var totalEl = document.getElementById('total-consumption');
-    var total = (state.token.input || 0) + (state.token.output || 0);
-    if (totalEl) totalEl.textContent = total.toLocaleString();
   }
 
   function renderPills() {
@@ -2085,12 +2104,19 @@ select.form-input {
     if (!statsOverview || !statsModelList) return;
     var totals = state.token || { input: 0, output: 0, cache: 0 };
     var totalCalls = state.perModelStats ? state.perModelStats.reduce(function(s, m) { return s + (m.calls || 0); }, 0) : 0;
+    var totalConsumption = (totals.input || 0) + (totals.output || 0) + (totals.cache || 0);
     if ((!state.perModelStats || state.perModelStats.length === 0) && totalCalls === 0) {
       statsOverview.innerHTML = '<div class="stats-empty">暂无调用数据，使用模型后会自动统计</div>';
       statsModelList.innerHTML = '';
       return;
     }
-    statsOverview.innerHTML = '<div class="stats-totals"><div class="stats-total-item input"><span class="stats-total-label">总输入</span><span class="stats-total-value input">' + (totals.input || 0).toLocaleString() + '</span></div><div class="stats-total-item output"><span class="stats-total-label">总输出</span><span class="stats-total-value output">' + (totals.output || 0).toLocaleString() + '</span></div><div class="stats-total-item cache"><span class="stats-total-label">总调用</span><span class="stats-total-value cache">' + (totalCalls || 0).toLocaleString() + '</span></div></div>';
+    statsOverview.innerHTML = '<div class="stats-totals">' +
+      '<div class="stats-total-item input"><span class="stats-total-label">总消耗</span><span class="stats-total-value input">' + totalConsumption.toLocaleString() + '</span></div>' +
+      '<div class="stats-total-item output"><span class="stats-total-label">输入累计</span><span class="stats-total-value output">' + (totals.input || 0).toLocaleString() + '</span></div>' +
+      '<div class="stats-total-item cache"><span class="stats-total-label">输出累计</span><span class="stats-total-value cache">' + (totals.output || 0).toLocaleString() + '</span></div>' +
+      '<div class="stats-total-item calls"><span class="stats-total-label">调用累计</span><span class="stats-total-value calls">' + (totalCalls || 0).toLocaleString() + '</span></div>' +
+      '</div>' +
+      '<div style="font-size:11px;color:var(--color-text-subtle);text-align:center;padding:4px 0 8px;">仅供参考，请以实际消耗 Token 为准</div>';
     var html = '';
     if (state.perModelStats) {
       state.perModelStats.slice().sort(function(a, b) {
@@ -2200,6 +2226,21 @@ select.form-input {
         showToast('请先选择一个模型再启动', 'error');
       }
       return;
+    }
+    // 启动前检查激活状态
+    try {
+      var actResp = await apiGet('/api/activation/status');
+      if (actResp && !actResp.activated) {
+        // 未激活，弹出激活弹窗
+        showActivationModal(actResp.device_id || '');
+        return;
+      }
+      // 已激活，更新有效期标签
+      if (actResp && actResp.activated) {
+        updateLicenseBadge(actResp.type, actResp.expires_at);
+      }
+    } catch (e) {
+      console.error('Activation check before start failed:', e);
     }
     try {
       var resp = await apiPost('/api/toggle', { action: 'start', model: state.model });
@@ -2510,6 +2551,127 @@ select.form-input {
     } catch (e) { addTimeline('ERR', '删除失败: ' + e.message, 'danger'); }
   };
 
+  // ─── 激活码功能 ───
+
+  async function checkActivation() {
+    try {
+      var resp = await apiGet('/api/activation/status');
+      if (resp && resp.activated) {
+        updateLicenseBadge(resp.type, resp.expires_at);
+        return;
+      }
+      showActivationModal((resp && resp.device_id) || '');
+    } catch (e) {
+      console.error('Activation check failed:', e);
+      // 即使请求失败也弹窗（可能后端没连上，但本地没激活记录）
+      showActivationModal('');
+    }
+  }
+
+  function updateLicenseBadge(type, expiresAt) {
+    var badge = document.getElementById('license-badge');
+    if (!badge) return;
+    if (type === 'permanent') {
+      badge.textContent = '永久有效';
+      badge.style.display = 'block';
+    } else if (expiresAt) {
+      var exp = new Date(expiresAt);
+      var now = new Date();
+      var daysLeft = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
+      var pad = function(n) { return n < 10 ? '0' + n : n; };
+      var dateStr = exp.getFullYear() + '-' + pad(exp.getMonth()+1) + '-' + pad(exp.getDate());
+      if (daysLeft <= 0) {
+        badge.textContent = '已过期';
+        badge.style.color = 'var(--color-danger)';
+      } else if (daysLeft <= 3) {
+        badge.textContent = '剩余 ' + daysLeft + ' 天（至 ' + dateStr + '）';
+        badge.style.color = 'var(--color-warn)';
+      } else {
+        badge.textContent = '有效期 ' + daysLeft + ' 天（至 ' + dateStr + '）';
+        badge.style.color = 'var(--color-success)';
+      }
+      badge.style.display = 'block';
+    }
+  }
+
+  function showActivationModal(deviceId) {
+    var overlay = document.getElementById('activation-overlay');
+    if (!overlay) { console.error('activation overlay not found'); return; }
+    var span = document.getElementById('activation-device-id');
+    if (span) span.textContent = deviceId ? deviceId.substring(0, 16) + '...' : '获取中';
+    overlay.style.display = 'flex';
+    var input = document.getElementById('activation-code-input');
+    if (input) { input.value = ''; input.focus(); }
+    var err = document.getElementById('activation-error');
+    if (err) err.textContent = '';
+  }
+
+  function hideActivationModal() {
+    var overlay = document.getElementById('activation-overlay');
+    if (overlay) overlay.style.display = 'none';
+  }
+
+  // 初始化激活弹窗事件（在 DOMContentLoaded 中调用）
+  function initActivation() {
+    var submitBtn = document.getElementById('activation-submit');
+    var cancelBtn = document.getElementById('activation-cancel');
+    var inputEl = document.getElementById('activation-code-input');
+
+    if (submitBtn) {
+      submitBtn.onclick = async function() {
+        var code = inputEl.value.trim().toUpperCase();
+        var errEl = document.getElementById('activation-error');
+        if (!code) { if (errEl) errEl.textContent = '请输入激活码'; return; }
+        submitBtn.disabled = true;
+        submitBtn.textContent = '激活中...';
+        if (errEl) errEl.textContent = '';
+        try {
+          var resp = await apiPost('/api/activation/activate', { code: code });
+          if (resp.success) {
+            // 显示有效期信息
+            var validityText = '';
+            if (resp.type === 'permanent') {
+              validityText = '永久有效';
+            } else if (resp.expires_at) {
+              var exp = new Date(resp.expires_at);
+              var now = new Date();
+              var daysLeft = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
+              var pad = function(n) { return n < 10 ? '0' + n : n; };
+              var dateStr = exp.getFullYear() + '-' + pad(exp.getMonth()+1) + '-' + pad(exp.getDate());
+              validityText = '有效期 ' + daysLeft + ' 天（至 ' + dateStr + '）';
+            }
+            hideActivationModal();
+            showToast(validityText ? '激活成功 · ' + validityText : '激活成功', 'success');
+            updateLicenseBadge(resp.type, resp.expires_at);
+            await loadStatus();
+          } else {
+            if (errEl) errEl.textContent = resp.message || '激活失败';
+          }
+        } catch (e) {
+          if (errEl) errEl.textContent = '激活失败: ' + e.message;
+        }
+        submitBtn.disabled = false;
+        submitBtn.textContent = '激活';
+      };
+    }
+
+    if (cancelBtn) {
+      cancelBtn.onclick = function() {
+        // 只关闭弹窗，不关闭应用
+        hideActivationModal();
+      };
+    }
+
+    if (inputEl) {
+      inputEl.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          var btn = document.getElementById('activation-submit');
+          if (btn) btn.click();
+        }
+      });
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', async function() {
     initTheme();
     initPowerBtn();
@@ -2517,6 +2679,8 @@ select.form-input {
     initTabs();
     initModelPanel();
     initForm();
+    initActivation();
+    await checkActivation();
     await loadStatus();
     await loadConfig();
     await loadStats();
@@ -2526,6 +2690,5 @@ select.form-input {
   });
 })();
 </script>
-<div class="toast-container" id="toast-container"></div>
 </body>
 </html>

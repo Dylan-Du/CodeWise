@@ -19,6 +19,7 @@ from pathlib import Path
 
 import core
 import adapter
+import activation
 
 HOST = "127.0.0.1"
 PORT = 18668  # 控制 API 端口(Codex助手 在 18667)
@@ -103,6 +104,8 @@ class APIHandler(BaseHTTPRequestHandler):
         # ─── API 路由 ───
         if path == "/api/status":
             self._handle_status()
+        elif path == "/api/activation/status":
+            self._handle_activation_status()
         elif path == "/api/models":
             self._handle_models()
         elif path == "/api/timeline":
@@ -144,6 +147,8 @@ class APIHandler(BaseHTTPRequestHandler):
 
         if path == "/api/toggle":
             self._handle_toggle()
+        elif path == "/api/activation/activate":
+            self._handle_activation_activate()
         elif path == "/api/model/select":
             self._handle_model_select()
         elif path == "/api/config/save":
@@ -176,11 +181,18 @@ class APIHandler(BaseHTTPRequestHandler):
         model_name = cur_model
         if cur_model:
             custom = core.load_custom()
+            found = False
             for it in custom:
                 if it["model"] == cur_model:
                     model_label = it["model"]
                     model_name = it["model"]
+                    found = True
                     break
+            # 如果当前配置的模型已不在模型列表中，显示未选择
+            if not found:
+                cur_model = None
+                model_label = None
+                model_name = None
 
         self.send_json(200, {
             "running": running,
@@ -190,6 +202,38 @@ class APIHandler(BaseHTTPRequestHandler):
             "codex_in_adapter": codex_in_adapter,
             "token": token_totals,
         })
+
+    def _handle_activation_status(self):
+        """检查激活状态。"""
+        activated = activation.is_activated()
+        data = activation.load_activation() if activated else {}
+        device_id = activation.get_device_id() if not activated else ""
+        self.send_json(200, {
+            "activated": activated,
+            "device_id": device_id,
+            "type": data.get("type"),
+            "expires_at": data.get("expires_at"),
+        })
+
+    def _handle_activation_activate(self):
+        """激活码绑定。"""
+        body = self.read_body()
+        code = (body.get("code") or "").strip().upper()
+        if not code:
+            self.send_json(400, {"success": False, "message": "请输入激活码"})
+            return
+        result = activation.bind_code_online(code)
+        if result.get("code") == 0 and result.get("data", {}).get("bound"):
+            data = result.get("data", {})
+            self.send_json(200, {
+                "success": True,
+                "message": "激活成功",
+                "type": data.get("type"),
+                "expires_at": data.get("expires_at"),
+            })
+        else:
+            msg = result.get("message") or result.get("data", {}).get("message") or "激活失败"
+            self.send_json(200, {"success": False, "message": msg})
 
     def _handle_models(self):
         """首页模型列表只展示已配置的自定义模型"""
@@ -257,6 +301,11 @@ class APIHandler(BaseHTTPRequestHandler):
         body = self.read_body()
         action = body.get("action", "toggle")
         requested_model = body.get("model", "")
+
+        # 激活码校验：未激活不允许启动
+        if action in ("start", "toggle") and not activation.is_activated():
+            self.send_json(403, {"error": "请先激活后再启动服务", "need_activation": True})
+            return
 
         is_active = APIHandler.adapter_active
         if action == "start" or (action == "toggle" and not is_active):
@@ -381,9 +430,14 @@ class APIHandler(BaseHTTPRequestHandler):
                          {"stats": {"input": input_tokens, "output": output_tokens, "cache": cache_tokens}}, icon_color="token")
 
     def _on_error(self, model: str, error_type: str, message: str, details: str = ""):
-        """记录错误并添加到时间线"""
+        """记录错误并添加到时间线，同时上报到后台"""
         core.error_tracker.record(model, error_type, message, details)
         self.add_timeline("ERR", f"{model} 错误: {message}", {"error_details": details}, icon_color="danger")
+        # 异步上报到后台日志系统
+        try:
+            activation.report_error(error_type, f"[{model}] {message}", details)
+        except Exception:
+            pass
 
     def _handle_model_select(self):
         body = self.read_body()
