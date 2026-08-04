@@ -369,6 +369,139 @@ body > * { position: relative; z-index: 1; }
   gap: 2px;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--color-border);
+  background: var(--color-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--color-text-subtle);
+  transition: all 0.2s ease;
+  padding: 0;
+  flex-shrink: 0;
+}
+.settings-btn:hover { color: var(--color-primary); border-color: var(--color-primary); }
+.settings-btn:active { transform: scale(0.95); }
+.settings-btn svg { width: 18px; height: 18px; }
+
+.settings-modal {
+  position: fixed; inset: 0; z-index: 1000;
+  display: none; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.settings-modal.active { display: flex; }
+.settings-modal-content {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 20px 16px;
+  width: 300px;
+  max-width: 90vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.settings-modal-content h3 {
+  margin: 0 0 16px;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-text);
+  text-align: center;
+}
+.settings-section {
+  background: var(--color-bg);
+  border-radius: 10px;
+  padding: 12px 10px;
+  margin-bottom: 10px;
+}
+.settings-section:last-of-type { margin-bottom: 0; }
+.settings-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 6px;
+  border-radius: 6px;
+}
+.settings-item:hover { background: var(--color-surface); }
+.settings-item-label { 
+  font-size: 13px; 
+  color: var(--color-text-subtle);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.settings-item-label svg { width: 14px; height: 14px; opacity: 0.7; }
+.settings-item-value { 
+  font-size: 13px; 
+  font-weight: 600; 
+  color: var(--color-text);
+}
+.settings-action {
+  font-size: 12px;
+  color: var(--color-primary);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s;
+  user-select: none;
+  padding: 5px 12px;
+  border-radius: 14px;
+  background: rgba(74, 144, 226, 0.12);
+  font-weight: 500;
+}
+.settings-action:hover { 
+  background: var(--color-primary); 
+  color: white;
+}
+.release-notes-box {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 10px;
+  margin: 8px 0 4px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  max-height: 70px;
+  overflow-y: auto;
+  line-height: 1.5;
+}
+.settings-close {
+  width: 100%;
+  margin-top: 14px;
+  padding: 11px;
+  background: var(--color-primary);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.settings-close:hover { opacity: 0.9; }
+.update-banner {
+  display: none;
+  background: var(--color-primary);
+  color: #fff;
+  padding: 8px 16px;
+  text-align: center;
+  font-size: 13px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+.update-banner:hover { opacity: 0.9; }
+
 .theme-btn {
   display: flex;
   align-items: center;
@@ -1694,6 +1827,247 @@ select.form-input {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+/* ────────────────── Theme Card & Modal ────────────────── */
+.theme-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  cursor: pointer;
+}
+
+.theme-icon {
+  font-size: 18px;
+}
+
+.theme-text {
+  font-size: 14px;
+  color: var(--color-text);
+}
+
+.theme-status.ready .theme-text {
+  color: var(--color-success);
+}
+
+.theme-status.error .theme-text {
+  color: var(--color-danger);
+}
+
+/* Theme Modal */
+.theme-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+}
+
+.theme-modal.active {
+  display: flex;
+}
+
+.theme-modal-content {
+  background: var(--color-surface);
+  border-radius: var(--seed-radius);
+  width: 90%;
+  max-width: 400px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.theme-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.theme-modal-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.theme-modal-close {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--color-text-muted);
+}
+
+.theme-modal-close:hover {
+  color: var(--color-text);
+}
+
+.theme-modal-close svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Theme Tabs */
+.theme-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.theme-tab {
+  flex: 1;
+  padding: 12px;
+  background: none;
+  border: none;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  border-bottom: 2px solid transparent;
+}
+
+.theme-tab:hover {
+  color: var(--color-text);
+}
+
+.theme-tab.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+/* Theme Tab Content */
+.theme-tab-content {
+  display: none;
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.theme-tab-content.active {
+  display: block;
+}
+
+/* Theme List */
+.theme-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.theme-loading, .theme-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: 24px;
+}
+
+.theme-item {
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--color-surface-hover);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.theme-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.theme-item-thumb {
+  width: 100%;
+  aspect-ratio: 16/10;
+  object-fit: cover;
+  background: var(--color-border);
+}
+
+.theme-item-info {
+  padding: 8px;
+}
+
+.theme-item-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.theme-item-author {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.theme-refresh-btn {
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px;
+  background: var(--color-surface-hover);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+.theme-refresh-btn:hover {
+  background: var(--color-primary-subtle);
+}
+
+.theme-refresh-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Theme Upload */
+.theme-upload-area {
+  border: 2px dashed var(--color-border-strong);
+  border-radius: 12px;
+  padding: 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.theme-upload-area:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
+.theme-upload-area svg {
+  width: 32px;
+  height: 32px;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+}
+
+.theme-upload-area p {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.theme-preview {
+  margin-top: 16px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.theme-preview img {
+  width: 100%;
+  display: block;
+}
+
+/* Theme Actions */
+.theme-actions {
+  padding: 16px;
+  border-top: 1px solid var(--color-border);
 }
 </style>
 </head>
@@ -1738,22 +2112,30 @@ select.form-input {
     </div>
     <div class="brand-wordmark"><img id="brand-text-img" src="assets/brand-text.png" alt="Codex助手"></div>
   </div>
-  <div class="theme-toggle" role="group" aria-label="主题切换">
-    <button class="theme-btn active" data-theme-val="light" aria-label="浅色主题">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="4"></circle>
-        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
-      </svg>
-    </button>
-    <button class="theme-btn" data-theme-val="dark" aria-label="深色主题">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-      </svg>
-    </button>
-    <button class="theme-btn" data-theme-val="focus" aria-label="专注主题">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <div class="header-right">
+    <div class="theme-toggle" role="group" aria-label="主题切换">
+      <button class="theme-btn active" data-theme-val="light" aria-label="浅色主题">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+        </svg>
+      </button>
+      <button class="theme-btn" data-theme-val="dark" aria-label="深色主题">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+      <button class="theme-btn" data-theme-val="focus" aria-label="专注主题">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <circle cx="12" cy="12" r="7" stroke-dasharray="2 3"></circle>
+        </svg>
+      </button>
+    </div>
+    <button class="settings-btn" id="settings-btn" aria-label="设置" title="设置">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px">
         <circle cx="12" cy="12" r="3"></circle>
-        <circle cx="12" cy="12" r="7" stroke-dasharray="2 3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
       </svg>
     </button>
   </div>
@@ -1796,6 +2178,17 @@ select.form-input {
     </div>
     <div class="pill-bar" id="pill-bar">
       <!-- pills will be dynamically populated -->
+    </div>
+  </section>
+
+  <!-- ─── 主题卡片 ─── -->
+  <section class="config-card glass" id="theme-card" data-component="Theme Card">
+    <div class="config-header">
+      <div class="config-title">主题</div>
+    </div>
+    <div class="theme-status" id="theme-status">
+      <span class="theme-icon">🎨</span>
+      <span class="theme-text" id="theme-current-name">检测中...</span>
     </div>
   </section>
 
@@ -1902,6 +2295,119 @@ select.form-input {
   </a>
 </div>
 
+<!-- ────────── Theme Modal ────────── -->
+<div class="theme-modal" id="theme-modal">
+  <div class="theme-modal-content">
+    <div class="theme-modal-header">
+      <h3>🎨 主题管理</h3>
+      <button class="theme-modal-close" id="close-theme-modal" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Tab 导航 -->
+    <div class="theme-tabs">
+      <button class="theme-tab active" data-theme-tab="community" type="button">社区主题</button>
+      <button class="theme-tab" data-theme-tab="custom" type="button">自定义壁纸</button>
+      <button class="theme-tab" data-theme-tab="local" type="button">我的主题</button>
+    </div>
+
+    <!-- Tab 内容 -->
+    <div class="theme-tab-content active" data-theme-tab-content="community">
+      <div class="theme-list" id="community-theme-list">
+        <div class="theme-loading">加载中...</div>
+      </div>
+      <button class="theme-refresh-btn" id="refresh-community-themes" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+        </svg>
+        刷新
+      </button>
+    </div>
+
+    <div class="theme-tab-content" data-theme-tab-content="custom">
+      <div class="theme-upload-area" id="theme-upload-area">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="17 8 12 3 7 8"></polyline>
+          <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>
+        <p>拖拽图片到此处或点击上传</p>
+        <input type="file" id="theme-image-input" accept="image/*" hidden>
+      </div>
+      <div class="theme-preview" id="theme-preview" style="display:none;">
+        <img id="theme-preview-img" alt="预览">
+      </div>
+      <button class="btn-primary" id="save-custom-theme" type="button" style="display:none;">
+        保存为主题
+      </button>
+    </div>
+
+    <div class="theme-tab-content" data-theme-tab-content="local">
+      <div class="theme-list" id="local-theme-list">
+        <div class="theme-empty">暂无本地主题</div>
+      </div>
+    </div>
+
+    <!-- 底部操作栏 -->
+    <div class="theme-actions">
+      <button class="btn-secondary" id="restore-theme-btn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="1 4 1 10 7 10"></polyline>
+          <path d="M3.51 15a9 9 0 1 0 2.13 9.36L1 10"></path>
+        </svg>
+        恢复官方外观
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ────────── Settings Modal ────────── -->
+<div class="settings-modal" id="settings-modal">
+  <div class="settings-modal-content">
+    <h3>⚙️ 设置</h3>
+    <div class="settings-section">
+      <div class="settings-item">
+        <span class="settings-item-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          当前版本
+        </span>
+        <span class="settings-item-value" id="app-version">v1.0.1</span>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-item" style="padding-bottom:4px;">
+        <span class="settings-item-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+          版本说明
+        </span>
+      </div>
+      <div id="release-notes-box" class="release-notes-box">加载中...</div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-item">
+        <span class="settings-item-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          检查更新
+        </span>
+        <span class="settings-action" id="check-update-btn">检查</span>
+      </div>
+      <div class="settings-item">
+        <span class="settings-item-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+          操作文档
+        </span>
+        <a class="settings-action" href="https://jr00eeqbiu.feishu.cn/wiki/AQOIwMlJRiWXZGkftjVcDCibnZf?from=from_copylink" target="_blank" rel="noopener noreferrer">查看</a>
+      </div>
+    </div>
+    <button class="settings-close" id="settings-close-btn">关闭</button>
+  </div>
+</div>
+
 <!-- ────────── Add/Edit Model Form ────────── -->
 <div class="model-form glass" id="model-form">
   <div class="model-panel-header" style="margin-bottom:10px;">
@@ -1949,7 +2455,12 @@ select.form-input {
   var API_BASE = "";
 
   var PROVIDER_CONFIGS = {
-    'APINest': { url: 'https://apinest.eu.cc/v1/chat/completions', models: [] },
+    'APINest': { url: 'https://apinest.eu.cc/v1/chat/completions', models: [
+      'deepseek-v4-flash', 'deepseek-v4-pro', 'LongCat-2.0', 'glm-5.2',
+      'kimi-k2.7-code', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna',
+      'claude-fable-5', 'claude-opus-5', 'claude-sonnet-5', 'claude-haiku-4.5',
+      'gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3.5-lite'
+    ] },
     'DeepSeek': { url: 'https://api.deepseek.com/chat/completions', models: ['deepseek-v4-pro', 'deepseek-v4-flash'] },
     'Claude': { url: 'https://api.anthropic.com/v1/messages', models: ['claude-opus-5', 'claude-sonnet-5', 'claude-haiku-4.5'] },
     'Gemini': { url: 'https://generativelanguage.googleapis.com/v1beta/models', models: ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-pro'] },
@@ -2672,6 +3183,229 @@ select.form-input {
     }
   }
 
+  // ─── Settings Modal ───
+  var APP_VERSION = "1.0.1"; // 默认值，启动后会被后台覆盖
+  var SERVER_URL = "http://43.160.233.155:8080";
+  var settingsBtn = document.getElementById('settings-btn');
+  var settingsModal = document.getElementById('settings-modal');
+  var settingsCloseBtn = document.getElementById('settings-close-btn');
+  var checkUpdateBtn = document.getElementById('check-update-btn');
+  var updateBanner = null;
+  var versionElement = document.getElementById('app-version');
+
+  function openSettings() { settingsModal.classList.add('active'); }
+  function closeSettings() { settingsModal.classList.remove('active'); }
+
+  if (settingsBtn) settingsBtn.addEventListener('click', openSettings);
+  if (settingsCloseBtn) settingsCloseBtn.addEventListener('click', closeSettings);
+  if (settingsModal) settingsModal.addEventListener('click', function(e) {
+    if (e.target === settingsModal) closeSettings();
+  });
+
+  // 上报错误到后台
+  function reportErrorToServer(errorType, message, details) {
+    try {
+      fetch(SERVER_URL + '/api/activation/report-error', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error_type: errorType, message: message, details: details || '' })
+      }).catch(function(){});
+    } catch(e) {}
+  }
+
+  // 从后台获取版本信息，更新显示
+  async function fetchServerVersion() {
+    try {
+      var resp = await fetch(SERVER_URL + '/api/versions/check?platform=mac&current_version=0.0.0');
+      var data = await resp.json();
+      if (data.code === 0 && data.data.version) {
+        // 用后台的版本号作为当前版本号
+        APP_VERSION = data.data.version;
+        if (versionElement) versionElement.textContent = 'v' + APP_VERSION;
+        // 显示版本更新说明
+        var notesBox = document.getElementById('release-notes-box');
+        if (notesBox) {
+          var notes = data.data.release_notes || '暂无版本说明';
+          notesBox.textContent = notes;
+        }
+      }
+    } catch(e) {
+      // 获取失败，保持默认版本号
+      var notesBox = document.getElementById('release-notes-box');
+      if (notesBox) notesBox.textContent = '无法获取版本信息';
+    }
+  }
+
+  // 显示下载弹窗（紧凑版）
+  function showDownloadDialog(version, downloadUrl) {
+    var existing = document.getElementById('download-dialog');
+    if (existing) existing.remove();
+    
+    // 提取文件名
+    var filename = downloadUrl.split('/').pop() || 'Codex助手.dmg';
+    
+    var dialog = document.createElement('div');
+    dialog.id = 'download-dialog';
+    dialog.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;';
+    dialog.innerHTML = `
+      <div class="download-card" style="background:var(--color-surface);border-radius:12px;padding:20px 24px;width:280px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.25);">
+        <div style="font-size:18px;font-weight:600;color:var(--color-text);margin-bottom:12px;">发现新版本 v${version}</div>
+        <div id="download-status" style="color:var(--color-text-muted);font-size:13px;margin-bottom:16px;">点击下方按钮下载更新</div>
+        <div id="download-progress-box" style="display:none;margin-bottom:16px;">
+          <div style="background:var(--color-border);border-radius:4px;height:6px;overflow:hidden;">
+            <div id="download-progress-bar" style="width:0%;height:100%;background:#3FDB6C;transition:width 0.3s;"></div>
+          </div>
+          <div id="download-progress-text" style="font-size:11px;color:var(--color-text-muted);margin-top:4px;">准备下载...</div>
+        </div>
+        <div id="download-buttons" style="display:flex;gap:8px;justify-content:center;">
+          <button id="download-link-btn" style="flex:1;padding:10px 16px;background:#3FDB6C;color:white;border:none;border-radius:6px;font-size:14px;cursor:pointer;">下载</button>
+          <button id="close-download-dialog" style="padding:10px 16px;background:transparent;border:1px solid var(--color-border);border-radius:6px;color:var(--color-text-muted);cursor:pointer;font-size:14px;">关闭</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(dialog);
+    
+    // 点击背景关闭
+    dialog.addEventListener('click', function(e) {
+      if (e.target === dialog) dialog.remove();
+    });
+    
+    document.getElementById('close-download-dialog').addEventListener('click', function() {
+      dialog.remove();
+    });
+    
+    var statusEl = document.getElementById('download-status');
+    var progressBox = document.getElementById('download-progress-box');
+    var progressBar = document.getElementById('download-progress-bar');
+    var progressText = document.getElementById('download-progress-text');
+    var downloadBtn = document.getElementById('download-link-btn');
+    var closeBtn = document.getElementById('close-download-dialog');
+    var progressInterval = null;
+    
+    // 进度更新回调
+    window._downloadProgress = function(percent) {
+      progressBar.style.width = percent + '%';
+      progressText.textContent = '正在下载 ' + percent + '%';
+    };
+    
+    // 下载完成回调
+    window._downloadComplete = function() {
+      if (progressInterval) clearInterval(progressInterval);
+      progressBar.style.width = '100%';
+      progressText.textContent = '✓ 下载完成，已在 Finder 中打开';
+      progressText.style.color = '#3FDB6C';
+      downloadBtn.textContent = '已下载';
+      downloadBtn.disabled = true;
+      downloadBtn.style.background = '#ccc';
+    };
+    
+    // 下载错误回调
+    window._downloadError = function(err) {
+      if (progressInterval) clearInterval(progressInterval);
+      progressText.textContent = '下载失败: ' + err;
+      progressText.style.color = '#f44336';
+      downloadBtn.textContent = '重试';
+      downloadBtn.disabled = false;
+    };
+    
+    downloadBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      // 显示进度
+      statusEl.style.display = 'none';
+      progressBox.style.display = 'block';
+      downloadBtn.textContent = '下载中...';
+      downloadBtn.disabled = true;
+      
+      // 尝试使用 pywebview API 下载文件
+      if (window.pywebview && window.pywebview.api && window.pywebview.api.downloadFile) {
+        window.pywebview.api.downloadFile(downloadUrl, filename).then(function(result) {
+          if (result.success) {
+            progressText.textContent = '正在连接...';
+          } else {
+            window._downloadError(result.message);
+          }
+        });
+      } else if (window.pywebview && window.pywebview.api && window.pywebview.api.openUrl) {
+        // 备用：打开浏览器下载
+        window.pywebview.api.openUrl(downloadUrl);
+        progressBar.style.width = '100%';
+        progressText.textContent = '已在浏览器中打开下载链接';
+      } else {
+        // 最后备用：直接打开链接
+        window.open(downloadUrl, '_blank');
+        progressBar.style.width = '100%';
+        progressText.textContent = '已打开下载链接';
+      }
+    });
+  }
+
+  // 检查更新
+  if (checkUpdateBtn) checkUpdateBtn.addEventListener('click', async function() {
+    checkUpdateBtn.textContent = '检查中...';
+    try {
+      var resp = await fetch(SERVER_URL + '/api/versions/check?platform=mac&current_version=' + APP_VERSION);
+      var data = await resp.json();
+      if (data.code === 0 && data.data.has_update) {
+        checkUpdateBtn.textContent = '有新版本';
+        // 更新显示的版本号
+        if (versionElement) versionElement.textContent = 'v' + APP_VERSION + ' (有新版本 v' + data.data.version + ')';
+        // 显示下载弹窗
+        showDownloadDialog(data.data.version, data.data.download_url);
+      } else if (data.code === 0) {
+        checkUpdateBtn.textContent = '已是最新版';
+        showToast('当前已是最新版本', 'info');
+        if (versionElement) versionElement.textContent = 'v' + APP_VERSION;
+      } else {
+        checkUpdateBtn.textContent = '检查失败';
+        showToast('检查更新失败', 'error');
+        reportErrorToServer('update_check_error', '检查更新失败: ' + (data.message || '未知错误'), JSON.stringify(data));
+      }
+    } catch (e) {
+      checkUpdateBtn.textContent = '检查失败';
+      showToast('检查更新失败: ' + e.message, 'error');
+      reportErrorToServer('update_check_error', '检查更新失败: ' + e.message, e.stack || '');
+    }
+    setTimeout(function() { checkUpdateBtn.textContent = '检查更新'; }, 3000);
+  });
+
+  // 启动时自动检查更新
+  async function autoCheckUpdate() {
+    try {
+      var resp = await fetch(SERVER_URL + '/api/versions/check?platform=mac&current_version=' + APP_VERSION);
+      var data = await resp.json();
+      if (data.code === 0 && data.data.has_update) {
+        // 更新显示
+        if (versionElement) versionElement.textContent = 'v' + APP_VERSION + ' (有新版本 v' + data.data.version + ')';
+        // 在页面顶部显示更新提示条
+        var banner = document.createElement('div');
+        banner.className = 'update-banner';
+        banner.style.display = 'block';
+        banner.innerHTML = '发现新版本 v' + data.data.version + '，点击立即更新';
+        banner.style.cursor = 'pointer';
+        banner.addEventListener('click', function() {
+          showDownloadDialog(data.data.version, data.data.download_url);
+        });
+        var container = document.querySelector('.app-container') || document.body;
+        container.insertBefore(banner, container.firstChild);
+        updateBanner = banner;
+      }
+    } catch (e) {
+      // 自动检查失败也上报
+      reportErrorToServer('auto_update_check_error', '自动检查更新失败: ' + e.message, e.stack || '');
+    }
+  }
+
+  // 全局错误捕获：未捕获的 JS 异常
+  window.addEventListener('error', function(e) {
+    reportErrorToServer('js_error', e.message, (e.filename || '') + ':' + (e.lineno || 0) + ' ' + (e.error && e.error.stack || ''));
+  });
+  // 全局 Promise 未捕获异常
+  window.addEventListener('unhandledrejection', function(e) {
+    var msg = (e.reason && e.reason.message) || String(e.reason || '未知错误');
+    reportErrorToServer('promise_error', msg, (e.reason && e.reason.stack) || '');
+  });
+
   document.addEventListener('DOMContentLoaded', async function() {
     initTheme();
     initPowerBtn();
@@ -2686,8 +3420,328 @@ select.form-input {
     await loadStats();
     await loadErrors();
     updateCounts();
+    await fetchServerVersion();
+    autoCheckUpdate();
     setInterval(async function() { await loadStatus(); await loadStats(); await loadErrors(); }, 3000);
   });
+
+  // ────────────────── Theme Management ──────────────────
+  var themeModal = document.getElementById('theme-modal');
+  var themeCard = document.getElementById('theme-card');
+  var closeThemeModal = document.getElementById('close-theme-modal');
+  var themeStatus = document.getElementById('theme-status');
+  var themeCurrentName = document.getElementById('theme-current-name');
+
+  // 检查主题状态
+  async function checkThemeStatus() {
+    try {
+      const resp = await fetch('/api/themes/status');
+      const data = await resp.json();
+
+      if (data.baseline.all_passed) {
+        themeStatus.classList.add('ready');
+        themeStatus.classList.remove('error');
+        if (data.current_theme) {
+          themeCurrentName.textContent = data.current_theme.name;
+        } else {
+          themeCurrentName.textContent = 'Codex 已就绪 ✓';
+        }
+      } else {
+        themeStatus.classList.add('error');
+        themeStatus.classList.remove('ready');
+        themeCurrentName.textContent = data.baseline.message;
+      }
+    } catch (e) {
+      themeStatus.classList.add('error');
+      themeCurrentName.textContent = '检测失败';
+    }
+  }
+
+  // 打开主题弹窗
+  function openThemeModal() {
+    themeModal.classList.add('active');
+    loadCommunityThemes();
+    loadLocalThemes();
+  }
+
+  // 关闭主题弹窗
+  function closeThemeModalFn() {
+    themeModal.classList.remove('active');
+  }
+
+  // 加载社区主题
+  async function loadCommunityThemes() {
+    const list = document.getElementById('community-theme-list');
+    list.innerHTML = '<div class="theme-loading">加载中...</div>';
+
+    try {
+      const resp = await fetch('/api/themes/community');
+      const data = await resp.json();
+
+      if (data.themes && data.themes.length > 0) {
+        list.innerHTML = data.themes.map(theme => 
+          '<div class="theme-item" data-theme-id="' + theme.id + '" data-download-url="' + theme.download_url + '">' +
+            '<div class="theme-item-thumb" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>' +
+            '<div class="theme-item-info">' +
+              '<div class="theme-item-name">' + theme.name + '</div>' +
+              '<div class="theme-item-author">' + theme.author + '</div>' +
+            '</div>' +
+          '</div>'
+        ).join('');
+
+        // 绑定点击事件
+        list.querySelectorAll('.theme-item').forEach(item => {
+          item.addEventListener('click', () => downloadAndApplyTheme(item.dataset.themeId, item.dataset.downloadUrl));
+        });
+      } else {
+        list.innerHTML = '<div class="theme-empty">暂无社区主题</div>';
+      }
+    } catch (e) {
+      list.innerHTML = '<div class="theme-empty">加载失败</div>';
+    }
+  }
+
+  // 加载本地主题
+  async function loadLocalThemes() {
+    const list = document.getElementById('local-theme-list');
+
+    try {
+      const resp = await fetch('/api/themes/local');
+      const data = await resp.json();
+
+      if (data.themes && data.themes.length > 0) {
+        list.innerHTML = data.themes.map(theme => 
+          '<div class="theme-item" data-theme-id="' + theme.id + '">' +
+            '<div class="theme-item-thumb" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"></div>' +
+            '<div class="theme-item-info">' +
+              '<div class="theme-item-name">' + theme.name + '</div>' +
+              '<div class="theme-item-author">' + theme.author + '</div>' +
+            '</div>' +
+          '</div>'
+        ).join('');
+      } else {
+        list.innerHTML = '<div class="theme-empty">暂无本地主题</div>';
+      }
+    } catch (e) {
+      list.innerHTML = '<div class="theme-empty">加载失败</div>';
+    }
+  }
+
+  // 下载并应用主题
+  async function downloadAndApplyTheme(themeId, downloadUrl) {
+    if (!downloadUrl) {
+      showToast('无效的下载链接', 'error');
+      return;
+    }
+
+    showToast('正在下载主题...', 'info');
+
+    try {
+      const resp = await fetch('/api/themes/download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ theme_id: themeId, url: downloadUrl })
+      });
+      const data = await resp.json();
+
+      if (data.success) {
+        showToast('主题下载成功', 'success');
+        loadLocalThemes();
+      } else {
+        showToast('下载失败: ' + data.message, 'error');
+      }
+    } catch (e) {
+      showToast('下载请求失败', 'error');
+    }
+  }
+
+  // Tab 切换
+  document.querySelectorAll('.theme-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.theme-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.theme-tab-content').forEach(c => c.classList.remove('active'));
+      tab.classList.add('active');
+      document.querySelector('[data-theme-tab-content="' + tab.dataset.themeTab + '"]').classList.add('active');
+    });
+  });
+
+  // 事件绑定
+  if (themeCard) {
+    themeCard.addEventListener('click', openThemeModal);
+  }
+
+  if (closeThemeModal) {
+    closeThemeModal.addEventListener('click', closeThemeModalFn);
+  }
+
+  document.getElementById('refresh-community-themes')?.addEventListener('click', loadCommunityThemes);
+
+  // ────────────────── 自定义壁纸上传 ──────────────────
+  var themeUploadArea = document.getElementById('theme-upload-area');
+  var themeImageInput = document.getElementById('theme-image-input');
+  var themePreview = document.getElementById('theme-preview');
+  var themePreviewImg = document.getElementById('theme-preview-img');
+  var saveCustomThemeBtn = document.getElementById('save-custom-theme');
+  var uploadedImagePath = '';
+
+  // 点击上传区域
+  if (themeUploadArea) {
+    themeUploadArea.addEventListener('click', () => {
+      themeImageInput?.click();
+    });
+  }
+
+  // 文件选择
+  if (themeImageInput) {
+    themeImageInput.addEventListener('change', (e) => {
+      var file = e.target.files[0];
+      if (file) {
+        handleImageFile(file);
+      }
+    });
+  }
+
+  // 拖拽上传
+  if (themeUploadArea) {
+    themeUploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      themeUploadArea.style.borderColor = 'var(--color-primary)';
+      themeUploadArea.style.background = 'var(--color-primary-subtle)';
+    });
+
+    themeUploadArea.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      themeUploadArea.style.borderColor = '';
+      themeUploadArea.style.background = '';
+    });
+
+    themeUploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      themeUploadArea.style.borderColor = '';
+      themeUploadArea.style.background = '';
+      
+      var file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        handleImageFile(file);
+      }
+    });
+  }
+
+  // 处理图片文件
+  function handleImageFile(file) {
+    // 检查文件大小（最大 10MB）
+    if (file.size > 10 * 1024 * 1024) {
+      showToast('图片文件过大（最大 10MB）', 'error');
+      return;
+    }
+
+    // 检查文件类型
+    var validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      showToast('不支持的图片格式', 'error');
+      return;
+    }
+
+    // 显示预览
+    var reader = new FileReader();
+    reader.onload = (e) => {
+      themePreviewImg.src = e.target.result;
+      themePreview.style.display = 'block';
+      saveCustomThemeBtn.style.display = 'block';
+      
+      // 上传图片到临时目录
+      uploadImage(file);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // 上传图片
+  async function uploadImage(file) {
+    var formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      var resp = await fetch('/api/themes/customize', {
+        method: 'POST',
+        body: formData
+      });
+      var data = await resp.json();
+
+      if (data.success) {
+        uploadedImagePath = data.image_path;
+        showToast('图片上传成功', 'success');
+      } else {
+        showToast('上传失败: ' + data.message, 'error');
+      }
+    } catch (e) {
+      showToast('上传请求失败', 'error');
+    }
+  }
+
+  // 保存自定义主题
+  if (saveCustomThemeBtn) {
+    saveCustomThemeBtn.addEventListener('click', async () => {
+      if (!uploadedImagePath) {
+        showToast('请先上传图片', 'error');
+        return;
+      }
+
+      showToast('正在创建主题...', 'info');
+
+      try {
+        var resp = await fetch('/api/themes/customize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            image_path: uploadedImagePath,
+            params: {
+              name: '自定义主题',
+              focusX: 0.5,
+              focusY: 0.5
+            }
+          })
+        });
+        var data = await resp.json();
+
+        if (data.success) {
+          showToast('主题创建成功', 'success');
+          loadLocalThemes();
+          // 清空上传
+          uploadedImagePath = '';
+          themePreview.style.display = 'none';
+          saveCustomThemeBtn.style.display = 'none';
+        } else {
+          showToast('创建失败: ' + data.message, 'error');
+        }
+      } catch (e) {
+        showToast('创建请求失败', 'error');
+      }
+    });
+  }
+
+  // 恢复官方外观
+  var restoreThemeBtn = document.getElementById('restore-theme-btn');
+  if (restoreThemeBtn) {
+    restoreThemeBtn.addEventListener('click', async () => {
+      try {
+        var resp = await fetch('/api/themes/restore', { method: 'POST' });
+        var data = await resp.json();
+
+        if (data.success) {
+          showToast('已恢复官方外观', 'success');
+          checkThemeStatus();
+        } else {
+          showToast('恢复失败: ' + data.message, 'error');
+        }
+      } catch (e) {
+        showToast('恢复请求失败', 'error');
+      }
+    });
+  }
+
+  // 初始化检查主题状态
+  checkThemeStatus();
+  setInterval(checkThemeStatus, 30000);  // 每 30 秒检查一次
 })();
 </script>
 </body>

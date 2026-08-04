@@ -20,6 +20,7 @@ from pathlib import Path
 import core
 import adapter
 import activation
+import theme_manager
 
 HOST = "127.0.0.1"
 PORT = 18668  # 控制 API 端口(Codex助手 在 18667)
@@ -118,6 +119,12 @@ class APIHandler(BaseHTTPRequestHandler):
             self._handle_stats()
         elif path == "/api/errors":
             self._handle_errors()
+        elif path == "/api/themes/status":
+            self._handle_theme_status()
+        elif path == "/api/themes/community":
+            self._handle_theme_community()
+        elif path == "/api/themes/local":
+            self._handle_theme_local()
         elif path == "/" or path == "/index.html":
             self._serve_file(HTML_FILE, "text/html; charset=utf-8")
         elif path.startswith("/assets/"):
@@ -161,6 +168,14 @@ class APIHandler(BaseHTTPRequestHandler):
             self._handle_config_delete()
         elif path == "/api/token/clear":
             self._handle_token_clear()
+        elif path == "/api/themes/download":
+            self._handle_theme_download()
+        elif path == "/api/themes/apply":
+            self._handle_theme_apply()
+        elif path == "/api/themes/restore":
+            self._handle_theme_restore()
+        elif path == "/api/themes/customize":
+            self._handle_theme_customize()
         else:
             self.send_error(404)
 
@@ -503,11 +518,11 @@ class APIHandler(BaseHTTPRequestHandler):
             self.send_json(400, {"error": "Base URL 必须以 http:// 或 https:// 开头"})
             return
 
-        # 检查是否已存在相同模型，存在则编辑，否则新增
+        # 检查是否已存在相同模型（同 model + 同 upstream 视为重复，不同 upstream 允许同名模型）
         items = core.load_custom()
         existing_idx = -1
         for idx, it in enumerate(items):
-            if it["model"] == model:
+            if it["model"] == model and it.get("upstream") == url:
                 existing_idx = idx
                 break
 
@@ -592,6 +607,199 @@ class APIHandler(BaseHTTPRequestHandler):
         core.token_tracker.clear()
         self.add_timeline("🧹", "已清空 Token 用量统计", icon_color="info")
         self.send_json(200, {"ok": True})
+
+    # ─── 主题管理 API ───
+
+    def _handle_theme_status(self):
+        """获取主题状态和基准检测结果"""
+        baseline = theme_manager.theme_manager.check_baseline()
+        current_theme = theme_manager.theme_manager.get_current_theme()
+
+        self.send_json(200, {
+            "baseline": baseline,
+            "current_theme": current_theme
+        })
+
+    def _handle_theme_community(self):
+        """获取社区主题列表"""
+        themes = theme_manager.theme_manager.get_community_themes()
+        self.send_json(200, {"themes": themes})
+
+    def _handle_theme_local(self):
+        """获取本地主题列表"""
+        themes = theme_manager.theme_manager.get_local_themes()
+        self.send_json(200, {"themes": themes})
+
+    def _handle_theme_download(self):
+        """下载主题"""
+        body = self.read_body()
+        url = body.get("url", "")
+        theme_id = body.get("theme_id", "")
+
+        if not url or not theme_id:
+            self.send_json(400, {"error": "缺少 url 或 theme_id"})
+            return
+
+        result = theme_manager.theme_manager.download_theme(url, theme_id)
+
+        if result["success"]:
+            self.add_timeline("🎨", f"已下载主题: {theme_id}", icon_color="success")
+        else:
+            self.add_timeline("ERR", f"主题下载失败: {result['message']}", icon_color="danger")
+            # 上报错误
+            try:
+                activation.report_error("theme_download_error", result["message"], f"url={url}")
+            except:
+                pass
+
+        self.send_json(200, result)
+
+    def _handle_theme_customize(self):
+        """创建自定义主题"""
+        # 检查是否是文件上传
+        content_type = self.headers.get("Content-Type", "")
+        
+        if "multipart/form-data" in content_type:
+            # 处理文件上传
+            result = self._handle_image_upload()
+        else:
+            # 处理 JSON 参数
+            body = self.read_body()
+            image_path = body.get("image_path", "")
+            params = body.get("params", {})
+            
+            if not image_path:
+                self.send_json(400, {"error": "缺少 image_path"})
+                return
+            
+            result = theme_manager.theme_manager.create_custom_theme(image_path, params)
+            
+            if result["success"]:
+                self.add_timeline("🖼️", f"已创建自定义主题: {result['theme_id']}", icon_color="success")
+            else:
+                self.add_timeline("ERR", f"创建失败: {result['message']}", icon_color="danger")
+                try:
+                    activation.report_error("theme_create_error", result["message"], "")
+                except:
+                    pass
+            
+            self.send_json(200, result)
+
+    def _handle_image_upload(self) -> dict:
+        """处理图片上传"""
+        import cgi
+        import tempfile
+        from pathlib import Path
+        
+        result = {
+            "success": False,
+            "image_path": "",
+            "message": ""
+        }
+        
+        try:
+            # 解析 multipart 表单
+            content_type = self.headers.get("Content-Type", "")
+            boundary = None
+            for part in content_type.split(";"):
+                part = part.strip()
+                if part.startswith("boundary="):
+                    boundary = part[9:]
+                    break
+            
+            if not boundary:
+                raise ValueError("无效的表单数据")
+            
+            # 读取请求体
+            length = int(self.headers.get("content-length", "0"))
+            body = self.rfile.read(length)
+            
+            # 解析表单字段
+            boundary_bytes = boundary.encode("utf-8")
+            parts = body.split(b"--" + boundary_bytes)
+            
+            for part in parts:
+                if not part or part == b"--\r\n":
+                    continue
+                
+                # 解析 header 和内容
+                try:
+                    header_end = part.index(b"\r\n\r\n")
+                    headers_raw = part[:header_end].decode("utf-8")
+                    content = part[header_end + 4:]
+                    
+                    # 移除末尾的 \r\n
+                    if content.endswith(b"\r\n"):
+                        content = content[:-2]
+                    
+                    # 检查是否是文件
+                    if "filename=" in headers_raw:
+                        # 提取文件名
+                        for line in headers_raw.split("\r\n"):
+                            if "filename=" in line:
+                                filename = line.split('filename="')[1].split('"')[0]
+                                break
+                        
+                        # 保存到临时目录
+                        temp_dir = Path(tempfile.mkdtemp())
+                        temp_path = temp_dir / filename
+                        
+                        with open(temp_path, "wb") as f:
+                            f.write(content)
+                        
+                        result["success"] = True
+                        result["image_path"] = str(temp_path)
+                        result["message"] = "图片上传成功"
+                        
+                except Exception as e:
+                    continue
+            
+            if not result["success"]:
+                result["message"] = "未找到上传的文件"
+            
+        except Exception as e:
+            result["message"] = str(e)
+        
+        return result
+
+    def _handle_theme_apply(self):
+        """应用主题"""
+        body = self.read_body()
+        theme_id = body.get("theme_id", "")
+
+        if not theme_id:
+            self.send_json(400, {"error": "缺少 theme_id"})
+            return
+
+        # 应用主题
+        result = theme_manager.theme_manager.apply_theme(theme_id)
+
+        if result["success"]:
+            self.add_timeline("🎨", f"已应用主题: {theme_id}", icon_color="success")
+        else:
+            self.add_timeline("ERR", f"主题应用失败: {result['message']}", icon_color="danger")
+            # 上报错误
+            try:
+                activation.report_error("theme_apply_error", result["message"], f"theme_id={theme_id}")
+            except:
+                pass
+
+        self.send_json(200, result)
+
+    def _handle_theme_restore(self):
+        """恢复官方外观"""
+        result = theme_manager.theme_manager.restore_default()
+
+        if result["success"]:
+            self.add_timeline("🔄", "已恢复官方外观", icon_color="info")
+        else:
+            self.add_timeline("ERR", f"恢复失败: {result['message']}", icon_color="danger")
+            try:
+                activation.report_error("theme_restore_error", result["message"], "")
+            except:
+                pass
+
+        self.send_json(200, result)
 
     # ─── 静态文件 ───
 

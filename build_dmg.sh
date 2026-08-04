@@ -65,6 +65,7 @@ mkdir -p "$PYINSTALLER_CONFIG_DIR"
   --add-data "assets/apinest-logo.png:assets" \
   --add-data "assets/mascot-3d.png:assets" \
   --add-data "assets/brand-text.png:assets" \
+  --add-data "assets/dream-skin:assets/dream-skin" \
   --hidden-import webview \
   --hidden-import webview.platforms.cocoa \
   --hidden-import werkzeug \
