@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "preset-nahida-forest-bloom",
+  "name": "纳西妲·森之绽放",
+  "image": "background.jpg",
+  "appearance": "light",
+  "art": {
+    "focusX": 0.72,
+    "focusY": 0.1,
+    "safeArea": "left",
+    "taskMode": "ambient"
+  },
+  "colors": {
+    "background": "#dfeae7",
+    "panel": "#c9d8d2",
+    "panelAlt": "#b9cbc4",
+    "accent": "#66bf4c",
+    "accentAlt": "#b3e76f",
+    "secondary": "#78b7b4",
+    "highlight": "#9fc75f",
+    "text": "#111111",
+    "muted": "#4b5853",
+    "line": "rgba(73, 125, 89, .22)"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "packageVersion": 1,
+  "themeId": "cecilylove002",
+  "version": "0.1.0",
+  "skinApiVersion": 1,
+  "minClientVersion": "0.0.0",
+  "platforms": [
+    "macos",
+    "windows"
+  ],
+  "capabilities": [
+    "background",
+    "tokens",
+    "safe-css"
+  ],
+  "publisher": {
+    "id": "cecilylove",
+    "displayName": "cecilylove"
+  },
+  "license": "CC BY-NC 4.0",
+  "provenance": {
+    "aiGenerated": false,
+    "summary": "哲风壁纸"
+  },
+  "files": [
+    {
+      "path": "theme.json",
+      "mediaType": "application/json",
+      "bytes": 518,
+      "sha256": "3b3c70c47904198cf357adfbf688f5edbd897222bb785a2695cf581ea2e168eb"
+    },
+    {
+      "path": "background.jpg",
+      "mediaType": "image/jpeg",
+      "bytes": 884646,
+      "sha256": "81ecf0ebe490d899ff53d69ae7d32c2e4481f7febacf78e86f7ad91e5e275a28"
+    },
+    {
+      "path": "theme.css",
+      "mediaType": "text/css",
+      "bytes": 79,
+      "sha256": "00e15db6b0d3f4c13db63cc76c4849b60117d02561c3af06c0020c5f0d3a24a6"
+    }
+  ],
+  "createdAt": "2026-07-31T05:47:48.730Z"
+}

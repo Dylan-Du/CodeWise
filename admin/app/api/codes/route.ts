@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import pool, { addLog } from '@/lib/db';
+import pool, { addLogs } from '@/lib/db';
 import { success, error } from '@/lib/response';
 import { checkAuth, unauthorized } from '@/lib/auth';
 import { generateCodes } from '@/lib/code-generator';
@@ -93,20 +93,29 @@ export async function POST(req: NextRequest) {
     // 生成激活码
     const codes = generateCodes(createCount);
 
-    // 逐条插入（兼容 SQLite）
-    for (const code of codes) {
+    // 批量插入激活码（单条 multi-VALUES，避免逐条插入的多次数据库往返）
+    if (codes.length > 0) {
+      const values = codes.map(() => '(?, ?, ?, ?, ?)').join(', ');
+      const insertParams: unknown[] = [];
+      for (const code of codes) {
+        insertParams.push(code, type, type === 'day' ? days : 0, 'unused', remark);
+      }
       await pool.query(
-        'INSERT INTO activation_codes (code, type, days, status, remark) VALUES (?, ?, ?, ?, ?)',
-        [code, type, type === 'day' ? days : 0, 'unused', remark]
+        `INSERT INTO activation_codes (code, type, days, status, remark) VALUES ${values}`,
+        insertParams
       );
     }
 
-    // 记录日志
-    for (const code of codes) {
-      await addLog(code, 'create', {
-        detail: `批量创建，类型: ${type}${type === 'day' ? `, 天数: ${days}` : ''}, 数量: ${createCount}`,
-      });
-    }
+    // 批量记录日志
+    await addLogs(
+      codes.map((code) => ({
+        code,
+        action: 'create',
+        data: {
+          detail: `批量创建，类型: ${type}${type === 'day' ? `, 天数: ${days}` : ''}, 数量: ${createCount}`,
+        },
+      }))
+    );
 
     return success({ codes }, `成功创建 ${createCount} 个激活码`);
   } catch (err) {

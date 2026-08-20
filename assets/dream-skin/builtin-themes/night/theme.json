@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "night",
+  "name": "night",
+  "image": "background.jpg",
+  "appearance": "dark",
+  "art": {
+    "focusX": 0,
+    "focusY": 0.45,
+    "safeArea": "none",
+    "taskMode": "full"
+  },
+  "colors": {
+    "background": "#141312",
+    "panel": "#1f1d1c",
+    "panelAlt": "#2c2a28",
+    "accent": "#ca9036",
+    "accentAlt": "#d1a052",
+    "secondary": "#4d7891",
+    "highlight": "#d7ac68",
+    "text": "#f1f0ef",
+    "muted": "#949392",
+    "line": "#403f3e"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "packageVersion": 1,
+  "themeId": "karina",
+  "version": "0.1.1",
+  "skinApiVersion": 1,
+  "minClientVersion": "1.5.9",
+  "platforms": [
+    "windows",
+    "macos"
+  ],
+  "capabilities": [
+    "background",
+    "tokens",
+    "safe-css"
+  ],
+  "publisher": {
+    "id": "fanfan-james",
+    "displayName": "fanfan james"
+  },
+  "license": "MIT",
+  "provenance": {
+    "aiGenerated": false,
+    "summary": "AI生成"
+  },
+  "files": [
+    {
+      "path": "theme.json",
+      "mediaType": "application/json",
+      "bytes": 497,
+      "sha256": "4a792ed2b3be3621891875fc086fa7099ec72f45544bb1a8ad2a33b7836c1a0a"
+    },
+    {
+      "path": "background.png",
+      "mediaType": "image/png",
+      "bytes": 4037537,
+      "sha256": "b31a1f9d2772a3ca5fe379244418e8d0fb4d01e7cebf12b66bfd59a2bacd6368"
+    },
+    {
+      "path": "theme.css",
+      "mediaType": "text/css",
+      "bytes": 176,
+      "sha256": "3a64a0614ea6fafce824885af21a7372b0e71c84d21659e6bff831c455f38e99"
+    }
+  ],
+  "createdAt": "2026-08-04T01:49:45.746Z"
+}

@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "karina",
+  "name": "karina",
+  "image": "background.png",
+  "appearance": "dark",
+  "art": {
+    "focusX": 0.5,
+    "focusY": 0.5,
+    "safeArea": "none",
+    "taskMode": "ambient"
+  },
+  "colors": {
+    "background": "#121314",
+    "panel": "#1c1d1e",
+    "panelAlt": "#28292c",
+    "accent": "#5372ab",
+    "accentAlt": "#6b86b7",
+    "secondary": "#a26056",
+    "highlight": "#7e95c0",
+    "text": "#efeff0",
+    "muted": "#929394",
+    "line": "#3e3f40"
+  }
+}

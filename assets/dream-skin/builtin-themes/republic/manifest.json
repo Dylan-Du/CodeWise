@@ -1,0 +1,45 @@
+{
+  "packageVersion": 1,
+  "themeId": "usr-49e16299682ecef4aa46.republic",
+  "version": "0.1.0",
+  "skinApiVersion": 1,
+  "minClientVersion": "0.1.0",
+  "platforms": [
+    "macos"
+  ],
+  "capabilities": [
+    "background",
+    "tokens",
+    "safe-css"
+  ],
+  "publisher": {
+    "id": "usr_49e16299682ecef4aa46",
+    "displayName": "Zed"
+  },
+  "license": "CC BY 4.0",
+  "provenance": {
+    "aiGenerated": true,
+    "summary": "GPT"
+  },
+  "files": [
+    {
+      "path": "theme.json",
+      "mediaType": "application/json",
+      "bytes": 683,
+      "sha256": "0be38d76c233d4a417fc56064dc365494d189eb7ad929c7799d823a107c3e0a3"
+    },
+    {
+      "path": "background.png",
+      "mediaType": "image/png",
+      "bytes": 4460857,
+      "sha256": "a4c8df50f959c08d820de01dbf1075331ca0d2ca36651df5b9da15a2ba7a3443"
+    },
+    {
+      "path": "theme.css",
+      "mediaType": "text/css",
+      "bytes": 273,
+      "sha256": "3f5401920639e102d2e3871057f2bb68d290a5ca5f5a14c9e01cb2ff7be088e3"
+    }
+  ],
+  "createdAt": "2026-08-04T01:45:14.082Z"
+}

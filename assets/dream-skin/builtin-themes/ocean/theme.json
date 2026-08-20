@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "ocean",
+  "name": "深海蓝",
+  "image": "background.jpg",
+  "appearance": "dark",
+  "art": {
+    "focusX": 0.5,
+    "focusY": 0.4,
+    "safeArea": "none",
+    "taskMode": "ambient"
+  },
+  "colors": {
+    "background": "#0a1929",
+    "panel": "#102236",
+    "panelAlt": "#1a3050",
+    "accent": "#2196f3",
+    "accentAlt": "#64b5f6",
+    "secondary": "#26c6da",
+    "highlight": "#42a5f5",
+    "text": "#e3f2fd",
+    "muted": "#78909c",
+    "line": "#1e3a5f"
+  }
+}

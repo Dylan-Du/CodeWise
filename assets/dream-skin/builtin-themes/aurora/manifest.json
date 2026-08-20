@@ -1,0 +1,24 @@
+{
+  "packageVersion": 1,
+  "themeId": "aurora",
+  "version": "0.1.0",
+  "skinApiVersion": 1,
+  "minClientVersion": "0.1.0",
+  "platforms": ["macos", "windows"],
+  "capabilities": ["background", "tokens", "safe-css"],
+  "publisher": {
+    "id": "codex-helper",
+    "displayName": "Codex助手"
+  },
+  "license": "MIT",
+  "provenance": {
+    "aiGenerated": true,
+    "summary": "图片来源: AI生成"
+  },
+  "files": [
+    {"path": "theme.json", "mediaType": "application/json"},
+    {"path": "background.jpg", "mediaType": "image/jpeg"},
+    {"path": "theme.css", "mediaType": "text/css"}
+  ],
+  "createdAt": "2026-08-06T00:00:00.000Z"
+}

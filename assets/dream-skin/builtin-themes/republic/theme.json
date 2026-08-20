@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "usr-49e16299682ecef4aa46.republic",
+  "name": "人民的AI",
+  "tagline": "用先进的工具，为每一个人创造更多可能。",
+  "projectPrefix": "未来项目 ·",
+  "projectLabel": "选择未来项目",
+  "image": "background.png",
+  "appearance": "light",
+  "art": {
+    "focusX": 0.55,
+    "focusY": 0.5,
+    "safeArea": "none",
+    "taskMode": "ambient"
+  },
+  "colors": {
+    "background": "#f7f5f5",
+    "panel": "#fefefe",
+    "panelAlt": "#ece8e7",
+    "accent": "#f04a3b",
+    "accentAlt": "#ce4033",
+    "secondary": "#dd5c50",
+    "highlight": "#b4382c",
+    "text": "#201918",
+    "muted": "#6d6868",
+    "line": "#d5d2d2"
+  }
+}

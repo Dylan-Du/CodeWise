@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "mygril",
+  "name": "美女小姐姐",
+  "image": "background.jpg",
+  "appearance": "dark",
+  "art": {
+    "focusX": 0.5,
+    "focusY": 0.36,
+    "safeArea": "none",
+    "taskMode": "ambient"
+  },
+  "colors": {
+    "background": "#141313",
+    "panel": "#1e1d1d",
+    "panelAlt": "#2b2a29",
+    "accent": "#edae74",
+    "accentAlt": "#f0b987",
+    "secondary": "#5d739c",
+    "highlight": "#f2c297",
+    "text": "#f0f0ef",
+    "muted": "#949393",
+    "line": "#403f3f"
+  }
+}

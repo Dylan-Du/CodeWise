@@ -1,0 +1,32 @@
+[data-ds-part="sidebar"] {
+  background-color: var(--ds-theme-color-panel);
+  border-color: var(--ds-theme-color-line);
+  border-radius: var(--ds-theme-surface-radius);
+  backdrop-filter: blur(var(--ds-theme-surface-blur));
+}
+
+[data-ds-part="header"] {
+  background-color: var(--ds-theme-color-panel-alt);
+  border-color: var(--ds-theme-color-line);
+  backdrop-filter: blur(var(--ds-theme-surface-blur));
+}
+
+[data-ds-part="composer"] {
+  background-color: var(--ds-theme-color-panel);
+  border-color: var(--ds-theme-color-line);
+  border-radius: var(--ds-theme-surface-radius);
+}
+
+[data-ds-part="composer"]:focus-visible {
+  border-color: var(--ds-theme-color-accent);
+}
+
+[data-ds-part="dialog"] {
+  background-color: var(--ds-theme-color-panel-alt);
+  border-color: var(--ds-theme-color-accent-alt);
+  border-radius: var(--ds-theme-surface-radius);
+}
+
+[data-ds-part="message"] {
+  color: var(--ds-theme-color-text);
+}

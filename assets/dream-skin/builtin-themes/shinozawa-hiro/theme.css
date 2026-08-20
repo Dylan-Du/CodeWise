@@ -1,0 +1,85 @@
+[data-ds-part="root"] {
+  color: var(--ds-theme-color-text);
+  font-family: -apple-system, system-ui, sans-serif;
+  line-height: 1.5;
+}
+
+[data-ds-part="sidebar"] {
+  background-color: rgba(245, 240, 232, .86);
+  border-right-color: rgba(66, 111, 148, .22);
+  border-right-style: solid;
+  border-right-width: 1px;
+  backdrop-filter: blur(14px);
+}
+
+[data-ds-part="main"] {
+  color: var(--ds-theme-color-text);
+}
+
+[data-ds-part="header"] {
+  background-color: rgba(255, 252, 247, .78);
+  border-bottom-color: rgba(66, 111, 148, .18);
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  backdrop-filter: blur(12px);
+}
+
+[data-ds-part="home"] {
+  color: var(--ds-theme-color-text);
+}
+
+[data-ds-part="home-hero"] {
+  color: var(--ds-theme-color-text);
+  letter-spacing: .2px;
+}
+
+[data-ds-part="project-list"] {
+  background-color: rgba(255, 252, 247, .74);
+  border-color: rgba(66, 111, 148, .2);
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 18px;
+  box-shadow: 0 14px 36px rgba(63, 70, 78, .1);
+  backdrop-filter: blur(14px);
+}
+
+[data-ds-part="thread"] {
+  color: var(--ds-theme-color-text);
+}
+
+[data-ds-part="message"] {
+  background-color: rgba(255, 252, 247, .8);
+  border-color: rgba(66, 111, 148, .18);
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 16px;
+}
+
+[data-ds-part="composer"] {
+  background-color: #fffcf7;
+  border-color: rgba(164, 90, 32, .34);
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 20px;
+  box-shadow: 0 16px 42px rgba(63, 70, 78, .14);
+  backdrop-filter: none;
+}
+
+[data-ds-part="composer"]:focus-visible {
+  border-color: var(--ds-theme-color-accent);
+  box-shadow: 0 16px 42px rgba(164, 90, 32, .2);
+}
+
+[data-ds-part="composer-toolbar"] {
+  color: var(--ds-theme-color-muted);
+}
+
+[data-ds-part="dialog"] {
+  background-color: rgba(255, 252, 247, .96);
+  border-color: rgba(66, 111, 148, .24);
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 18px;
+  box-shadow: 0 18px 48px rgba(63, 70, 78, .18);
+  backdrop-filter: blur(18px);
+}

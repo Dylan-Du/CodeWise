@@ -1,0 +1,46 @@
+{
+  "packageVersion": 1,
+  "themeId": "elysia",
+  "version": "0.1.1",
+  "skinApiVersion": 1,
+  "minClientVersion": "0.1.0",
+  "platforms": [
+    "macos",
+    "windows"
+  ],
+  "capabilities": [
+    "background",
+    "tokens",
+    "safe-css"
+  ],
+  "publisher": {
+    "id": "AprwithU",
+    "displayName": "AprwithU"
+  },
+  "license": "cc by 4.0",
+  "provenance": {
+    "aiGenerated": false,
+    "summary": "崩坏三乐园爱莉"
+  },
+  "files": [
+    {
+      "path": "theme.json",
+      "mediaType": "application/json",
+      "bytes": 495,
+      "sha256": "b7e9468649242f73d784a7a66398b2876b9c44ab1781c0491d2d2c7ef2f78d1a"
+    },
+    {
+      "path": "background.jpg",
+      "mediaType": "image/jpeg",
+      "bytes": 250470,
+      "sha256": "36601b238d788567a2d1fde7082739917bc3d1cf1ee372ce02fea55377a4ebfe"
+    },
+    {
+      "path": "theme.css",
+      "mediaType": "text/css",
+      "bytes": 919,
+      "sha256": "b143852e4989606e1b6d3ba0550c242a3ac0fb348de41d43fe71f6add378f847"
+    }
+  ],
+  "createdAt": "2026-08-04T07:35:30.828Z"
+}

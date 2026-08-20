@@ -1,0 +1,45 @@
+{
+  "packageVersion": 1,
+  "themeId": "pjyang.red-shrine-008",
+  "version": "0.1.0",
+  "skinApiVersion": 1,
+  "minClientVersion": "1.3.0",
+  "platforms": [
+    "windows"
+  ],
+  "capabilities": [
+    "background",
+    "tokens",
+    "safe-css"
+  ],
+  "publisher": {
+    "id": "pj-yang",
+    "displayName": "PJ Yang"
+  },
+  "license": "All Rights Reserved",
+  "provenance": {
+    "aiGenerated": false,
+    "summary": "背景图片来源于网络，暂未查找到原作者及明确授权信息。如权利人认为本主题使用该图片侵犯其合法权益，请联系平台或发布者，核实后将立即删除或替换。"
+  },
+  "files": [
+    {
+      "path": "theme.json",
+      "mediaType": "application/json",
+      "bytes": 523,
+      "sha256": "17eeb2f3659012eae8a8a70db9782e874eb710413ac7dae2e41e8f8f40f7d533"
+    },
+    {
+      "path": "background.png",
+      "mediaType": "image/png",
+      "bytes": 3308182,
+      "sha256": "c381760be68ce2f316622b34422776248ec5a5b5a3db7b51d1cfbde46bddee31"
+    },
+    {
+      "path": "theme.css",
+      "mediaType": "text/css",
+      "bytes": 191,
+      "sha256": "38762910b15bcaedb8e03ca2474c41db7baa2a380c117bdaceabee6ecc2aa879"
+    }
+  ],
+  "createdAt": "2026-08-04T10:34:12.845Z"
+}

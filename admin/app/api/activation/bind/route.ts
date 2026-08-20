@@ -67,13 +67,12 @@ export async function POST(req: NextRequest) {
 
     // status === 'unused'，执行绑定
     const now = new Date();
-    const pad = (n: number) => String(n).padStart(2, '0');
-    const nowStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    const nowStr = now.toISOString();
     let expiresAt: string | null = null;
 
     if (record.type === 'day' && record.days > 0) {
       const exp = new Date(now.getTime() + record.days * 24 * 60 * 60 * 1000);
-      expiresAt = `${exp.getFullYear()}-${pad(exp.getMonth()+1)}-${pad(exp.getDate())} ${pad(exp.getHours())}:${pad(exp.getMinutes())}:${pad(exp.getSeconds())}`;
+      expiresAt = exp.toISOString();
     }
 
     await pool.query(

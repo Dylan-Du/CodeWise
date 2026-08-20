@@ -1,0 +1,46 @@
+{
+  "packageVersion": 1,
+  "themeId": "preset-nahida-forest-bloom",
+  "version": "1.0.0",
+  "skinApiVersion": 1,
+  "minClientVersion": "1.5.5",
+  "platforms": [
+    "windows",
+    "macos"
+  ],
+  "capabilities": [
+    "background",
+    "tokens",
+    "safe-css"
+  ],
+  "publisher": {
+    "id": "nekobyran",
+    "displayName": "nekobyran"
+  },
+  "license": "All Rights Reserved",
+  "provenance": {
+    "aiGenerated": false,
+    "summary": "Theme configuration and Safe CSS by nekobyran. Background artwork was supplied by the publisher for this community submission."
+  },
+  "files": [
+    {
+      "path": "theme.json",
+      "mediaType": "application/json",
+      "bytes": 551,
+      "sha256": "7279ccbbf52a72900abc26696d975caa4368419baf8b6098b901ff1a72b8b6c4"
+    },
+    {
+      "path": "background.jpg",
+      "mediaType": "image/jpeg",
+      "bytes": 675009,
+      "sha256": "b59509578efaad9fecdbf660f9f347453855068efe7d25e28c2e4022de762956"
+    },
+    {
+      "path": "theme.css",
+      "mediaType": "text/css",
+      "bytes": 2076,
+      "sha256": "be5ce8447e1589f96de8896f601df445c870863562fccea1ef0642619daa476b"
+    }
+  ],
+  "createdAt": "2026-07-29T00:33:20.256Z"
+}

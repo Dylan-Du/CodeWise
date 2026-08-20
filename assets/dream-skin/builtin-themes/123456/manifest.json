@@ -1,0 +1,45 @@
+{
+  "packageVersion": 1,
+  "themeId": "123456",
+  "version": "0.1.0",
+  "skinApiVersion": 1,
+  "minClientVersion": "0.1.0",
+  "platforms": [
+    "windows"
+  ],
+  "capabilities": [
+    "background",
+    "tokens",
+    "safe-css"
+  ],
+  "publisher": {
+    "id": "pioneer-xplore-yonder",
+    "displayName": "pioneer·xplore·yonder"
+  },
+  "license": "cc by 4.0",
+  "provenance": {
+    "aiGenerated": false,
+    "summary": "哲风壁纸"
+  },
+  "files": [
+    {
+      "path": "theme.json",
+      "mediaType": "application/json",
+      "bytes": 509,
+      "sha256": "a6d5225c62fcdf714c7fcc215e3a6d681a54d9d61213667c1c505b33c8773170"
+    },
+    {
+      "path": "background.jpg",
+      "mediaType": "image/jpeg",
+      "bytes": 114928,
+      "sha256": "f7ebf8aacff0731457651d00d5703a9e4bf428a5a7e217c2faca4c17de892034"
+    },
+    {
+      "path": "theme.css",
+      "mediaType": "text/css",
+      "bytes": 4071,
+      "sha256": "50d58bf2c2b5b27f2831029be68b7dd75855c39845456511bb218d79051f8cba"
+    }
+  ],
+  "createdAt": "2026-07-30T03:58:07.941Z"
+}

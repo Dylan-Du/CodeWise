@@ -1,0 +1,46 @@
+{
+  "packageVersion": 1,
+  "themeId": "mygril",
+  "version": "0.1.0",
+  "skinApiVersion": 1,
+  "minClientVersion": "0.0.2",
+  "platforms": [
+    "windows",
+    "macos"
+  ],
+  "capabilities": [
+    "background",
+    "tokens",
+    "safe-css"
+  ],
+  "publisher": {
+    "id": "wuyu",
+    "displayName": "wu yu"
+  },
+  "license": "cc",
+  "provenance": {
+    "aiGenerated": true,
+    "summary": "豆包AI加工"
+  },
+  "files": [
+    {
+      "path": "theme.json",
+      "mediaType": "application/json",
+      "bytes": 507,
+      "sha256": "f0bba2b4885a12fdd3bcf4b664579fe6e27faf9dbcb33ad35757d4a4da003e48"
+    },
+    {
+      "path": "background.jpg",
+      "mediaType": "image/jpeg",
+      "bytes": 1737467,
+      "sha256": "cb68e3b4a449cd025d06e8b893f98cc129f7d393c8080224d1773df1286b538e"
+    },
+    {
+      "path": "theme.css",
+      "mediaType": "text/css",
+      "bytes": 458,
+      "sha256": "c39219ad22b3c23edffc99b3273ac735692826c5dc5938cf4967d417b9843a16"
+    }
+  ],
+  "createdAt": "2026-07-31T16:39:56.289Z"
+}

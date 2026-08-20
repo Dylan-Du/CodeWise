@@ -340,7 +340,7 @@ body > * { position: relative; z-index: 1; }
   flex-direction: column;
   gap: 8px;
   pointer-events: none;
-  transition: transform 0.3s ease;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .toast-container.show {
   transform: translateX(-50%) translateY(0);
@@ -351,8 +351,13 @@ body > * { position: relative; z-index: 1; }
   font-size: 13px;
   font-weight: 500;
   color: var(--hex-white);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(0,0,0,0.05);
   white-space: nowrap;
+  animation: toastPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes toastPop {
+  from { opacity: 0; transform: scale(0.9) translateY(-8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 .toast.success { background: var(--color-success); }
 .toast.error { background: var(--color-danger); }
@@ -379,13 +384,13 @@ body > * { position: relative; z-index: 1; }
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   border: 1px solid var(--color-border);
   background: var(--color-glass);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
   color: var(--color-text-subtle);
   transition: all 0.2s ease;
@@ -394,7 +399,7 @@ body > * { position: relative; z-index: 1; }
 }
 .settings-btn:hover { color: var(--color-primary); border-color: var(--color-primary); }
 .settings-btn:active { transform: scale(0.95); }
-.settings-btn svg { width: 18px; height: 18px; }
+.settings-btn svg { width: 16px; height: 16px; }
 
 .settings-modal {
   position: fixed; inset: 0; z-index: 1000;
@@ -405,74 +410,545 @@ body > * { position: relative; z-index: 1; }
 }
 .settings-modal.active { display: flex; }
 .settings-modal-content {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: #f2f2f7;
   border-radius: 16px;
   padding: 20px 16px;
-  width: 300px;
+  width: 320px;
   max-width: 90vw;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
 }
-.settings-modal-content h3 {
-  margin: 0 0 16px;
-  font-size: 17px;
+.settings-title {
+  font-size: 18px;
   font-weight: 600;
-  color: var(--color-text);
+  color: #1c1c1e;
   text-align: center;
+  margin-bottom: 16px;
 }
-.settings-section {
-  background: var(--color-bg);
-  border-radius: 10px;
-  padding: 12px 10px;
-  margin-bottom: 10px;
+/* iOS Style Card */
+.ios-card-group {
+  background: #fff;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  overflow: hidden;
 }
-.settings-section:last-of-type { margin-bottom: 0; }
-.settings-item {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 8px 6px;
-  border-radius: 6px;
-}
-.settings-item:hover { background: var(--color-surface); }
-.settings-item-label { 
-  font-size: 13px; 
-  color: var(--color-text-subtle);
+.ios-card-item {
+  padding: 14px 16px;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 6px;
 }
-.settings-item-label svg { width: 14px; height: 14px; opacity: 0.7; }
-.settings-item-value { 
-  font-size: 13px; 
-  font-weight: 600; 
-  color: var(--color-text);
-}
-.settings-action {
-  font-size: 12px;
-  color: var(--color-primary);
+.ios-card-item.clickable {
   cursor: pointer;
+  transition: background 0.15s;
+}
+.ios-card-item.clickable:hover {
+  background: #f5f5f5;
+}
+.ios-card-item.clickable:active {
+  background: #e8e8e8;
+}
+.ios-card-item:not(:last-child) {
+  border-bottom: 1px solid #e5e5e5;
+}
+.ios-card-item.version-info {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.version-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #000;
+}
+.version-notes {
+  font-size: 13px;
+  color: #8e8e93;
+}
+.ios-item-label {
+  font-size: 15px;
+  color: #000;
   text-decoration: none;
-  transition: all 0.15s;
-  user-select: none;
-  padding: 5px 12px;
-  border-radius: 14px;
-  background: rgba(74, 144, 226, 0.12);
+}
+.ios-item-chevron {
+  font-size: 18px;
+  color: #c7c7cc;
   font-weight: 500;
 }
-.settings-action:hover { 
-  background: var(--color-primary); 
-  color: white;
+.ios-btn-primary {
+  width: 100%;
+  padding: 14px;
+  background: #007AFF;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
 }
-.release-notes-box {
-  background: var(--color-surface);
+.ios-btn-primary:hover {
+  background: #0066d6;
+}
+.ios-btn-primary:active {
+  background: #0055b3;
+}
+
+/* Theme Section in Settings */
+.theme-section {
+  padding: 0;
+}
+
+.theme-header {
+  padding: 14px 16px;
+  cursor: pointer;
+}
+
+.theme-status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theme-status-icon {
+  font-size: 18px;
+}
+
+.theme-status-text {
+  flex: 1;
+  font-size: 15px;
+  color: #000;
+}
+
+.theme-chevron {
+  font-size: 18px;
+  color: #c7c7cc;
+  transition: transform 0.2s;
+}
+
+.theme-section.expanded .theme-chevron {
+  transform: rotate(90deg);
+}
+
+.theme-restore-row {
+  padding: 0 16px 12px;
+}
+
+.theme-restore-btn {
+  width: 100%;
+  padding: 10px;
+  background: #f5f5f5;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #007AFF;
+  cursor: pointer;
+}
+
+.theme-restore-btn:hover {
+  background: #e8e8e8;
+}
+
+/* Theme Dropdown */
+.theme-dropdown {
+  border-top: 1px solid #e5e5e5;
+  padding: 12px;
+}
+
+/* Theme Grid */
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.theme-grid-item {
+  background: #f9f9f9;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.theme-grid-item .theme-thumb {
+  width: 100%;
+  aspect-ratio: 16/9;
+}
+
+.theme-grid-item .theme-name {
+  padding: 8px 10px 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #000;
+}
+
+.theme-grid-item .theme-apply-btn {
+  margin: 0 10px 10px;
+  padding: 6px 12px;
+  background: #007AFF;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.theme-grid-item .theme-apply-btn:hover {
+  background: #0066d6;
+}
+
+.theme-apply-btn.full-width {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  background: #007AFF;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.theme-loading, .theme-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 20px;
+  color: #8e8e93;
+  font-size: 13px;
+}
+
+/* ────────────────── Theme Card (Homepage) ────────────────── */
+.theme-card-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--seed-primary) 4%, transparent);
+  border: 1px solid color-mix(in srgb, var(--seed-primary) 10%, transparent);
+  border-radius: 10px;
+}
+.theme-card-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+.theme-card-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--seed-primary) 10%, transparent);
+}
+.theme-card-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.theme-card-restore {
+  padding: 6px 12px;
+  background: transparent;
   border: 1px solid var(--color-border);
   border-radius: 8px;
-  padding: 10px;
-  margin: 8px 0 4px;
-  font-size: 12px;
   color: var(--color-text-muted);
-  max-height: 70px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.theme-card-restore:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
+/* ────────────────── Theme Management Modal ────────────────── */
+.theme-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.theme-modal-overlay.active {
+  display: flex;
+}
+.theme-modal-content {
+  background: var(--color-surface);
+  border-radius: 16px;
+  width: 460px;
+  max-width: 92vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  overflow: hidden;
+}
+.theme-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+.theme-modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+.theme-modal-close {
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+.theme-modal-close:hover {
+  background: var(--color-surface-hover);
+}
+.theme-modal-tabs {
+  display: flex;
+  gap: 0;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+.theme-modal-tab {
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.15s;
+}
+.theme-modal-tab:hover {
+  color: var(--color-text);
+}
+.theme-modal-tab.active {
+  color: var(--color-primary);
+}
+.theme-modal-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 16px;
+  right: 16px;
+  height: 2px;
+  background: var(--color-primary);
+  border-radius: 1px;
+}
+.theme-modal-tab-content {
+  display: none;
+  padding: 16px 20px;
   overflow-y: auto;
-  line-height: 1.5;
+  flex: 1;
+}
+.theme-modal-tab-content.active {
+  display: block;
+}
+
+/* Theme Gallery */
+.theme-section-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 10px 0;
+}
+.theme-section-label:not(:first-child) {
+  margin-top: 20px;
+}
+.theme-gallery {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.theme-gallery-loading {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 24px;
+  color: var(--color-text-subtle);
+  font-size: 13px;
+}
+.theme-gallery-item {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.theme-gallery-item:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+}
+.theme-gallery-thumb {
+  width: 100%;
+  aspect-ratio: 16/10;
+  position: relative;
+  overflow: hidden;
+}
+.theme-gallery-preview {
+  position: absolute;
+  inset: 8px;
+  display: flex;
+  gap: 4px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.preview-sidebar {
+  width: 28%;
+  background: rgba(255,255,255,0.15);
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.preview-sidebar.dark { background: rgba(255,255,255,0.08); }
+.preview-sidebar.nature { background: rgba(255,255,255,0.12); }
+.preview-sidebar.ocean { background: rgba(255,255,255,0.15); }
+.preview-main {
+  flex: 1;
+  background: rgba(255,255,255,0.1);
+  border-radius: 4px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
+}
+.preview-main.dark { background: rgba(255,255,255,0.05); }
+.preview-main.nature { background: rgba(255,255,255,0.08); }
+.preview-main.ocean { background: rgba(255,255,255,0.1); }
+.preview-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.5);
+}
+.preview-line {
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.25);
+}
+.preview-line.short {
+  width: 60%;
+}
+.theme-gallery-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--color-surface);
+}
+.theme-gallery-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.theme-gallery-apply {
+  padding: 4px 10px;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.theme-gallery-apply:hover {
+  opacity: 0.85;
+}
+.theme-gallery-apply.applied {
+  background: var(--color-success);
+}
+.theme-gallery-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  backdrop-filter: blur(4px);
+}
+.theme-gallery-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.theme-gallery-tagline {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Custom Theme Upload */
+.theme-upload-zone {
+  border: 2px dashed var(--color-border-strong);
+  border-radius: 12px;
+  padding: 32px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  color: var(--color-text-muted);
+}
+.theme-upload-zone:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+.theme-upload-zone svg {
+  color: var(--color-text-subtle);
+  margin-bottom: 8px;
+}
+.theme-upload-zone p {
+  font-size: 14px;
+  color: var(--color-text);
+  margin: 0 0 4px 0;
+}
+.theme-upload-zone span {
+  font-size: 12px;
+  color: var(--color-text-subtle);
+}
+.theme-wallpaper-preview {
+  margin-top: 12px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+.theme-wallpaper-preview img {
+  width: 100%;
+  display: block;
 }
 .settings-close {
   width: 100%;
@@ -507,16 +983,16 @@ body > * { position: relative; z-index: 1; }
   align-items: center;
   justify-content: center;
   width: 28px;
-  height: 26px;
+  height: 28px;
   border: none;
   background: transparent;
-  border-radius: 7px;
+  border-radius: 8px;
   cursor: pointer;
   color: var(--color-text-subtle);
   transition: all 0.2s ease;
 }
 
-.theme-btn svg { width: 14px; height: 14px; }
+.theme-btn svg { width: 16px; height: 16px; }
 
 .theme-btn.active {
   background: var(--color-primary-subtle);
@@ -745,23 +1221,42 @@ body > * { position: relative; z-index: 1; }
 /* ────────────────── Model Pill Bar ────────────────── */
 .config-card {
   border-radius: var(--seed-radius);
-  padding: 16px;
+  padding: 14px 16px;
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   flex-shrink: 0;
   width: 100%;
   max-width: 100%;
+  position: relative;
+}
+
+.config-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .config-title {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--color-text-subtle);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.config-title::before {
+  content: "";
+  width: 3px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--color-primary);
+  flex-shrink: 0;
 }
 
 .pill-bar {
@@ -779,7 +1274,7 @@ body > * { position: relative; z-index: 1; }
   align-items: center;
   gap: 7px;
   padding: 8px 14px;
-  border: 1px solid var(--color-border-strong);
+  border: 1.5px solid var(--color-border-strong);
   border-radius: 20px;
   background: transparent;
   color: var(--color-text-muted);
@@ -789,13 +1284,24 @@ body > * { position: relative; z-index: 1; }
   letter-spacing: 0.01em;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.2s ease;
+  transition: border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease, color 0.2s ease, box-shadow 0.25s ease, transform 0.2s ease;
   flex-shrink: 0;
+  animation: pillSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+@keyframes pillSlideIn {
+  from { opacity: 0; transform: translateY(4px) scale(0.96); }
 }
 
 .model-pill:hover {
-  border-color: var(--color-primary);
+  border-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
   color: var(--color-text);
+  background: color-mix(in srgb, var(--seed-primary) 5%, transparent);
+  transform: translateY(-1px);
+}
+
+.model-pill:active {
+  transform: translateY(0px) scale(0.97);
 }
 
 .model-pill.active {
@@ -803,6 +1309,12 @@ body > * { position: relative; z-index: 1; }
   border-color: var(--color-primary);
   color: var(--color-on-primary);
   box-shadow: var(--shadow-primary);
+  font-weight: 600;
+}
+
+.model-pill.active .pill-dot {
+  background: var(--hex-white) !important;
+  opacity: 0.9;
 }
 
 .pill-dot {
@@ -810,13 +1322,26 @@ body > * { position: relative; z-index: 1; }
   height: 7px;
   border-radius: 50%;
   flex-shrink: 0;
+  transition: background 0.2s ease, opacity 0.2s ease;
 }
 
-.config-header {
+.pill-bar-empty {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 4px;
+  color: var(--color-text-subtle);
+  font-size: 13px;
+  animation: fadeIn 0.4s ease;
 }
+
+.pill-bar-empty svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
 
 .config-btn {
   display: flex;
@@ -825,9 +1350,9 @@ body > * { position: relative; z-index: 1; }
   background: var(--color-primary-subtle);
   border: 1px solid color-mix(in srgb, var(--seed-primary) 28%, transparent);
   border-radius: 8px;
-  padding: 5px 10px;
+  padding: 6px 12px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.02em;
   color: var(--color-primary);
   cursor: pointer;
@@ -839,6 +1364,7 @@ body > * { position: relative; z-index: 1; }
 .config-btn svg {
   width: 13px;
   height: 13px;
+  flex-shrink: 0;
 }
 
 .config-btn:hover {
@@ -846,6 +1372,11 @@ body > * { position: relative; z-index: 1; }
   color: var(--color-on-primary);
   border-color: var(--color-primary);
   box-shadow: var(--shadow-primary);
+  transform: translateY(-1px);
+}
+
+.config-btn:active {
+  transform: translateY(0);
 }
 
 /* ────────────────── Model Config Panel ────────────────── */
@@ -918,15 +1449,43 @@ body > * { position: relative; z-index: 1; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border: 1px solid var(--color-border);
+  border: 1.5px solid var(--color-border);
   box-shadow: var(--shadow-sm);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: cardSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+@keyframes cardSlideIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+}
+
+.model-card:nth-child(1) { animation-delay: 0ms; }
+.model-card:nth-child(2) { animation-delay: 50ms; }
+.model-card:nth-child(3) { animation-delay: 100ms; }
+.model-card:nth-child(4) { animation-delay: 150ms; }
+.model-card:nth-child(5) { animation-delay: 200ms; }
+
+.model-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 50%, var(--color-success)));
+  border-radius: 0 2px 2px 0;
+  opacity: 0;
+  transition: opacity 0.25s ease;
 }
 
 .model-card:hover {
-  border-color: var(--color-primary);
+  border-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
   box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
+.model-card:hover::before { opacity: 0.7; }
 
 .model-card-info {
   display: flex;
@@ -1044,41 +1603,94 @@ body > * { position: relative; z-index: 1; }
 
 .model-form.active { display: flex; }
 
-.form-field { display: flex; flex-direction: column; gap: 6px; }
+.form-field { display: flex; flex-direction: column; gap: 6px; position: relative; }
 
 .form-field label {
   font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   color: var(--color-text-muted);
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.form-field label .required-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-danger);
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.form-field:focus-within label {
+  color: var(--color-primary);
+}
+
+.form-field .field-icon {
+  position: absolute;
+  right: 12px;
+  top: 30px;
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-subtle);
+  pointer-events: none;
+  transition: color 0.2s ease;
+}
+.form-field:focus-within .field-icon {
+  color: var(--color-primary);
 }
 
 .form-input {
   width: 100%;
-  height: 36px;
+  height: 40px;
   padding: 0 12px;
-  border: 1px solid var(--color-border-strong);
-  border-radius: 9px;
-  background: transparent;
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--seed-surface) 60%, transparent);
   color: var(--color-text);
   font-family: inherit;
   font-size: 14px;
   letter-spacing: 0.01em;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease;
   box-sizing: border-box;
 }
 
 .form-input.mono {
-  font-family: "SF Mono", ui-monospace, monospace;
+  font-family: "SF Mono", ui-monospace, "Cascadia Code", monospace;
   font-size: 13px;
 }
 
-.form-input::placeholder { color: var(--color-text-subtle); }
-.form-input:hover { border-color: var(--color-primary); }
+.form-input::placeholder { color: var(--color-text-subtle); transition: color 0.2s ease; }
+.form-input:hover { border-color: color-mix(in srgb, var(--seed-primary) 40%, var(--color-border-strong)); }
 .form-input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--seed-primary) 15%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--seed-primary) 12%, transparent), var(--shadow-sm);
+  background: color-mix(in srgb, var(--seed-surface) 80%, transparent);
+}
+.form-input:focus::placeholder { color: var(--color-text-subtle); opacity: 0.6; }
+
+.form-input.valid {
+  border-color: var(--color-success);
+}
+.form-input.invalid {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 10%, transparent);
+}
+
+.form-field .validation-hint {
+  font-size: 11px;
+  margin-top: 2px;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+.form-field .validation-hint.error {
+  color: var(--color-danger);
+}
+.form-field .validation-hint.success {
+  color: var(--color-success);
 }
 
 select.form-input {
@@ -1130,16 +1742,17 @@ select.form-input {
   font-weight: 600;
   letter-spacing: 0.02em;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
   box-shadow: var(--shadow-primary);
 }
 
 .btn-primary:hover {
   background: var(--color-primary-hover);
   transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
-.btn-primary:active { transform: translateY(0); }
+.btn-primary:active { transform: translateY(0) scale(0.98); }
 
 /* ────────────────── Timeline (Tabbed) ────────────────── */
 .timeline-section {
@@ -1179,8 +1792,9 @@ select.form-input {
   letter-spacing: 0.02em;
   color: var(--color-text-subtle);
   border-bottom: 2px solid transparent;
-  transition: color 0.2s ease, border-color 0.2s ease;
+  transition: color 0.25s ease, border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   margin-bottom: -1px;
+  position: relative;
 }
 
 .timeline-tab:hover { color: var(--color-text-muted); }
@@ -1188,6 +1802,7 @@ select.form-input {
 .timeline-tab.active {
   color: var(--color-primary);
   border-bottom-color: var(--color-primary);
+  font-weight: 600;
 }
 
 .tab-count {
@@ -1538,6 +2153,7 @@ select.form-input {
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+@keyframes downloadIndeterminate { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
 /* Model Stats Card */
 .stats-card {
@@ -1853,7 +2469,7 @@ select.form-input {
   color: var(--color-danger);
 }
 
-/* Theme Modal */
+/* Theme Modal - iOS Style */
 .theme-modal {
   display: none;
   position: fixed;
@@ -1872,8 +2488,7 @@ select.form-input {
 }
 
 .theme-modal-content {
-  background: var(--color-surface);
-  border-radius: var(--seed-radius);
+  background: transparent;
   width: 90%;
   max-width: 400px;
   max-height: 80vh;
@@ -1882,68 +2497,40 @@ select.form-input {
   flex-direction: column;
 }
 
-.theme-modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.theme-modal-header h3 {
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0;
-}
-
-.theme-modal-close {
-  background: none;
-  border: none;
-  padding: 4px;
-  cursor: pointer;
-  color: var(--color-text-muted);
-}
-
-.theme-modal-close:hover {
-  color: var(--color-text);
-}
-
-.theme-modal-close svg {
-  width: 20px;
-  height: 20px;
-}
-
-/* Theme Tabs */
+/* Theme Tabs - iOS Style */
 .theme-tabs {
   display: flex;
-  border-bottom: 1px solid var(--color-border);
+  background: #fff;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  padding: 4px;
 }
 
 .theme-tab {
   flex: 1;
-  padding: 12px;
+  padding: 10px 8px;
   background: none;
   border: none;
   font-size: 13px;
-  color: var(--color-text-muted);
+  color: #8e8e93;
   cursor: pointer;
-  transition: color 0.2s, border-color 0.2s;
-  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  border-radius: 8px;
 }
 
 .theme-tab:hover {
-  color: var(--color-text);
+  color: #000;
 }
 
 .theme-tab.active {
-  color: var(--color-primary);
-  border-bottom-color: var(--color-primary);
+  color: #fff;
+  background: #007AFF;
 }
 
 /* Theme Tab Content */
 .theme-tab-content {
   display: none;
-  padding: 16px;
+  padding: 0;
   overflow-y: auto;
   flex: 1;
 }
@@ -1957,68 +2544,77 @@ select.form-input {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
+  padding: 0;
 }
 
 .theme-loading, .theme-empty {
   grid-column: 1 / -1;
   text-align: center;
-  color: var(--color-text-muted);
+  color: #8e8e93;
   padding: 24px;
+  background: #fff;
+  border-radius: 12px;
 }
 
 .theme-item {
   border-radius: 12px;
   overflow: hidden;
-  background: var(--color-surface-hover);
+  background: #fff;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .theme-item:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.theme-item:active {
+  transform: scale(0.98);
 }
 
 .theme-item-thumb {
   width: 100%;
   aspect-ratio: 16/10;
   object-fit: cover;
-  background: var(--color-border);
+  background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
 }
 
 .theme-item-info {
-  padding: 8px;
+  padding: 10px;
 }
 
 .theme-item-name {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 600;
+  color: #000;
 }
 
 .theme-item-author {
   font-size: 11px;
-  color: var(--color-text-muted);
+  color: #8e8e93;
+  margin-top: 2px;
 }
 
 .theme-refresh-btn {
   width: 100%;
   margin-top: 12px;
-  padding: 10px;
-  background: var(--color-surface-hover);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
+  padding: 12px;
+  background: #fff;
+  border: none;
+  border-radius: 12px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-size: 13px;
-  color: var(--color-text);
+  font-size: 14px;
+  color: #007AFF;
+  font-weight: 500;
 }
 
 .theme-refresh-btn:hover {
-  background: var(--color-primary-subtle);
+  background: #f5f5f5;
 }
 
 .theme-refresh-btn svg {
@@ -2026,31 +2622,32 @@ select.form-input {
   height: 16px;
 }
 
-/* Theme Upload */
+/* Theme Upload - iOS Style */
 .theme-upload-area {
-  border: 2px dashed var(--color-border-strong);
+  border: 2px dashed #d1d1d6;
   border-radius: 12px;
   padding: 32px;
   text-align: center;
   cursor: pointer;
-  transition: border-color 0.2s, background-color 0.2s;
+  transition: all 0.2s;
+  background: #fff;
 }
 
 .theme-upload-area:hover {
-  border-color: var(--color-primary);
-  background: var(--color-primary-subtle);
+  border-color: #007AFF;
+  background: #f5f9ff;
 }
 
 .theme-upload-area svg {
   width: 32px;
   height: 32px;
-  color: var(--color-text-muted);
+  color: #8e8e93;
   margin-bottom: 8px;
 }
 
 .theme-upload-area p {
   font-size: 13px;
-  color: var(--color-text-muted);
+  color: #8e8e93;
 }
 
 .theme-preview {
@@ -2066,8 +2663,56 @@ select.form-input {
 
 /* Theme Actions */
 .theme-actions {
-  padding: 16px;
-  border-top: 1px solid var(--color-border);
+  padding: 0;
+  margin-top: 12px;
+}
+
+.ios-btn-secondary {
+  width: 100%;
+  padding: 14px;
+  background: #fff;
+  color: #007AFF;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.ios-btn-secondary:hover {
+  background: #f5f5f5;
+}
+
+.ios-btn-secondary:active {
+  background: #e8e8e8;
+}
+
+/* ─── Accessibility: focus-visible ─── */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+button:focus-visible,
+a:focus-visible,
+.model-pill:focus-visible,
+.timeline-tab:focus-visible,
+.form-input:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+.form-input:focus-visible {
+  outline: none;
+}
+
+/* ─── Reduced motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 </style>
 </head>
@@ -2181,14 +2826,31 @@ select.form-input {
     </div>
   </section>
 
-  <!-- ─── 主题卡片 ─── -->
-  <section class="config-card glass" id="theme-card" data-component="Theme Card">
+  <!-- ─── Codex 主题切换卡片 ─── -->
+  <section class="config-card glass" id="theme-card" data-component="Theme Card" data-od-id="theme-card">
     <div class="config-header">
-      <div class="config-title">主题</div>
+      <div class="config-title">Codex 主题</div>
+      <button class="config-btn" id="open-theme-modal" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;">
+          <path d="M15 4V2"></path>
+          <path d="M15 16v-2"></path>
+          <path d="M8 9h2"></path>
+          <path d="M20 9h2"></path>
+          <path d="M17.8 11.8 19 13"></path>
+          <path d="M15 9h.01"></path>
+          <path d="M17.8 6.2 19 5"></path>
+          <path d="m3 21 9-9"></path>
+          <path d="M12.2 6.2 11 5"></path>
+        </svg>
+        切换主题
+      </button>
     </div>
-    <div class="theme-status" id="theme-status">
-      <span class="theme-icon">🎨</span>
-      <span class="theme-text" id="theme-current-name">检测中...</span>
+    <div class="theme-card-body">
+      <div class="theme-card-status">
+        <span class="theme-card-icon">🎨</span>
+        <span class="theme-card-label" id="theme-card-status-text">未应用主题</span>
+      </div>
+      <button class="theme-card-restore" id="theme-card-restore-btn" type="button">恢复官方主题</button>
     </div>
   </section>
 
@@ -2285,7 +2947,7 @@ select.form-input {
     <!-- model cards will be dynamically populated -->
   </div>
 
-  <a class="promo-banner" href="https://apinest.eu.cc" target="_blank" rel="noopener noreferrer">
+  <a class="promo-banner" href="https://xn--xhqu89o.cc/" target="_blank" rel="noopener noreferrer">
     <div class="promo-icon"><img src="assets/apinest-logo.png" alt="APINest"></div>
     <div class="promo-content">
       <div class="promo-title">推荐 Token 聚合平台 · APINest</div>
@@ -2295,116 +2957,79 @@ select.form-input {
   </a>
 </div>
 
-<!-- ────────── Theme Modal ────────── -->
-<div class="theme-modal" id="theme-modal">
+<!-- ────────── Settings Modal (iOS Style with Theme) ────────── -->
+<div class="settings-modal" id="settings-modal">
+  <div class="settings-modal-content ios-card">
+    <div class="settings-title">设置</div>
+    
+    <!-- 版本信息卡片 -->
+    <div class="ios-card-group">
+      <div class="ios-card-item version-info">
+        <div class="version-title" id="app-version">当前版本 v1.0.46</div>
+        <div class="version-notes" id="release-notes-text">修复上游API错误处理、增强主题持久化、新增502/503/504网关错误自动重试</div>
+      </div>
+    </div>
+    
+    <!-- 操作列表卡片 -->
+    <div class="ios-card-group">
+      <div class="ios-card-item clickable" id="check-update-btn">
+        <span class="ios-item-label">检查更新</span>
+        <span class="ios-item-chevron">›</span>
+      </div>
+      <div class="ios-card-item clickable">
+        <a class="ios-item-label" href="https://jr00eeqbiu.feishu.cn/wiki/AQOIwMlJRiWXZGkftjVcDCibnZf?from=from_copylink" target="_blank" rel="noopener noreferrer">操作文档</a>
+        <span class="ios-item-chevron">›</span>
+      </div>
+    </div>
+    
+    <button class="ios-btn-primary" id="settings-close-btn">关闭</button>
+  </div>
+</div>
+
+<!-- ────────── Theme Management Modal ────────── -->
+<div class="theme-modal-overlay" id="theme-modal">
   <div class="theme-modal-content">
     <div class="theme-modal-header">
-      <h3>🎨 主题管理</h3>
-      <button class="theme-modal-close" id="close-theme-modal" type="button">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <div class="theme-modal-title">Codex 主题管理</div>
+      <button class="theme-modal-close" id="theme-modal-close" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;">
           <line x1="18" y1="6" x2="6" y2="18"></line>
           <line x1="6" y1="6" x2="18" y2="18"></line>
         </svg>
       </button>
     </div>
-
-    <!-- Tab 导航 -->
-    <div class="theme-tabs">
-      <button class="theme-tab active" data-theme-tab="community" type="button">社区主题</button>
-      <button class="theme-tab" data-theme-tab="custom" type="button">自定义壁纸</button>
-      <button class="theme-tab" data-theme-tab="local" type="button">我的主题</button>
+    
+    <div class="theme-modal-tabs">
+      <button class="theme-modal-tab active" data-theme-modal-tab="recommended" type="button">推荐主题</button>
+      <button class="theme-modal-tab" data-theme-modal-tab="custom" type="button">自定义主题</button>
     </div>
-
-    <!-- Tab 内容 -->
-    <div class="theme-tab-content active" data-theme-tab-content="community">
-      <div class="theme-list" id="community-theme-list">
-        <div class="theme-loading">加载中...</div>
+    
+    <!-- 推荐主题 Tab -->
+    <div class="theme-modal-tab-content active" data-theme-modal-content="recommended">
+      <div class="theme-section-label">内置主题</div>
+      <div class="theme-gallery" id="builtin-theme-gallery">
+        <!-- 内置主题由 JS 动态加载 -->
       </div>
-      <button class="theme-refresh-btn" id="refresh-community-themes" type="button">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="23 4 23 10 17 10"></polyline>
-          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-        </svg>
-        刷新
-      </button>
+      
     </div>
-
-    <div class="theme-tab-content" data-theme-tab-content="custom">
-      <div class="theme-upload-area" id="theme-upload-area">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    
+    <!-- 自定义主题 Tab -->
+    <div class="theme-modal-tab-content" data-theme-modal-content="custom">
+      <div class="theme-upload-zone" id="theme-upload-zone">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:32px;height:32px;">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
           <polyline points="17 8 12 3 7 8"></polyline>
           <line x1="12" y1="3" x2="12" y2="15"></line>
         </svg>
-        <p>拖拽图片到此处或点击上传</p>
-        <input type="file" id="theme-image-input" accept="image/*" hidden>
+        <p>点击上传壁纸图片</p>
+        <span>支持 PNG / JPG / WebP</span>
+        <input type="file" id="theme-wallpaper-input" accept="image/*" hidden>
       </div>
-      <div class="theme-preview" id="theme-preview" style="display:none;">
-        <img id="theme-preview-img" alt="预览">
+      <div class="theme-wallpaper-preview" id="theme-wallpaper-preview" style="display:none;">
+        <img id="theme-wallpaper-img" alt="预览">
       </div>
-      <button class="btn-primary" id="save-custom-theme" type="button" style="display:none;">
-        保存为主题
-      </button>
+      <button class="theme-apply-btn full-width" id="apply-custom-theme-btn" type="button" style="display:none;">应用自定义主题</button>
     </div>
-
-    <div class="theme-tab-content" data-theme-tab-content="local">
-      <div class="theme-list" id="local-theme-list">
-        <div class="theme-empty">暂无本地主题</div>
-      </div>
-    </div>
-
-    <!-- 底部操作栏 -->
-    <div class="theme-actions">
-      <button class="btn-secondary" id="restore-theme-btn" type="button">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="1 4 1 10 7 10"></polyline>
-          <path d="M3.51 15a9 9 0 1 0 2.13 9.36L1 10"></path>
-        </svg>
-        恢复官方外观
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- ────────── Settings Modal ────────── -->
-<div class="settings-modal" id="settings-modal">
-  <div class="settings-modal-content">
-    <h3>⚙️ 设置</h3>
-    <div class="settings-section">
-      <div class="settings-item">
-        <span class="settings-item-label">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-          当前版本
-        </span>
-        <span class="settings-item-value" id="app-version">v1.0.1</span>
-      </div>
-    </div>
-    <div class="settings-section">
-      <div class="settings-item" style="padding-bottom:4px;">
-        <span class="settings-item-label">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
-          版本说明
-        </span>
-      </div>
-      <div id="release-notes-box" class="release-notes-box">加载中...</div>
-    </div>
-    <div class="settings-section">
-      <div class="settings-item">
-        <span class="settings-item-label">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-          检查更新
-        </span>
-        <span class="settings-action" id="check-update-btn">检查</span>
-      </div>
-      <div class="settings-item">
-        <span class="settings-item-label">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
-          操作文档
-        </span>
-        <a class="settings-action" href="https://jr00eeqbiu.feishu.cn/wiki/AQOIwMlJRiWXZGkftjVcDCibnZf?from=from_copylink" target="_blank" rel="noopener noreferrer">查看</a>
-      </div>
-    </div>
-    <button class="settings-close" id="settings-close-btn">关闭</button>
   </div>
 </div>
 
@@ -2455,7 +3080,7 @@ select.form-input {
   var API_BASE = "";
 
   var PROVIDER_CONFIGS = {
-    'APINest': { url: 'https://apinest.eu.cc/v1/chat/completions', models: [
+    'APINest': { url: 'https://xn--xhqu89o.cc/v1/chat/completions', models: [
       'deepseek-v4-flash', 'deepseek-v4-pro', 'LongCat-2.0', 'glm-5.2',
       'kimi-k2.7-code', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna',
       'claude-fable-5', 'claude-opus-5', 'claude-sonnet-5', 'claude-haiku-4.5',
@@ -2546,17 +3171,17 @@ select.form-input {
     if (!pillBar) return;
     pillBar.innerHTML = '';
     if (state.models.length === 0) {
-      var empty = document.createElement('span');
-      empty.style.color = 'var(--color-text-subtle)';
-      empty.style.fontSize = '13px';
-      empty.textContent = '暂无模型，请点击右上角"模型配置"添加';
+      var empty = document.createElement('div');
+      empty.className = 'pill-bar-empty';
+      empty.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg><span>暂无模型，请点击右上角"模型配置"添加</span>';
       pillBar.appendChild(empty);
       return;
     }
-    state.models.forEach(function(m) {
+    state.models.forEach(function(m, idx) {
       var btn = document.createElement('button');
       btn.className = 'model-pill' + (m.model === state.model ? ' active' : '');
       btn.textContent = m.label;
+      btn.style.animationDelay = (idx * 30) + 'ms';
       btn.onclick = function() { selectModel(m.route, m.model); };
       pillBar.appendChild(btn);
     });
@@ -2565,10 +3190,18 @@ select.form-input {
   function renderModelList() {
     if (!modelList) return;
     modelList.innerHTML = '';
+    if (!state.config || state.config.length === 0) {
+      var emptyCard = document.createElement('div');
+      emptyCard.className = 'model-card-empty';
+      emptyCard.innerHTML = '<div class="empty-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"></path></svg></div><div class="empty-title">还没有配置模型</div><div class="empty-desc">点击下方按钮添加你的第一个模型</div>';
+      modelList.appendChild(emptyCard);
+      return;
+    }
     state.config.forEach(function(m, idx) {
       var card = document.createElement('div');
       card.className = 'model-card glass';
       card.setAttribute('data-model-id', idx);
+      card.style.animationDelay = (idx * 50) + 'ms';
       var hasKey = m.api_key && m.api_key.length > 0;
       card.innerHTML = '<div class="model-card-info"><span class="model-card-name">' + (m.label || m.model) + '</span><span class="model-card-provider"><span class="provider-dot ' + (hasKey ? 'configured' : 'missing') + '"></span>' + (m.provider || '自定义') + (m.model ? ' · ' + m.model : '') + '</span></div><div class="model-card-actions"><button class="model-action-btn" type="button" aria-label="编辑模型" onclick="window.openEditForm(' + idx + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button><button class="model-action-btn delete" type="button" aria-label="删除模型" onclick="window.deleteModel(' + idx + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button></div>';
       modelList.appendChild(card);
@@ -2815,13 +3448,12 @@ select.form-input {
     }
   }
 
-  // 自定义模型输入变化时，重置服务商和模型下拉
+  // 自定义模型输入变化时，仅清空预设模型下拉选中，保留服务商选择（服务商决定 Base URL）
   function onCustomModelInput() {
     var customVal = formModel.value.trim();
     if (customVal) {
-      // 输入自定义模型时，重置服务商下拉（单选逻辑）
-      formProvider.value = '';
-      formModelSelect.innerHTML = '<option value="">选择模型</option>';
+      // 输入自定义模型名时，保留已选服务商与 Base URL，只清空预设模型选中态
+      formModelSelect.value = '';
     }
   }
 
@@ -3090,7 +3722,7 @@ select.form-input {
       var now = new Date();
       var daysLeft = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
       var pad = function(n) { return n < 10 ? '0' + n : n; };
-      var dateStr = exp.getFullYear() + '-' + pad(exp.getMonth()+1) + '-' + pad(exp.getDate());
+      var dateStr = pad(exp.getMonth()+1) + '-' + pad(exp.getDate()) + ' ' + pad(exp.getHours()) + ':' + pad(exp.getMinutes());
       if (daysLeft <= 0) {
         badge.textContent = '已过期';
         badge.style.color = 'var(--color-danger)';
@@ -3184,7 +3816,15 @@ select.form-input {
   }
 
   // ─── Settings Modal ───
-  var APP_VERSION = "1.0.1"; // 默认值，启动后会被后台覆盖
+  var APP_VERSION = "1.0.46"; // 当前版本，需与HTML中的版本号一致
+  // 从HTML元素中解析实际版本号，确保一致性
+  (function() {
+    var versionEl = document.getElementById('app-version');
+    if (versionEl) {
+      var match = versionEl.textContent.match(/v(\d+\.\d+\.\d+)/);
+      if (match) APP_VERSION = match[1];
+    }
+  })();
   var SERVER_URL = "http://43.160.233.155:8080";
   var settingsBtn = document.getElementById('settings-btn');
   var settingsModal = document.getElementById('settings-modal');
@@ -3213,27 +3853,39 @@ select.form-input {
     } catch(e) {}
   }
 
-  // 从后台获取版本信息，更新显示
+  // 从后台获取最新版本信息（仅用于检查更新对比，不更新当前版本显示）
   async function fetchServerVersion() {
     try {
       var resp = await fetch(SERVER_URL + '/api/versions/check?platform=mac&current_version=0.0.0');
       var data = await resp.json();
-      if (data.code === 0 && data.data.version) {
-        // 用后台的版本号作为当前版本号
-        APP_VERSION = data.data.version;
-        if (versionElement) versionElement.textContent = 'v' + APP_VERSION;
-        // 显示版本更新说明
-        var notesBox = document.getElementById('release-notes-box');
-        if (notesBox) {
-          var notes = data.data.release_notes || '暂无版本说明';
-          notesBox.textContent = notes;
+      if (data.code === 0 && data.data) {
+        // 保存最新版本信息，用于检查更新对比
+        window.LATEST_VERSION = data.data.version;
+        window.LATEST_DOWNLOAD_URL = data.data.download_url;
+        // 显示版本更新说明（如果有的话）
+        var notesText = document.getElementById('release-notes-text');
+        if (notesText && data.data.release_notes) {
+          notesText.textContent = data.data.release_notes;
         }
       }
     } catch(e) {
-      // 获取失败，保持默认版本号
-      var notesBox = document.getElementById('release-notes-box');
-      if (notesBox) notesBox.textContent = '无法获取版本信息';
+      // 静默失败
     }
+  }
+
+  // 版本号比较：返回 true 表示 latest 比 current 新
+  function isNewerVersion(current, latest) {
+    var cleanCurrent = (current || '0.0.0').replace(/^v/i, '').trim();
+    var cleanLatest = (latest || '0.0.0').replace(/^v/i, '').trim();
+    var partsC = cleanCurrent.split('.').map(function(n) { return parseInt(n) || 0; });
+    var partsL = cleanLatest.split('.').map(function(n) { return parseInt(n) || 0; });
+    for (var i = 0; i < Math.max(partsC.length, partsL.length); i++) {
+      var c = partsC[i] || 0;
+      var l = partsL[i] || 0;
+      if (l > c) return true;
+      if (l < c) return false;
+    }
+    return false;
   }
 
   // 显示下载弹窗（紧凑版）
@@ -3281,18 +3933,33 @@ select.form-input {
     var downloadBtn = document.getElementById('download-link-btn');
     var closeBtn = document.getElementById('close-download-dialog');
     var progressInterval = null;
+    var downloadStarted = false;
     
     // 进度更新回调
     window._downloadProgress = function(percent) {
-      progressBar.style.width = percent + '%';
-      progressText.textContent = '正在下载 ' + percent + '%';
+      downloadStarted = true;
+      if (percent < 0) {
+        // -1 表示无法获取总大小，显示不定进度动画
+        progressBar.style.width = '100%';
+        progressBar.style.background = 'linear-gradient(90deg, #3FDB6C 0%, #3FDB6C 30%, transparent 30%, transparent 100%)';
+        progressBar.style.backgroundSize = '200% 100%';
+        progressBar.style.animation = 'downloadIndeterminate 1.5s linear infinite';
+        progressText.textContent = '正在下载...';
+      } else {
+        progressBar.style.animation = 'none';
+        progressBar.style.background = '#3FDB6C';
+        progressBar.style.width = percent + '%';
+        progressText.textContent = '正在下载 ' + percent + '%';
+      }
     };
     
     // 下载完成回调
     window._downloadComplete = function() {
       if (progressInterval) clearInterval(progressInterval);
+      progressBar.style.animation = 'none';
+      progressBar.style.background = '#3FDB6C';
       progressBar.style.width = '100%';
-      progressText.textContent = '✓ 下载完成，已在 Finder 中打开';
+      progressText.textContent = '✓ 下载完成，正在打开安装包...';
       progressText.style.color = '#3FDB6C';
       downloadBtn.textContent = '已下载';
       downloadBtn.disabled = true;
@@ -3302,6 +3969,8 @@ select.form-input {
     // 下载错误回调
     window._downloadError = function(err) {
       if (progressInterval) clearInterval(progressInterval);
+      progressBar.style.animation = 'none';
+      progressBar.style.background = '#3FDB6C';
       progressText.textContent = '下载失败: ' + err;
       progressText.style.color = '#f44336';
       downloadBtn.textContent = '重试';
@@ -3311,31 +3980,74 @@ select.form-input {
     downloadBtn.addEventListener('click', function(e) {
       e.preventDefault();
       
+      // 重置状态
+      downloadStarted = false;
+      progressText.style.color = '';
+      
       // 显示进度
       statusEl.style.display = 'none';
       progressBox.style.display = 'block';
       downloadBtn.textContent = '下载中...';
       downloadBtn.disabled = true;
       
+      // 超时计时器：15 秒无进度则回退到浏览器打开
+      var fallbackTimer = setTimeout(function() {
+        if (!downloadStarted) {
+          // pywebview 下载超时，回退到浏览器
+          progressText.textContent = '尝试在浏览器中打开...';
+          if (window.pywebview && window.pywebview.api && window.pywebview.api.openUrl) {
+            window.pywebview.api.openUrl(downloadUrl);
+          } else {
+            window.open(downloadUrl, '_blank');
+          }
+          progressBar.style.animation = 'none';
+          progressBar.style.background = '#3FDB6C';
+          progressBar.style.width = '100%';
+          progressText.textContent = '已在浏览器中打开下载链接';
+          downloadBtn.textContent = '已打开';
+          downloadBtn.disabled = false;
+        }
+      }, 15000);
+      
       // 尝试使用 pywebview API 下载文件
       if (window.pywebview && window.pywebview.api && window.pywebview.api.downloadFile) {
         window.pywebview.api.downloadFile(downloadUrl, filename).then(function(result) {
-          if (result.success) {
+          if (result && result.success) {
             progressText.textContent = '正在连接...';
           } else {
-            window._downloadError(result.message);
+            clearTimeout(fallbackTimer);
+            window._downloadError(result ? result.message : '下载失败');
           }
+        }).catch(function(err) {
+          clearTimeout(fallbackTimer);
+          // pywebview API 异常，回退到浏览器打开
+          progressText.textContent = '尝试在浏览器中打开...';
+          if (window.pywebview && window.pywebview.api && window.pywebview.api.openUrl) {
+            window.pywebview.api.openUrl(downloadUrl);
+          } else {
+            window.open(downloadUrl, '_blank');
+          }
+          progressBar.style.width = '100%';
+          progressText.textContent = '已在浏览器中打开下载链接';
+          downloadBtn.textContent = '已打开';
+          downloadBtn.disabled = false;
         });
       } else if (window.pywebview && window.pywebview.api && window.pywebview.api.openUrl) {
+        clearTimeout(fallbackTimer);
         // 备用：打开浏览器下载
         window.pywebview.api.openUrl(downloadUrl);
         progressBar.style.width = '100%';
         progressText.textContent = '已在浏览器中打开下载链接';
+        downloadBtn.textContent = '已打开';
+        downloadBtn.disabled = false;
       } else {
+        clearTimeout(fallbackTimer);
         // 最后备用：直接打开链接
         window.open(downloadUrl, '_blank');
         progressBar.style.width = '100%';
         progressText.textContent = '已打开下载链接';
+        downloadBtn.textContent = '已打开';
+        downloadBtn.disabled = false;
       }
     });
   }
@@ -3346,16 +4058,25 @@ select.form-input {
     try {
       var resp = await fetch(SERVER_URL + '/api/versions/check?platform=mac&current_version=' + APP_VERSION);
       var data = await resp.json();
-      if (data.code === 0 && data.data.has_update) {
-        checkUpdateBtn.textContent = '有新版本';
-        // 更新显示的版本号
-        if (versionElement) versionElement.textContent = 'v' + APP_VERSION + ' (有新版本 v' + data.data.version + ')';
-        // 显示下载弹窗
-        showDownloadDialog(data.data.version, data.data.download_url);
-      } else if (data.code === 0) {
-        checkUpdateBtn.textContent = '已是最新版';
-        showToast('当前已是最新版本', 'info');
-        if (versionElement) versionElement.textContent = 'v' + APP_VERSION;
+      if (data.code === 0 && data.data) {
+        var latestVer = data.data.version;
+        var downloadUrl = data.data.download_url;
+        // 拼接完整下载 URL（服务端返回的是相对路径）
+        if (downloadUrl && downloadUrl.startsWith('/')) {
+          downloadUrl = SERVER_URL + downloadUrl;
+        }
+        // 本地版本比较（不依赖后端 has_update 字段）
+        if (isNewerVersion(APP_VERSION, latestVer)) {
+          checkUpdateBtn.textContent = '有新版本';
+          // 更新显示的版本号
+          if (versionElement) versionElement.textContent = 'v' + APP_VERSION + ' (有新版本 v' + latestVer + ')';
+          // 显示下载弹窗
+          showDownloadDialog(latestVer, downloadUrl);
+        } else {
+          checkUpdateBtn.textContent = '已是最新版';
+          showToast('当前已是最新版本', 'info');
+          if (versionElement) versionElement.textContent = 'v' + APP_VERSION;
+        }
       } else {
         checkUpdateBtn.textContent = '检查失败';
         showToast('检查更新失败', 'error');
@@ -3374,21 +4095,30 @@ select.form-input {
     try {
       var resp = await fetch(SERVER_URL + '/api/versions/check?platform=mac&current_version=' + APP_VERSION);
       var data = await resp.json();
-      if (data.code === 0 && data.data.has_update) {
-        // 更新显示
-        if (versionElement) versionElement.textContent = 'v' + APP_VERSION + ' (有新版本 v' + data.data.version + ')';
-        // 在页面顶部显示更新提示条
-        var banner = document.createElement('div');
-        banner.className = 'update-banner';
-        banner.style.display = 'block';
-        banner.innerHTML = '发现新版本 v' + data.data.version + '，点击立即更新';
-        banner.style.cursor = 'pointer';
-        banner.addEventListener('click', function() {
-          showDownloadDialog(data.data.version, data.data.download_url);
-        });
-        var container = document.querySelector('.app-container') || document.body;
-        container.insertBefore(banner, container.firstChild);
-        updateBanner = banner;
+      if (data.code === 0 && data.data) {
+        var latestVer = data.data.version;
+        var downloadUrl = data.data.download_url;
+        // 拼接完整下载 URL（服务端返回的是相对路径）
+        if (downloadUrl && downloadUrl.startsWith('/')) {
+          downloadUrl = SERVER_URL + downloadUrl;
+        }
+        // 本地版本比较（不依赖后端 has_update 字段）
+        if (isNewerVersion(APP_VERSION, latestVer)) {
+          // 更新显示
+          if (versionElement) versionElement.textContent = 'v' + APP_VERSION + ' (有新版本 v' + latestVer + ')';
+          // 在页面顶部显示更新提示条
+          var banner = document.createElement('div');
+          banner.className = 'update-banner';
+          banner.style.display = 'block';
+          banner.innerHTML = '发现新版本 v' + latestVer + '，点击立即更新';
+          banner.style.cursor = 'pointer';
+          banner.addEventListener('click', function() {
+            showDownloadDialog(latestVer, downloadUrl);
+          });
+          var container = document.querySelector('.app-container') || document.body;
+          container.insertBefore(banner, container.firstChild);
+          updateBanner = banner;
+        }
       }
     } catch (e) {
       // 自动检查失败也上报
@@ -3425,12 +4155,45 @@ select.form-input {
     setInterval(async function() { await loadStatus(); await loadStats(); await loadErrors(); }, 3000);
   });
 
-  // ────────────────── Theme Management ──────────────────
+  // ────────────────── Theme Management (Card + Modal) ──────────────────
   var themeModal = document.getElementById('theme-modal');
-  var themeCard = document.getElementById('theme-card');
-  var closeThemeModal = document.getElementById('close-theme-modal');
-  var themeStatus = document.getElementById('theme-status');
-  var themeCurrentName = document.getElementById('theme-current-name');
+  var themeModalClose = document.getElementById('theme-modal-close');
+  var openThemeModalBtn = document.getElementById('open-theme-modal');
+  var themeCardStatusText = document.getElementById('theme-card-status-text');
+  var themeCardRestoreBtn = document.getElementById('theme-card-restore-btn');
+  var uploadedImagePath = '';
+
+  // 打开主题弹窗（卡片按钮 + 头部快捷按钮）
+  function openThemeModal() {
+    themeModal.classList.add('active');
+    loadBuiltinThemes();
+  }
+  if (openThemeModalBtn) {
+    openThemeModalBtn.addEventListener('click', openThemeModal);
+  }
+
+  // 关闭主题弹窗
+  if (themeModalClose) {
+    themeModalClose.addEventListener('click', function() {
+      themeModal.classList.remove('active');
+    });
+  }
+  if (themeModal) {
+    themeModal.addEventListener('click', function(e) {
+      if (e.target === themeModal) themeModal.classList.remove('active');
+    });
+  }
+
+  // 弹窗 Tab 切换
+  document.querySelectorAll('.theme-modal-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.theme-modal-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.theme-modal-tab-content').forEach(c => c.classList.remove('active'));
+      this.classList.add('active');
+      var tabContent = document.querySelector('[data-theme-modal-content="' + this.dataset.themeModalTab + '"]');
+      if (tabContent) tabContent.classList.add('active');
+    });
+  });
 
   // 检查主题状态
   async function checkThemeStatus() {
@@ -3438,221 +4201,181 @@ select.form-input {
       const resp = await fetch('/api/themes/status');
       const data = await resp.json();
 
-      if (data.baseline.all_passed) {
-        themeStatus.classList.add('ready');
-        themeStatus.classList.remove('error');
+      if (themeCardStatusText) {
         if (data.current_theme) {
-          themeCurrentName.textContent = data.current_theme.name;
+          themeCardStatusText.textContent = data.current_theme.name || '已应用主题';
         } else {
-          themeCurrentName.textContent = 'Codex 已就绪 ✓';
+          themeCardStatusText.textContent = '未应用主题';
         }
-      } else {
-        themeStatus.classList.add('error');
-        themeStatus.classList.remove('ready');
-        themeCurrentName.textContent = data.baseline.message;
       }
-    } catch (e) {
-      themeStatus.classList.add('error');
-      themeCurrentName.textContent = '检测失败';
-    }
-  }
 
-  // 打开主题弹窗
-  function openThemeModal() {
-    themeModal.classList.add('active');
-    loadCommunityThemes();
-    loadLocalThemes();
-  }
-
-  // 关闭主题弹窗
-  function closeThemeModalFn() {
-    themeModal.classList.remove('active');
-  }
-
-  // 加载社区主题
-  async function loadCommunityThemes() {
-    const list = document.getElementById('community-theme-list');
-    list.innerHTML = '<div class="theme-loading">加载中...</div>';
-
-    try {
-      const resp = await fetch('/api/themes/community');
-      const data = await resp.json();
-
-      if (data.themes && data.themes.length > 0) {
-        list.innerHTML = data.themes.map(theme => 
-          '<div class="theme-item" data-theme-id="' + theme.id + '" data-download-url="' + theme.download_url + '">' +
-            '<div class="theme-item-thumb" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>' +
-            '<div class="theme-item-info">' +
-              '<div class="theme-item-name">' + theme.name + '</div>' +
-              '<div class="theme-item-author">' + theme.author + '</div>' +
-            '</div>' +
-          '</div>'
-        ).join('');
-
-        // 绑定点击事件
-        list.querySelectorAll('.theme-item').forEach(item => {
-          item.addEventListener('click', () => downloadAndApplyTheme(item.dataset.themeId, item.dataset.downloadUrl));
+      // 更新已应用主题的按钮状态
+      if (data.current_theme) {
+        document.querySelectorAll('.theme-gallery-apply').forEach(btn => {
+          if (btn.dataset.themeId === data.current_theme.id) {
+            btn.textContent = '已应用';
+            btn.classList.add('applied');
+          } else {
+            btn.textContent = '应用';
+            btn.classList.remove('applied');
+          }
         });
-      } else {
-        list.innerHTML = '<div class="theme-empty">暂无社区主题</div>';
       }
     } catch (e) {
-      list.innerHTML = '<div class="theme-empty">加载失败</div>';
+      if (themeCardStatusText) themeCardStatusText.textContent = '检测失败';
     }
   }
 
-  // 加载本地主题
-  async function loadLocalThemes() {
-    const list = document.getElementById('local-theme-list');
+  // 加载内置主题列表
+  async function loadBuiltinThemes() {
+    const gallery = document.getElementById('builtin-theme-gallery');
+    if (!gallery) return;
 
     try {
-      const resp = await fetch('/api/themes/local');
+      const resp = await fetch('/api/themes/builtin');
       const data = await resp.json();
+      const themes = data.themes || [];
 
-      if (data.themes && data.themes.length > 0) {
-        list.innerHTML = data.themes.map(theme => 
-          '<div class="theme-item" data-theme-id="' + theme.id + '">' +
-            '<div class="theme-item-thumb" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"></div>' +
-            '<div class="theme-item-info">' +
-              '<div class="theme-item-name">' + theme.name + '</div>' +
-              '<div class="theme-item-author">' + theme.author + '</div>' +
-            '</div>' +
-          '</div>'
-        ).join('');
-      } else {
-        list.innerHTML = '<div class="theme-empty">暂无本地主题</div>';
+      if (themes.length === 0) {
+        gallery.innerHTML = '<div style="padding:20px;text-align:center;color:var(--color-muted);font-size:13px;">暂无内置主题</div>';
+        return;
       }
+
+      gallery.innerHTML = themes.map(theme => {
+        const thumbStyle = theme.thumbnail
+          ? `background-image: url('${theme.thumbnail}'); background-size: cover; background-position: center;`
+          : `background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);`;
+        const badge = theme.appearance
+          ? `<span class="theme-gallery-badge">${theme.appearance}</span>`
+          : '';
+        return `
+          <div class="theme-gallery-item" data-theme-id="${theme.id}" data-dir-name="${theme.dir_name || ''}">
+            <div class="theme-gallery-thumb" style="${thumbStyle}">
+              ${badge}
+            </div>
+            <div class="theme-gallery-info">
+              <span class="theme-gallery-name">${theme.name}</span>
+              <button class="theme-gallery-apply" data-theme-id="${theme.id}" data-dir-name="${theme.dir_name || ''}" data-theme-name="${theme.name}">应用</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // 绑定应用按钮事件
+      gallery.querySelectorAll('.theme-gallery-apply').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const themeId = this.dataset.themeId;
+          const themeName = this.dataset.themeName || themeId;
+          const dirName = this.dataset.dirName || '';
+          applyBuiltinTheme(themeId, themeName, dirName);
+        });
+      });
+
+      // 标记当前已应用的主题
+      try {
+        const statusResp = await fetch('/api/themes/status');
+        const statusData = await statusResp.json();
+        const currentTheme = statusData.current_theme;
+        if (currentTheme && currentTheme.id) {
+          gallery.querySelectorAll('.theme-gallery-apply').forEach(btn => {
+            if (btn.dataset.themeId === currentTheme.id) {
+              btn.classList.add('applied');
+              btn.textContent = '已应用';
+            }
+          });
+        }
+      } catch (e) {}
+
     } catch (e) {
-      list.innerHTML = '<div class="theme-empty">加载失败</div>';
+      gallery.innerHTML = '<div style="padding:20px;text-align:center;color:var(--color-muted);font-size:13px;">加载失败</div>';
     }
   }
 
-  // 下载并应用主题
-  async function downloadAndApplyTheme(themeId, downloadUrl) {
-    if (!downloadUrl) {
-      showToast('无效的下载链接', 'error');
-      return;
-    }
-
-    showToast('正在下载主题...', 'info');
-
+  // 应用内置主题
+  async function applyBuiltinTheme(themeId, themeName, dirName) {
+    // 显示加载提示（主题应用可能需要重启 Codex，耗时较长）
+    showToast('正在应用主题，如需重启 Codex 请稍候...', 'info');
     try {
-      const resp = await fetch('/api/themes/download', {
+      // 设置 60 秒超时（重启 Codex + 等待 CDP 可能需要较长时间）
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
+      const resp = await fetch('/api/themes/apply-builtin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ theme_id: themeId, url: downloadUrl })
+        body: JSON.stringify({ theme_id: themeId, name: themeName, dir_name: dirName }),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
       const data = await resp.json();
 
       if (data.success) {
-        showToast('主题下载成功', 'success');
-        loadLocalThemes();
+        showToast(data.message || '主题已应用', 'success');
+        // 更新按钮状态
+        document.querySelectorAll('.theme-gallery-apply').forEach(btn => {
+          if (btn.dataset.themeId === themeId) {
+            btn.classList.add('applied');
+            btn.textContent = '已应用';
+          } else {
+            btn.classList.remove('applied');
+            btn.textContent = '应用';
+          }
+        });
+        checkThemeStatus();
       } else {
-        showToast('下载失败: ' + data.message, 'error');
+        showToast('应用失败: ' + data.message, 'error');
       }
     } catch (e) {
-      showToast('下载请求失败', 'error');
+      showToast('应用请求失败', 'error');
     }
   }
 
-  // Tab 切换
-  document.querySelectorAll('.theme-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.theme-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.theme-tab-content').forEach(c => c.classList.remove('active'));
-      tab.classList.add('active');
-      document.querySelector('[data-theme-tab-content="' + tab.dataset.themeTab + '"]').classList.add('active');
-    });
-  });
-
-  // 事件绑定
-  if (themeCard) {
-    themeCard.addEventListener('click', openThemeModal);
-  }
-
-  if (closeThemeModal) {
-    closeThemeModal.addEventListener('click', closeThemeModalFn);
-  }
-
-  document.getElementById('refresh-community-themes')?.addEventListener('click', loadCommunityThemes);
-
-  // ────────────────── 自定义壁纸上传 ──────────────────
-  var themeUploadArea = document.getElementById('theme-upload-area');
-  var themeImageInput = document.getElementById('theme-image-input');
-  var themePreview = document.getElementById('theme-preview');
-  var themePreviewImg = document.getElementById('theme-preview-img');
-  var saveCustomThemeBtn = document.getElementById('save-custom-theme');
-  var uploadedImagePath = '';
-
-  // 点击上传区域
-  if (themeUploadArea) {
-    themeUploadArea.addEventListener('click', () => {
-      themeImageInput?.click();
-    });
-  }
-
-  // 文件选择
-  if (themeImageInput) {
-    themeImageInput.addEventListener('change', (e) => {
-      var file = e.target.files[0];
-      if (file) {
-        handleImageFile(file);
+  // 恢复官方主题（卡片上的按钮）
+  if (themeCardRestoreBtn) {
+    themeCardRestoreBtn.addEventListener('click', async function() {
+      showToast('正在恢复官方主题...', 'info');
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
+        const resp = await fetch('/api/themes/restore', { method: 'POST', signal: controller.signal });
+        clearTimeout(timeoutId);
+        const data = await resp.json();
+        if (data.success) {
+          showToast(data.message || '已恢复官方主题', 'success');
+          checkThemeStatus();
+        } else {
+          showToast('恢复失败: ' + data.message, 'error');
+        }
+      } catch (e) {
+        showToast('恢复请求失败', 'error');
       }
     });
   }
 
-  // 拖拽上传
-  if (themeUploadArea) {
-    themeUploadArea.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      themeUploadArea.style.borderColor = 'var(--color-primary)';
-      themeUploadArea.style.background = 'var(--color-primary-subtle)';
+  // 自定义壁纸上传
+  var themeUploadZone = document.getElementById('theme-upload-zone');
+  var themeWallpaperInput = document.getElementById('theme-wallpaper-input');
+  var themeWallpaperPreview = document.getElementById('theme-wallpaper-preview');
+  var themeWallpaperImg = document.getElementById('theme-wallpaper-img');
+  var applyCustomThemeBtn = document.getElementById('apply-custom-theme-btn');
+
+  if (themeUploadZone && themeWallpaperInput) {
+    themeUploadZone.addEventListener('click', () => themeWallpaperInput.click());
+    themeWallpaperInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        themeWallpaperImg.src = ev.target.result;
+        themeWallpaperPreview.style.display = 'block';
+        applyCustomThemeBtn.style.display = 'block';
+
+        // 上传图片到服务器
+        uploadImage(file);
+      };
+      reader.readAsDataURL(file);
     });
-
-    themeUploadArea.addEventListener('dragleave', (e) => {
-      e.preventDefault();
-      themeUploadArea.style.borderColor = '';
-      themeUploadArea.style.background = '';
-    });
-
-    themeUploadArea.addEventListener('drop', (e) => {
-      e.preventDefault();
-      themeUploadArea.style.borderColor = '';
-      themeUploadArea.style.background = '';
-      
-      var file = e.dataTransfer.files[0];
-      if (file && file.type.startsWith('image/')) {
-        handleImageFile(file);
-      }
-    });
-  }
-
-  // 处理图片文件
-  function handleImageFile(file) {
-    // 检查文件大小（最大 10MB）
-    if (file.size > 10 * 1024 * 1024) {
-      showToast('图片文件过大（最大 10MB）', 'error');
-      return;
-    }
-
-    // 检查文件类型
-    var validTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    if (!validTypes.includes(file.type)) {
-      showToast('不支持的图片格式', 'error');
-      return;
-    }
-
-    // 显示预览
-    var reader = new FileReader();
-    reader.onload = (e) => {
-      themePreviewImg.src = e.target.result;
-      themePreview.style.display = 'block';
-      saveCustomThemeBtn.style.display = 'block';
-      
-      // 上传图片到临时目录
-      uploadImage(file);
-    };
-    reader.readAsDataURL(file);
   }
 
   // 上传图片
@@ -3678,9 +4401,9 @@ select.form-input {
     }
   }
 
-  // 保存自定义主题
-  if (saveCustomThemeBtn) {
-    saveCustomThemeBtn.addEventListener('click', async () => {
+  // 应用自定义主题
+  if (applyCustomThemeBtn) {
+    applyCustomThemeBtn.addEventListener('click', async () => {
       if (!uploadedImagePath) {
         showToast('请先上传图片', 'error');
         return;
@@ -3689,6 +4412,8 @@ select.form-input {
       showToast('正在创建主题...', 'info');
 
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
         var resp = await fetch('/api/themes/customize', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -3699,42 +4424,24 @@ select.form-input {
               focusX: 0.5,
               focusY: 0.5
             }
-          })
+          }),
+          signal: controller.signal
         });
+        clearTimeout(timeoutId);
         var data = await resp.json();
 
         if (data.success) {
           showToast('主题创建成功', 'success');
-          loadLocalThemes();
+          checkThemeStatus();
           // 清空上传
           uploadedImagePath = '';
-          themePreview.style.display = 'none';
-          saveCustomThemeBtn.style.display = 'none';
+          themeWallpaperPreview.style.display = 'none';
+          applyCustomThemeBtn.style.display = 'none';
         } else {
           showToast('创建失败: ' + data.message, 'error');
         }
       } catch (e) {
         showToast('创建请求失败', 'error');
-      }
-    });
-  }
-
-  // 恢复官方外观
-  var restoreThemeBtn = document.getElementById('restore-theme-btn');
-  if (restoreThemeBtn) {
-    restoreThemeBtn.addEventListener('click', async () => {
-      try {
-        var resp = await fetch('/api/themes/restore', { method: 'POST' });
-        var data = await resp.json();
-
-        if (data.success) {
-          showToast('已恢复官方外观', 'success');
-          checkThemeStatus();
-        } else {
-          showToast('恢复失败: ' + data.message, 'error');
-        }
-      } catch (e) {
-        showToast('恢复请求失败', 'error');
       }
     });
   }

@@ -121,10 +121,10 @@ class APIHandler(BaseHTTPRequestHandler):
             self._handle_errors()
         elif path == "/api/themes/status":
             self._handle_theme_status()
-        elif path == "/api/themes/community":
-            self._handle_theme_community()
         elif path == "/api/themes/local":
             self._handle_theme_local()
+        elif path == "/api/themes/builtin":
+            self._handle_theme_builtin()
         elif path == "/" or path == "/index.html":
             self._serve_file(HTML_FILE, "text/html; charset=utf-8")
         elif path.startswith("/assets/"):
@@ -168,10 +168,10 @@ class APIHandler(BaseHTTPRequestHandler):
             self._handle_config_delete()
         elif path == "/api/token/clear":
             self._handle_token_clear()
-        elif path == "/api/themes/download":
-            self._handle_theme_download()
         elif path == "/api/themes/apply":
             self._handle_theme_apply()
+        elif path == "/api/themes/apply-builtin":
+            self._handle_theme_apply_builtin()
         elif path == "/api/themes/restore":
             self._handle_theme_restore()
         elif path == "/api/themes/customize":
@@ -620,39 +620,15 @@ class APIHandler(BaseHTTPRequestHandler):
             "current_theme": current_theme
         })
 
-    def _handle_theme_community(self):
-        """获取社区主题列表"""
-        themes = theme_manager.theme_manager.get_community_themes()
-        self.send_json(200, {"themes": themes})
-
     def _handle_theme_local(self):
         """获取本地主题列表"""
         themes = theme_manager.theme_manager.get_local_themes()
         self.send_json(200, {"themes": themes})
 
-    def _handle_theme_download(self):
-        """下载主题"""
-        body = self.read_body()
-        url = body.get("url", "")
-        theme_id = body.get("theme_id", "")
-
-        if not url or not theme_id:
-            self.send_json(400, {"error": "缺少 url 或 theme_id"})
-            return
-
-        result = theme_manager.theme_manager.download_theme(url, theme_id)
-
-        if result["success"]:
-            self.add_timeline("🎨", f"已下载主题: {theme_id}", icon_color="success")
-        else:
-            self.add_timeline("ERR", f"主题下载失败: {result['message']}", icon_color="danger")
-            # 上报错误
-            try:
-                activation.report_error("theme_download_error", result["message"], f"url={url}")
-            except:
-                pass
-
-        self.send_json(200, result)
+    def _handle_theme_builtin(self):
+        """获取内置主题列表（含背景缩略图）"""
+        themes = theme_manager.theme_manager.get_builtin_themes()
+        self.send_json(200, {"themes": themes})
 
     def _handle_theme_customize(self):
         """创建自定义主题"""
@@ -783,6 +759,71 @@ class APIHandler(BaseHTTPRequestHandler):
                 activation.report_error("theme_apply_error", result["message"], f"theme_id={theme_id}")
             except:
                 pass
+
+        self.send_json(200, result)
+
+    def _handle_theme_apply_builtin(self):
+        """应用内置主题"""
+        body = self.read_body()
+        theme_id = body.get("theme_id", "")
+        css_content = body.get("css", "")
+        theme_name = body.get("name", "内置主题")
+        dir_name = body.get("dir_name", "")
+
+        if not theme_id:
+            self.send_json(400, {"error": "缺少 theme_id"})
+            return
+
+        result = {"success": False, "message": ""}
+
+        try:
+            theme_data = {}
+            theme_dir = None
+
+            # 如果提供了 dir_name，从内置主题目录构建完整 CSS（含背景图）
+            if dir_name:
+                from theme_manager import BUILTIN_THEMES_DIR
+                theme_dir = BUILTIN_THEMES_DIR / dir_name
+                if theme_dir.exists():
+                    theme_json_path = theme_dir / "theme.json"
+                    if theme_json_path.exists():
+                        import json as _json
+                        theme_data = _json.loads(theme_json_path.read_text(encoding="utf-8"))
+                    built_css = theme_manager.theme_manager.build_builtin_theme_css(dir_name)
+                    if built_css:
+                        css_content = built_css
+
+            # 保存主题配置（包括 CSS 和目录名，供 watcher 自动注入使用）
+            config = theme_manager.theme_manager._load_config()
+            config["current_theme"] = theme_id
+            config["current_theme_name"] = theme_name
+            config["last_applied"] = theme_manager.theme_manager._now_iso()
+            config["builtin"] = True
+            config["builtin_css"] = css_content
+            if dir_name:
+                config["builtin_dir_name"] = dir_name
+            theme_manager.theme_manager._save_config(config)
+            theme_manager.theme_manager.current_theme = theme_id
+
+            # 确保 CDP 可用（必要时自动重启 ChatGPT），然后注入主题
+            if css_content:
+                if theme_manager.theme_manager._ensure_cdp_available(auto_restart=True):
+                    # 传入 theme_data 和 theme_dir，确保背景图被正确注入
+                    theme_manager.theme_manager._inject_css_to_codex(css_content, theme_data, theme_dir)
+                    result["success"] = True
+                    result["message"] = "主题已立即应用"
+                    self.add_timeline("🎨", f"已应用内置主题: {theme_name}", icon_color="success")
+                else:
+                    # CDP 不可用，主题已保存
+                    result["success"] = True
+                    result["message"] = "主题已保存，打开 Codex 后生效"
+                    self.add_timeline("🎨", f"已保存内置主题: {theme_name}", icon_color="info")
+            else:
+                result["message"] = "主题 CSS 为空"
+
+        except Exception as e:
+            result["message"] = str(e)
+            self.add_timeline("ERR", f"内置主题应用失败: {str(e)}", icon_color="danger")
 
         self.send_json(200, result)
 

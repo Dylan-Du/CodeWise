@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "pjyang.red-shrine-008",
+  "name": "菲伦的芙莉莲",
+  "image": "background.png",
+  "appearance": "light",
+  "art": {
+    "focusX": 0.5,
+    "focusY": 0,
+    "safeArea": "none",
+    "taskMode": "ambient"
+  },
+  "colors": {
+    "background": "#f6f6f6",
+    "panel": "#fefefe",
+    "panelAlt": "#e9e9ea",
+    "accent": "#ffffff",
+    "accentAlt": "#ffffff",
+    "secondary": "#9372e1",
+    "highlight": "#9b2340",
+    "text": "#1c1b1d",
+    "muted": "#545454",
+    "line": "#d3d3d3"
+  }
+}

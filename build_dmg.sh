@@ -12,7 +12,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 APP_NAME="Codex助手"
-VERSION="1.0.0"
+VERSION="1.0.46"
 DIST_DIR="dist"
 APP_DIR="${DIST_DIR}/Codex助手.app"
 DMG_FINAL="${DIST_DIR}/${APP_NAME}-${VERSION}.dmg"
@@ -65,6 +65,7 @@ mkdir -p "$PYINSTALLER_CONFIG_DIR"
   --add-data "assets/apinest-logo.png:assets" \
   --add-data "assets/mascot-3d.png:assets" \
   --add-data "assets/brand-text.png:assets" \
+  --add-data "assets/brand-text-dark.png:assets" \
   --add-data "assets/dream-skin:assets/dream-skin" \
   --hidden-import webview \
   --hidden-import webview.platforms.cocoa \

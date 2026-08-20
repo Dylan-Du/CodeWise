@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "sakura",
+  "name": "樱花粉",
+  "image": "background.jpg",
+  "appearance": "light",
+  "art": {
+    "focusX": 0.5,
+    "focusY": 0.5,
+    "safeArea": "none",
+    "taskMode": "ambient"
+  },
+  "colors": {
+    "background": "#fdf2f8",
+    "panel": "#fce7f3",
+    "panelAlt": "#fbcfe8",
+    "accent": "#ec4899",
+    "accentAlt": "#f472b6",
+    "secondary": "#c084fc",
+    "highlight": "#e879f9",
+    "text": "#831843",
+    "muted": "#9d3a6b",
+    "line": "#f9a8d4"
+  }
+}

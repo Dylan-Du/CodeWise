@@ -20,7 +20,7 @@ echo "=== Codex助手 Windows 打包 ==="
 # 安装依赖
 echo "[1/4] 安装 Python 依赖..."
 pip install --upgrade pip
-pip install pyinstaller pywebview tomlkit werkzeug jinja2 markupsafe itsdangerous click
+pip install pyinstaller pywebview tomlkit certifi werkzeug jinja2 markupsafe itsdangerous click
 pip install pythonnet  # Windows 上 pywebview 需要
 
 # 生成 ICO 图标（从 SVG）
@@ -47,18 +47,17 @@ python -m PyInstaller \
   --add-data "assets/mascot-3d.png;assets" \
   --add-data "assets/brand-text.png;assets" \
   --add-data "assets/brand-text-dark.png;assets" \
+  --add-data "assets\dream-skin;assets\dream-skin" \
+  --collect-all tomlkit \
+  --collect-all werkzeug \
+  --collect-all jinja2 \
+  --collect-all certifi \
+  --hidden-import "certifi" \
   --hidden-import "webview" \
   --hidden-import "webview.platforms.winforms" \
   --hidden-import "clr_loader" \
   --hidden-import "werkzeug" \
   --hidden-import "werkzeug.serving" \
-  --hidden-import "tomlkit" \
-  --hidden-import "tomlkit.api" \
-  --hidden-import "tomlkit.container" \
-  --hidden-import "tomlkit.items" \
-  --hidden-import "tomlkit.parser" \
-  --hidden-import "tomlkit.toml_document" \
-  --hidden-import "tomlkit.toml_file" \
   --hidden-import "jinja2" \
   --hidden-import "markupsafe" \
   --hidden-import "itsdangerous" \

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "shinozawa-hiro-quiet-difficulty",
+  "name": "篠澤広 · Quiet Difficulty",
+  "brandSubtitle": "QUIET DIFFICULTY",
+  "tagline": "越不擅长，越值得继续。",
+  "projectPrefix": "选择项目 · ",
+  "projectLabel": "◉  选择项目",
+  "quote": "越不擅长，越值得继续。",
+  "image": "background.png",
+  "appearance": "light",
+  "art": {
+    "focusX": 0.76,
+    "focusY": 0.48,
+    "safeArea": "left",
+    "taskMode": "ambient"
+  },
+  "colors": {
+    "background": "#F5F0E8",
+    "panel": "#FFFCF7",
+    "panelAlt": "#EEE9E2",
+    "accent": "#A45A20",
+    "accentAlt": "#D69A54",
+    "secondary": "#426F94",
+    "highlight": "#8F4A17",
+    "text": "#3F464E",
+    "muted": "#626C78",
+    "line": "rgba(66, 111, 148, .22)"
+  }
+}

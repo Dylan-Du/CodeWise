@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "tianchaungya001",
+  "name": "tianchaungya001",
+  "image": "background.jpg",
+  "appearance": "light",
+  "art": {
+    "focusX": 0.5,
+    "focusY": 0.5,
+    "safeArea": "none",
+    "taskMode": "ambient"
+  },
+  "colors": {
+    "background": "#f6f6f6",
+    "panel": "#fefefe",
+    "panelAlt": "#e9e9ea",
+    "accent": "#7584ba",
+    "accentAlt": "#6572a0",
+    "secondary": "#b1748c",
+    "highlight": "#58638c",
+    "text": "#1c1b1d",
+    "muted": "#6a696a",
+    "line": "#d3d3d3"
+  }
+}

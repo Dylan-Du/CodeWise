@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "angle",
+  "name": "相遇天使",
+  "image": "background.png",
+  "appearance": "auto",
+  "art": {
+    "focusX": 0.47,
+    "focusY": 0,
+    "safeArea": "none",
+    "taskMode": "full"
+  },
+  "colors": {
+    "background": "#323a3f",
+    "panel": "#6f492d",
+    "panelAlt": "#71492c",
+    "accent": "#a76e36",
+    "accentAlt": "#b38252",
+    "secondary": "#4e7986",
+    "highlight": "#bd9268",
+    "text": "#f0f0ef",
+    "muted": "#949393",
+    "line": "#403f3f"
+  }
+}

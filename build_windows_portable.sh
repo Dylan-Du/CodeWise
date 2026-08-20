@@ -55,7 +55,7 @@ chcp 65001 >nul 2>&1
 echo 正在安装依赖包，请稍候...
 cd /d "%~dp0\python"
 python.exe get-pip.py --quiet 2>nul
-python.exe -m pip install --quiet pywebview tomlkit werkzeug jinja2 markupsafe itsdangerous click pythonnet 2>nul
+python.exe -m pip install --quiet pywebview tomlkit certifi werkzeug jinja2 markupsafe itsdangerous click pythonnet 2>nul
 if errorlevel 1 (
     echo 依赖安装失败，请检查网络连接
     pause

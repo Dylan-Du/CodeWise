@@ -16,6 +16,10 @@ export default function Sidebar() {
     ? 'codes'
     : pathname.startsWith('/logs')
     ? 'logs'
+    : pathname.startsWith('/errors')
+    ? 'errors'
+    : pathname.startsWith('/versions')
+    ? 'versions'
     : 'codes';
 
   const handleClick = (key: string) => {
@@ -78,6 +82,27 @@ export default function Sidebar() {
             </svg>
           </span>
           日志管理
+        </MenuItem>
+        <MenuItem key="errors">
+          <span style={{ marginRight: 8, display: 'inline-flex', verticalAlign: 'middle' }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style={{ width: 18, height: 18 }}>
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          </span>
+          错误日志
+        </MenuItem>
+        <MenuItem key="versions">
+          <span style={{ marginRight: 8, display: 'inline-flex', verticalAlign: 'middle' }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style={{ width: 18, height: 18 }}>
+              <path d="M21 2v6h-6"></path>
+              <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+              <path d="M3 22v-6h6"></path>
+              <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
+            </svg>
+          </span>
+          版本管理
         </MenuItem>
       </Menu>
 

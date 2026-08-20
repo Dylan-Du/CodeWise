@@ -1,0 +1,46 @@
+{
+  "packageVersion": 1,
+  "themeId": "mingchao",
+  "version": "0.1.0",
+  "skinApiVersion": 1,
+  "minClientVersion": "0.0.0",
+  "platforms": [
+    "macos",
+    "windows"
+  ],
+  "capabilities": [
+    "background",
+    "tokens",
+    "safe-css"
+  ],
+  "publisher": {
+    "id": "ricardo",
+    "displayName": "ricado"
+  },
+  "license": "RicardoHU",
+  "provenance": {
+    "aiGenerated": false,
+    "summary": "背景图根据gzh:eryoubizhiku修改生成"
+  },
+  "files": [
+    {
+      "path": "theme.json",
+      "mediaType": "application/json",
+      "bytes": 512,
+      "sha256": "1f8e0574bad38cb5b200b66eda8411631ba91a58862f4513056e2589f7b0534a"
+    },
+    {
+      "path": "background.jpg",
+      "mediaType": "image/jpeg",
+      "bytes": 791977,
+      "sha256": "94f2f3d097235b50c6a170da5f09411bda16836bfb3ac934c16bd6e54c5d4ea7"
+    },
+    {
+      "path": "theme.css",
+      "mediaType": "text/css",
+      "bytes": 273,
+      "sha256": "3f5401920639e102d2e3871057f2bb68d290a5ca5f5a14c9e01cb2ff7be088e3"
+    }
+  ],
+  "createdAt": "2026-07-31T14:14:26.661Z"
+}

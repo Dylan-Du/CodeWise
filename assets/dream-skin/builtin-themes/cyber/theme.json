@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "cyber",
+  "name": "赛博朋克",
+  "image": "background.jpg",
+  "appearance": "dark",
+  "art": {
+    "focusX": 0.5,
+    "focusY": 0.5,
+    "safeArea": "none",
+    "taskMode": "full"
+  },
+  "colors": {
+    "background": "#0a0014",
+    "panel": "#14001f",
+    "panelAlt": "#1f0030",
+    "accent": "#ff00ff",
+    "accentAlt": "#ff006e",
+    "secondary": "#00ffff",
+    "highlight": "#bf00ff",
+    "text": "#f0f0ff",
+    "muted": "#8800aa",
+    "line": "#2a0040"
+  }
+}

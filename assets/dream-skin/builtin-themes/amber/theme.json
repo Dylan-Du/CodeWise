@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "amber",
+  "name": "琥珀金",
+  "image": "background.jpg",
+  "appearance": "dark",
+  "art": {
+    "focusX": 0.5,
+    "focusY": 0.45,
+    "safeArea": "none",
+    "taskMode": "ambient"
+  },
+  "colors": {
+    "background": "#1a0f0a",
+    "panel": "#2d1810",
+    "panelAlt": "#3d2317",
+    "accent": "#ff9800",
+    "accentAlt": "#ffb74d",
+    "secondary": "#ff7043",
+    "highlight": "#ffc107",
+    "text": "#fff3e0",
+    "muted": "#a1887f",
+    "line": "#4e342e"
+  }
+}

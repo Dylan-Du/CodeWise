@@ -31,8 +31,8 @@ export async function GET(req: NextRequest) {
       params.push(action);
     }
     if (keyword) {
-      where += ' AND code LIKE ?';
-      params.push(`%${keyword}%`);
+      where += ' AND (code LIKE ? OR detail LIKE ? OR device_id LIKE ?)';
+      params.push(`%${keyword}%`, `%${keyword}%`, `%${keyword}%`);
     }
     if (startDate) {
       where += ' AND created_at >= ?';

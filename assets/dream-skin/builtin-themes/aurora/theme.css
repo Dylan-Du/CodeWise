@@ -1,0 +1,8 @@
+/* Theme-specific CSS overrides */
+[data-ds-part="composer"] {
+  border-radius: 16px;
+}
+
+[data-ds-part="composer"]:focus-visible {
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+}

@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Codex助手 — 让 Codex 用上你想要的任何大模型</title>
+<meta name="description" content="Codex助手 是一个本地适配器，为 OpenAI Codex 一键接入 DeepSeek、Kimi、智谱、通义等主流大模型，内置 20+ Codex 主题，数据全程不出本机。支持 macOS 与 Windows。">
+<link rel="icon" type="image/png" href="assets/app-icon.png">
+<style>
+  :root{
+    --bg:#0d1117;
+    --bg-soft:#10161f;
+    --panel:#161b22;
+    --panel-2:#1c232d;
+    --line:#262e3a;
+    --line-soft:#1f2733;
+    --text:#e6edf3;
+    --muted:#8b949e;
+    --faint:#6b7480;
+    --accent:#00e676;
+    --accent-2:#69f0ae;
+    --secondary:#b388ff;
+    --highlight:#64ffda;
+    --danger:#ff6b6b;
+    --ok:#3fb950;
+    --radius:14px;
+    --maxw:1120px;
+    --font:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font);
+    font-size:16px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  ::selection{background:rgba(0,230,118,.25)}
+  a{color:inherit;text-decoration:none}
+  img{display:block;max-width:100%}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  section{position:relative}
+
+  /* ---------- Reveal animation ---------- */
+  [data-reveal]{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
+  [data-reveal].in{opacity:1;transform:none}
+  @media (prefers-reduced-motion: reduce){
+    [data-reveal]{opacity:1;transform:none;transition:none}
+    html{scroll-behavior:auto}
+    .floaty,.hero-glow{animation:none !important}
+  }
+
+  /* ---------- Nav ---------- */
+  .nav{
+    position:sticky;top:0;z-index:100;
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    background:rgba(13,17,23,.82);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .nav-inner{display:flex;align-items:center;gap:28px;height:64px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;letter-spacing:.2px}
+  .brand img{width:30px;height:30px;border-radius:8px}
+  .brand .ver{color:var(--faint);font-size:12px;font-weight:500;margin-left:2px;letter-spacing:0}
+  .nav-links{display:flex;gap:24px;margin-left:8px}
+  .nav-links a{color:var(--muted);font-size:14.5px;transition:color .2s}
+  .nav-links a:hover{color:var(--text)}
+  .nav-cta{margin-left:auto;display:flex;align-items:center;gap:12px}
+  .nav-cta .pill{font-size:12px;color:var(--accent-2);border:1px solid rgba(0,230,118,.3);background:rgba(0,230,118,.07);padding:3px 10px;border-radius:99px}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:9px;
+    padding:12px 22px;border-radius:10px;font-size:15px;font-weight:600;
+    border:1px solid transparent;cursor:pointer;transition:all .2s ease;white-space:nowrap;
+  }
+  .btn-primary{background:var(--accent);color:#04120a}
+  .btn-primary:hover{background:var(--accent-2);transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,230,118,.28)}
+  .btn-ghost{border-color:var(--line);color:var(--text);background:transparent}
+  .btn-ghost:hover{border-color:var(--faint);background:var(--panel)}
+  .btn svg{flex:none}
+  @media (max-width:860px){
+    .nav-links{display:none}
+    .nav-cta .pill{display:none}
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{padding:76px 0 40px;position:relative;overflow:hidden}
+  .hero-glow{
+    position:absolute;top:-260px;left:50%;transform:translateX(-50%);
+    width:900px;height:640px;border-radius:50%;
+    background:radial-gradient(closest-side,rgba(0,230,118,.16),rgba(179,136,255,.08) 55%,transparent 100%);
+    pointer-events:none;animation:floaty 9s ease-in-out infinite;
+  }
+  @keyframes floaty{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-16px)}}
+  .hero-grid{
+    display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center;position:relative;
+  }
+  .badge{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:13px;color:var(--accent-2);
+    background:rgba(0,230,118,.08);border:1px solid rgba(0,230,118,.28);
+    padding:6px 14px;border-radius:99px;margin-bottom:22px;
+  }
+  .badge .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px rgba(0,230,118,.18);animation:pulse 2.2s infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 3px rgba(0,230,118,.18)}50%{box-shadow:0 0 0 6px rgba(0,230,118,.06)}}
+  .hero h1{
+    font-size:clamp(34px,4.6vw,52px);line-height:1.18;font-weight:800;letter-spacing:-.5px;
+  }
+  .hero h1 .grad{
+    background:linear-gradient(92deg,var(--accent) 10%,var(--highlight) 55%,var(--secondary) 95%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .hero-sub{margin:20px 0 30px;color:var(--muted);font-size:17px;max-width:520px}
+  .hero-cta{display:flex;gap:14px;flex-wrap:wrap}
+  .hero-note{margin-top:16px;color:var(--faint);font-size:13.5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .hero-note .sep{opacity:.5}
+
+  /* ---------- App mockup ---------- */
+  .mockup{position:relative}
+  .mockup-card{
+    background:linear-gradient(160deg,#151c26,#0f141b);
+    border:1px solid var(--line);border-radius:18px;overflow:hidden;
+    box-shadow:0 30px 80px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.02) inset;
+  }
+  .mock-bar{display:flex;align-items:center;gap:8px;padding:13px 16px;border-bottom:1px solid var(--line-soft)}
+  .mock-bar i{width:11px;height:11px;border-radius:50%;display:block}
+  .mock-bar i:nth-child(1){background:#ff5f57}.mock-bar i:nth-child(2){background:#febc2e}.mock-bar i:nth-child(3){background:#28c840}
+  .mock-bar .t{margin-left:10px;font-size:12.5px;color:var(--faint);font-family:var(--mono)}
+  .mock-body{padding:18px}
+  .mock-label{font-size:12px;color:var(--muted);letter-spacing:.08em;margin-bottom:10px;display:flex;justify-content:space-between;align-items:baseline}
+  .mock-label b{color:var(--accent-2);font-size:11px;letter-spacing:0;font-weight:600}
+  .mock-prov{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+  .mock-prov .p{
+    background:var(--panel);border:1px solid var(--line-soft);border-radius:11px;padding:11px 12px;
+  }
+  .mock-prov .p .name{font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:7px}
+  .mock-prov .p .name .lg{width:17px;height:17px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#04120a}
+  .mock-prov .p .st{font-size:11.5px;margin-top:5px;display:flex;align-items:center;gap:5px}
+  .mock-prov .p .st i{width:6px;height:6px;border-radius:50%;display:inline-block}
+  .mock-prov .p.on .st{color:var(--accent-2)}
+  .mock-prov .p.on .st i{background:var(--accent)}
+  .mock-prov .p.off .st{color:var(--faint)}
+  .mock-prov .p.off .st i{background:var(--faint)}
+  .mock-prov .p.idle .st{color:var(--secondary)}
+  .mock-prov .p.idle .st i{background:var(--secondary);animation:pulse 1.6s infinite}
+  .mock-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+  .mock-stats .s{background:var(--panel);border:1px solid var(--line-soft);border-radius:11px;padding:11px 12px}
+  .mock-stats .s .k{font-size:11px;color:var(--muted)}
+  .mock-stats .s .v{font-size:15px;font-weight:800;font-family:var(--mono);margin-top:2px}
+  .mock-theme{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .mock-theme .th{border-radius:10px;overflow:hidden;border:1px solid var(--line-soft);position:relative;aspect-ratio:16/10;background-size:cover;background-position:center}
+  .mock-theme .th.act::after{content:"ACTIVE";position:absolute;right:5px;top:5px;font-size:8.5px;font-weight:800;letter-spacing:.06em;background:rgba(0,230,118,.9);color:#04120a;padding:2px 6px;border-radius:5px}
+  .float-chip{
+    position:absolute;left:-34px;bottom:26px;background:var(--panel);border:1px solid var(--line);
+    border-radius:12px;padding:12px 16px;box-shadow:0 16px 44px rgba(0,0,0,.45);
+    display:flex;align-items:center;gap:12px;
+  }
+  .float-chip .ic{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--highlight));display:flex;align-items:center;justify-content:center;color:#04120a}
+  .float-chip .tx b{display:block;font-size:13.5px}
+  .float-chip .tx span{font-size:11.5px;color:var(--muted)}
+  @media (max-width:980px){
+    .hero-grid{grid-template-columns:1fr;gap:44px}
+    .float-chip{left:auto;right:-10px}
+  }
+
+  /* ---------- Stats strip ---------- */
+  .stats{padding:44px 0;border-top:1px solid var(--line-soft)}
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center}
+  .stats-grid .n{font-size:clamp(26px,3.4vw,38px);font-weight:800;font-family:var(--mono);background:linear-gradient(180deg,#fff,#9fb3c8);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .stats-grid .l{color:var(--muted);font-size:13.5px;margin-top:4px}
+  @media (max-width:720px){.stats-grid{grid-template-columns:repeat(2,1fr);gap:26px}}
+
+  /* ---------- Section shells ---------- */
+  .sec{padding:92px 0}
+  .sec-head{max-width:640px;margin-bottom:52px}
+  .sec-eyebrow{font-size:13px;font-weight:700;letter-spacing:.14em;color:var(--accent);text-transform:uppercase;margin-bottom:12px}
+  .sec-head h2{font-size:clamp(26px,3.4vw,38px);font-weight:800;letter-spacing:-.4px;line-height:1.25}
+  .sec-head p{color:var(--muted);margin-top:14px;font-size:16.5px}
+
+  /* ---------- Providers ---------- */
+  .providers{border-top:1px solid var(--line-soft)}
+  .prov-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+  .prov-chip{
+    display:flex;align-items:center;gap:10px;padding:13px 14px;border-radius:12px;
+    background:var(--panel);border:1px solid var(--line-soft);
+    font-size:14px;font-weight:600;transition:all .2s;
+  }
+  .prov-chip:hover{border-color:var(--faint);transform:translateY(-2px)}
+  .prov-chip .lg{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex:none}
+  .prov-chip.more{color:var(--muted);justify-content:center}
+  @media (max-width:960px){.prov-grid{grid-template-columns:repeat(3,1fr)}}
+  @media (max-width:560px){.prov-grid{grid-template-columns:repeat(2,1fr)}}
+
+  /* ---------- Features ---------- */
+  .features{background:linear-gradient(180deg,transparent,rgba(0,230,118,.028) 50%,transparent)}
+  .feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .feat{
+    background:var(--panel);border:1px solid var(--line-soft);border-radius:var(--radius);
+    padding:30px 28px;position:relative;overflow:hidden;transition:border-color .25s,transform .25s;
+  }
+  .feat:hover{border-color:var(--faint);transform:translateY(-3px)}
+  .feat .num{
+    font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent);
+    letter-spacing:.1em;display:block;margin-bottom:16px;
+  }
+  .feat .num::after{content:"";display:block;width:34px;height:2px;background:linear-gradient(90deg,var(--accent),transparent);margin-top:8px;border-radius:2px}
+  .feat h3{font-size:19px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+  .feat h3 svg{color:var(--accent);flex:none}
+  .feat p{color:var(--muted);font-size:14.8px}
+  .feat .tag{display:inline-block;margin-top:14px;font-size:12px;color:var(--secondary);background:rgba(179,136,255,.08);border:1px solid rgba(179,136,255,.25);padding:3px 10px;border-radius:99px}
+  @media (max-width:860px){.feat-grid{grid-template-columns:1fr}}
+
+  /* ---------- Themes ---------- */
+  .themes{background:var(--bg-soft);border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft)}
+  .theme-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+  .theme-card{
+    border-radius:14px;overflow:hidden;border:1px solid var(--line-soft);
+    position:relative;aspect-ratio:3/4.2;background-size:cover;background-position:center;
+    display:flex;align-items:flex-end;transition:transform .25s,border-color .25s;
+  }
+  .theme-card:hover{transform:translateY(-4px);border-color:var(--faint)}
+  .theme-card .shade{position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(8,11,15,.88))}
+  .theme-card .info{position:relative;padding:14px;z-index:1}
+  .theme-card .info b{display:block;font-size:14.5px}
+  .theme-card .info span{font-size:11.5px;color:var(--muted)}
+  @media (max-width:900px){.theme-grid{grid-template-columns:repeat(3,1fr)}}
+  @media (max-width:560px){.theme-grid{grid-template-columns:repeat(2,1fr)}}
+
+  /* ---------- Steps ---------- */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;counter-reset:step}
+  .step{
+    background:var(--panel);border:1px solid var(--line-soft);border-radius:var(--radius);
+    padding:30px 26px;position:relative;
+  }
+  .step .n{
+    width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;
+    background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.3);color:var(--accent);
+    font-weight:800;font-size:17px;font-family:var(--mono);margin-bottom:18px;
+  }
+  .step h3{font-size:17.5px;font-weight:700;margin-bottom:8px}
+  .step p{color:var(--muted);font-size:14.5px}
+  .step .arr{position:absolute;top:50%;right:-22px;color:var(--faint);font-size:20px;z-index:2}
+  @media (max-width:860px){.steps{grid-template-columns:1fr}.step .arr{display:none}}
+
+  /* ---------- Privacy ---------- */
+  .privacy{background:radial-gradient(80% 120% at 50% 0%,rgba(0,230,118,.06),transparent 60%)}
+  .priv-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+  .priv-card{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:34px 32px;
+  }
+  .priv-card .row{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--line-soft)}
+  .priv-card .row:last-child{border-bottom:none}
+  .priv-card .row .ic{width:38px;height:38px;flex:none;border-radius:10px;background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.3);display:flex;align-items:center;justify-content:center;color:var(--ok)}
+  .priv-card .row b{font-size:15px;display:block}
+  .priv-card .row span{font-size:13.5px;color:var(--muted)}
+  .priv-points{list-style:none}
+  .priv-points li{display:flex;gap:12px;color:var(--muted);padding:11px 0;font-size:15.5px}
+  .priv-points li svg{color:var(--accent);flex:none;margin-top:4px}
+  @media (max-width:860px){.priv-grid{grid-template-columns:1fr;gap:36px}}
+
+  /* ---------- Download ---------- */
+  .download{background:linear-gradient(180deg,var(--bg-soft),var(--bg));border-top:1px solid var(--line-soft)}
+  .dl-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .dl-card{
+    background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:34px 32px;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden;
+    transition:transform .25s,border-color .25s;
+  }
+  .dl-card:hover{transform:translateY(-3px);border-color:rgba(0,230,118,.45)}
+  .dl-card .os{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+  .dl-card .os .lg{width:52px;height:52px;border-radius:13px;background:var(--bg-soft);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--text)}
+  .dl-card .os b{font-size:20px;font-weight:800;display:block}
+  .dl-card .os span{font-size:12.5px;color:var(--muted)}
+  .dl-card p{color:var(--muted);font-size:14.5px;flex:1}
+  .dl-card .dl-btn{margin-top:18px}
+  .dl-card .meta{display:flex;gap:14px;margin-top:14px;color:var(--faint);font-size:12.5px}
+  .dl-card .meta b{color:var(--accent-2);font-weight:600}
+  .dl-more{margin-top:22px;text-align:center;color:var(--faint);font-size:13.5px}
+  .dl-more a{color:var(--muted);border-bottom:1px dashed var(--faint)}
+  .dl-more a:hover{color:var(--text)}
+  @media (max-width:860px){.dl-grid{grid-template-columns:1fr}}
+
+  /* ---------- FAQ ---------- */
+  .faq-list{max-width:760px;margin:0 auto}
+  .faq-item{border:1px solid var(--line-soft);border-radius:12px;margin-bottom:12px;background:var(--panel);overflow:hidden}
+  .faq-item summary{
+    list-style:none;cursor:pointer;padding:20px 24px;font-size:16px;font-weight:600;
+    display:flex;justify-content:space-between;align-items:center;gap:16px;user-select:none;
+  }
+  .faq-item summary::-webkit-details-marker{display:none}
+  .faq-item summary .ic{color:var(--accent);transition:transform .25s;flex:none}
+  .faq-item[open] summary .ic{transform:rotate(45deg)}
+  .faq-item .ans{padding:0 24px 20px;color:var(--muted);font-size:14.8px}
+
+  /* ---------- Footer ---------- */
+  footer{border-top:1px solid var(--line-soft);padding:44px 0 56px}
+  .foot-inner{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .foot-inner .brand{margin-right:auto}
+  .foot-inner .links{display:flex;gap:20px;color:var(--muted);font-size:14px}
+  .foot-inner .links a:hover{color:var(--text)}
+  .foot-copy{margin-top:26px;color:var(--faint);font-size:12.5px;display:flex;gap:16px;flex-wrap:wrap}
+
+  /* ---------- Toast ---------- */
+  #toast{
+    position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);
+    background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+    padding:12px 22px;border-radius:10px;font-size:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);
+    opacity:0;pointer-events:none;transition:all .3s;z-index:200;
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media (max-width:640px){
+    .sec{padding:64px 0}
+    .hero{padding:52px 0 32px}
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= NAV ================= -->
+<nav class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top">
+      <img src="assets/app-icon.png" alt="Codex助手图标">
+      Codex助手 <span class="ver" id="nav-version">v1.0.44</span>
+    </a>
+    <div class="nav-links">
+      <a href="#features">功能</a>
+      <a href="#themes">主题</a>
+      <a href="#download">下载</a>
+      <a href="#faq">常见问题</a>
+    </div>
+    <div class="nav-cta">
+      <span class="pill">本地运行 · 数据不出设备</span>
+      <a class="btn btn-primary" style="padding:9px 18px;font-size:14px" href="#download">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        免费下载
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- ================= HERO ================= -->
+<header class="hero" id="top">
+  <div class="hero-glow"></div>
+  <div class="wrap hero-grid">
+    <div>
+      <div class="badge"><span class="dot"></span><span id="hero-version">v1.0.44 已发布</span> · macOS / Windows 双平台</div>
+      <h1>让 Codex 用上<br>你想要的<span class="grad">任何大模型</span></h1>
+      <p class="hero-sub">Codex助手 是一个本地适配器，为 OpenAI Codex 一键接入 DeepSeek、Kimi、智谱、通义等主流大模型，内置 20+ Codex 主题，数据全程不出本机。</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" data-download="mac" href="#download" onclick="return handleDownload(this)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
+          <span data-download-tag="mac">下载 macOS .dmg</span>
+        </a>
+        <a class="btn btn-ghost" data-download="win" href="#download" onclick="return handleDownload(this)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M0 3.449 9.75 2.1v9.451H0V3.45zm10.949-1.301L24 0v11.4H10.949V2.148zM0 12.6h9.75v9.451L0 20.699V12.6zm10.949 0H24V24l-13.051-1.8V12.6z"/></svg>
+          <span data-download-tag="win">下载 Windows .exe</span>
+        </a>
+      </div>
+      <div class="hero-note">
+        <span>Apple Silicon 与 Intel 均支持</span><span class="sep">·</span>
+        <span>Windows 10 / 11</span><span class="sep">·</span>
+        <a href="#download" style="color:var(--muted);border-bottom:1px dashed var(--faint)">查看全部版本</a>
+      </div>
+    </div>
+
+    <!-- App mockup -->
+    <div class="mockup" data-reveal>
+      <div class="mockup-card">
+        <div class="mock-bar"><i></i><i></i><i></i><span class="t">Codex助手 — 控制台</span></div>
+        <div class="mock-body">
+          <div class="mock-label">模型供应商 <b id="mock-prov-count">3 个已预设</b></div>
+          <div class="mock-prov">
+            <div class="p on">
+              <div class="name"><span class="lg" style="background:#536dfe">DS</span>DeepSeek</div>
+              <div class="st"><i></i>已连接 · 转发中</div>
+            </div>
+            <div class="p on">
+              <div class="name"><span class="lg" style="background:#00b8a9">KM</span>Kimi</div>
+              <div class="st"><i></i>已连接 · 转发中</div>
+            </div>
+            <div class="p idle">
+              <div class="name"><span class="lg" style="background:#7c4dff">ZP</span>智谱</div>
+              <div class="st"><i></i>切换中…</div>
+            </div>
+          </div>
+          <div class="mock-label">今日用量 <b>本地统计</b></div>
+          <div class="mock-stats">
+            <div class="s"><div class="k">TOKENS</div><div class="v">128,940</div></div>
+            <div class="s"><div class="k">请求</div><div class="v">342</div></div>
+            <div class="s"><div class="k">花费</div><div class="v">¥ 0.42</div></div>
+          </div>
+          <div class="mock-label">Codex 主题 <b>自动注入 · 重启保留</b></div>
+          <div class="mock-theme">
+            <div class="th act" style="background-image:url('assets/themes/aurora.jpg')"></div>
+            <div class="th" style="background-image:url('assets/themes/ocean.jpg')"></div>
+            <div class="th" style="background-image:url('assets/themes/night.jpg')"></div>
+            <div class="th" style="background-image:url('assets/themes/sakura.jpg')"></div>
+          </div>
+        </div>
+      </div>
+      <div class="float-chip">
+        <div class="ic">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="tx"><b>100% 本地转发</b><span>代码与对话不出本机</span></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ================= STATS ================= -->
+<div class="stats">
+  <div class="wrap stats-grid" data-reveal>
+    <div><div class="n">9+</div><div class="l">模型供应商预设</div></div>
+    <div><div class="n">20+</div><div class="l">内置 Codex 主题</div></div>
+    <div><div class="n">2</div><div class="l">macOS / Windows 平台</div></div>
+    <div><div class="n">100%</div><div class="l">本地运行，零云中转</div></div>
+  </div>
+</div>
+
+<!-- ================= PROVIDERS ================= -->
+<div class="sec providers" id="providers">
+  <div class="wrap">
+    <div class="sec-head" data-reveal>
+      <div class="sec-eyebrow">Models</div>
+      <h2>主流模型，开箱即用</h2>
+      <p>内置主流模型供应商预设，填入 API Key 即可使用；任何 OpenAI 兼容接口也支持自定义接入。</p>
+    </div>
+    <div class="prov-grid" data-reveal>
+      <div class="prov-chip"><span class="lg" style="background:#536dfe">DS</span>DeepSeek</div>
+      <div class="prov-chip"><span class="lg" style="background:#00b8a9">KM</span>Kimi 月之暗面</div>
+      <div class="prov-chip"><span class="lg" style="background:#7c4dff">ZP</span>智谱 GLM</div>
+      <div class="prov-chip"><span class="lg" style="background:#ff7043">TY</span>通义千问</div>
+      <div class="prov-chip"><span class="lg" style="background:#4285f4">GM</span>Gemini</div>
+      <div class="prov-chip"><span class="lg" style="background:#d97757">CL</span>Claude</div>
+      <div class="prov-chip"><span class="lg" style="background:#ffb300">MM</span>小米 MiMo</div>
+      <div class="prov-chip"><span class="lg" style="background:#26a69a">SF</span>StepFun</div>
+      <div class="prov-chip"><span class="lg" style="background:#5c6bc0">LC</span>LongCat</div>
+      <div class="prov-chip"><span class="lg" style="background:#455a64">AP</span>APINest</div>
+      <div class="prov-chip"><span class="lg" style="background:#00e676;color:#04120a">+</span>自定义接口</div>
+      <div class="prov-chip more">更多持续接入中…</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= FEATURES ================= -->
+<div class="sec features" id="features">
+  <div class="wrap">
+    <div class="sec-head" data-reveal>
+      <div class="sec-eyebrow">Features</div>
+      <h2>为 AI 编码而生，每个细节都顺滑</h2>
+      <p>从模型切换到错误兜底，从主题美化到用量统计，把常用的事做到极致。</p>
+    </div>
+    <div class="feat-grid">
+      <div class="feat" data-reveal>
+        <span class="num">01</span>
+        <h3>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          一键切换模型供应商
+        </h3>
+        <p>本地适配器实时转发，在 Codex 里切换模型就像切换输入法一样简单。DeepSeek、Kimi、智谱、通义…即点即用。</p>
+        <span class="tag">本地转发 · 毫秒级切换</span>
+      </div>
+      <div class="feat" data-reveal>
+        <span class="num">02</span>
+        <h3>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          智能错误兜底
+        </h3>
+        <p>兼容 4 种上游错误返回格式，遇 502/503/504 网关错误自动降级重试，网络抖动也不打断你的思路。</p>
+        <span class="tag">自动重试 · 兼容多种格式</span>
+      </div>
+      <div class="feat" data-reveal>
+        <span class="num">03</span>
+        <h3>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          20+ Codex 主题
+        </h3>
+        <p>极光、海洋、樱花、赛博朋克…内置 20+ 精选主题。Codex 启动自动注入，重启、更新后自动恢复，不再丢失。</p>
+        <span class="tag">自动注入 · 重启保留</span>
+      </div>
+      <div class="feat" data-reveal>
+        <span class="num">04</span>
+        <h3>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+          用量实时统计
+        </h3>
+        <p>Token 消耗、请求次数、花费金额实时统计，每一笔 AI 开销都清清楚楚，月末对账不再头疼。</p>
+        <span class="tag">本地统计 · 数据可清空</span>
+      </div>
+      <div class="feat" data-reveal>
+        <span class="num">05</span>
+        <h3>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          激活码授权
+        </h3>
+        <p>输入激活码即刻激活，设备绑定管理，简单可靠的授权方式，一次购买多设备可用。</p>
+        <span class="tag">设备绑定 · 安全可靠</span>
+      </div>
+      <div class="feat" data-reveal>
+        <span class="num">06</span>
+        <h3>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          双平台原生体验
+        </h3>
+        <p>基于原生桌面技术构建，macOS 与 Windows 同样顺滑，界面统一、配置互通，随时同步切换。</p>
+        <span class="tag">macOS · Windows</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= THEMES ================= -->
+<div class="sec themes" id="themes">
+  <div class="wrap">
+    <div class="sec-head" data-reveal>
+      <div class="sec-eyebrow">Themes</div>
+      <h2>让 Codex 也换上你的心头好</h2>
+      <p>一键切换 20+ 精选主题，Codex 启动自动注入，重启后依然保留。</p>
+    </div>
+    <div class="theme-grid" data-reveal>
+      <div class="theme-card" style="background-image:url('assets/themes/aurora.jpg')">
+        <div class="shade"></div>
+        <div class="info"><b>极光 Aurora</b><span>深邃绿 · 默认推荐</span></div>
+      </div>
+      <div class="theme-card" style="background-image:url('assets/themes/ocean.jpg')">
+        <div class="shade"></div>
+        <div class="info"><b>海洋 Ocean</b><span>宁静蓝 · 沉浸专注</span></div>
+      </div>
+      <div class="theme-card" style="background-image:url('assets/themes/night.jpg')">
+        <div class="shade"></div>
+        <div class="info"><b>深夜 Night</b><span>暗夜紫 · 护眼之选</span></div>
+      </div>
+      <div class="theme-card" style="background-image:url('assets/themes/sakura.jpg')">
+        <div class="shade"></div>
+        <div class="info"><b>樱花 Sakura</b><span>治愈粉 · 柔和清新</span></div>
+      </div>
+      <div class="theme-card" style="background-image:url('assets/themes/cyber.jpg')">
+        <div class="shade"></div>
+        <div class="info"><b>赛博 Cyber</b><span>霓虹紫 · 未来感</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= STEPS ================= -->
+<div class="sec" id="how">
+  <div class="wrap">
+    <div class="sec-head" data-reveal>
+      <div class="sec-eyebrow">Quick Start</div>
+      <h2>三步开始使用</h2>
+      <p>从下载到开聊，全程不超过三分钟。</p>
+    </div>
+    <div class="steps" data-reveal>
+      <div class="step">
+        <div class="n">1</div>
+        <h3>下载安装</h3>
+        <p>选择你的平台，下载对应安装包，双击完成安装，全程无需命令行。</p>
+        <span class="arr">→</span>
+      </div>
+      <div class="step">
+        <div class="n">2</div>
+        <h3>输入激活码</h3>
+        <p>打开 Codex助手，输入激活码完成授权，设备绑定即刻生效。</p>
+        <span class="arr">→</span>
+      </div>
+      <div class="step">
+        <div class="n">3</div>
+        <h3>选择模型开聊</h3>
+        <p>在 Codex 中选择你想要的模型，开始享受 AI 编码的畅快体验。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= PRIVACY ================= -->
+<div class="sec privacy" id="privacy">
+  <div class="wrap priv-grid">
+    <div data-reveal>
+      <div class="sec-eyebrow">Privacy</div>
+      <h2 style="font-size:clamp(26px,3.4vw,36px);font-weight:800;letter-spacing:-.4px;line-height:1.25">你的对话和代码<br>全程留在本机</h2>
+      <ul class="priv-points">
+        <li><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>本地适配器，请求直接转发至模型 API，无第三方中转</li>
+        <li><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>除激活验证外，不收集任何代码、对话或提示词内容</li>
+        <li><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>用量统计仅保存在本机，可随时一键清空</li>
+      </ul>
+    </div>
+    <div class="priv-card" data-reveal>
+      <div class="row">
+        <div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <div><b>绝不上传</b><span>原始提示词、代码文件、对话记录</span></div>
+      </div>
+      <div class="row">
+        <div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <div><b>绝不中转</b><span>请求从你的电脑直达模型服务商</span></div>
+      </div>
+      <div class="row">
+        <div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <div><b>绝不收集</b><span>仅激活验证所需的最少信息</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= DOWNLOAD ================= -->
+<div class="sec download" id="download">
+  <div class="wrap">
+    <div class="sec-head" data-reveal>
+      <div class="sec-eyebrow">Download</div>
+      <h2>下载 Codex助手</h2>
+      <p>选择你的平台，立即开始。应用内也会自动检测新版本并提示更新。</p>
+    </div>
+    <div class="dl-grid">
+      <div class="dl-card" data-reveal>
+        <div class="os">
+          <div class="lg"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg></div>
+          <div><b>macOS</b><span>Apple Silicon 与 Intel</span></div>
+        </div>
+        <p>原生 .dmg 安装包，双击即装。已适配 Apple Silicon 与 Intel 两种架构。</p>
+        <a class="btn btn-primary dl-btn" data-download="mac" href="#download" onclick="return handleDownload(this)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span data-download-tag="mac">下载 macOS 版</span>
+        </a>
+        <div class="meta">最新版本 <b data-download-tag="mac" id="mac-version-tag">v1.0.44</b><span>·</span><span>约 46 MB</span></div>
+      </div>
+      <div class="dl-card" data-reveal>
+        <div class="os">
+          <div class="lg"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M0 3.449 9.75 2.1v9.451H0V3.45zm10.949-1.301L24 0v11.4H10.949V2.148zM0 12.6h9.75v9.451L0 20.699V12.6zm10.949 0H24V24l-13.051-1.8V12.6z"/></svg></div>
+          <div><b>Windows</b><span>Windows 10 / 11</span></div>
+        </div>
+        <p>.exe 安装包，安装即用。另提供免安装便携版，解压即可运行。</p>
+        <a class="btn btn-primary dl-btn" data-download="win" href="#download" onclick="return handleDownload(this)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span data-download-tag="win">下载 Windows 版</span>
+        </a>
+        <div class="meta">最新版本 <b>v1.0.44</b><span>·</span><span>安装版 / 便携版</span></div>
+      </div>
+    </div>
+    <p class="dl-more" data-reveal>已经装好了？<a href="#faq">查看使用指南与常见问题</a> · 应用内支持一键检查更新并自动安装</p>
+  </div>
+</div>
+
+<!-- ================= FAQ ================= -->
+<div class="sec" id="faq">
+  <div class="wrap">
+    <div class="sec-head" data-reveal>
+      <div class="sec-eyebrow">FAQ</div>
+      <h2>常见问题</h2>
+    </div>
+    <div class="faq-list" data-reveal>
+      <details class="faq-item">
+        <summary>激活码从哪里获取？<span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></summary>
+        <div class="ans">联系作者购买获取激活码，在应用内输入即可激活。激活后绑定当前设备，一次购买多设备可用，到期前应用会提前提示。</div>
+      </details>
+      <details class="faq-item">
+        <summary>支持哪些大模型？<span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></summary>
+        <div class="ans">内置 DeepSeek、Kimi、智谱、通义、Gemini、Claude、小米 MiMo、StepFun 等 9+ 供应商预设，也支持任何 OpenAI 兼容的自定义接口，填入地址与 Key 即可。</div>
+      </details>
+      <details class="faq-item">
+        <summary>设置的主题，重启 Codex 后还在吗？<span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></summary>
+        <div class="ans">在的。主题通过后台守护线程自动注入并持久化，Codex 启动、重启甚至更新后都会自动恢复，无需重复设置。</div>
+      </details>
+      <details class="faq-item">
+        <summary>会收集我的数据吗？<span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></summary>
+        <div class="ans">不会。Codex助手 是本地适配器，所有请求在本地直接转发到模型服务商，不经过任何第三方中转。除激活验证所需的最少信息外，不收集任何代码、对话或提示词内容。</div>
+      </details>
+      <details class="faq-item">
+        <summary>支持哪些系统版本？<span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></summary>
+        <div class="ans">macOS 支持 Apple Silicon 与 Intel 两种架构（.dmg 原生安装包），Windows 支持 10 / 11，另有免安装便携版，解压即用。</div>
+      </details>
+      <details class="faq-item">
+        <summary>如何更新到新版本？<span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></summary>
+        <div class="ans">应用内置更新检测，发现新版本会提示你一键下载；macOS 下载完成后自动打开安装包，Windows 同样支持下载后直接安装，无需手动折腾。</div>
+      </details>
+      <details class="faq-item">
+        <summary>和 OpenAI Codex 官方客户端冲突吗？<span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></summary>
+        <div class="ans">不冲突。Codex助手 只是把 Codex 的请求转发到你选择的大模型服务商，切换前后都会自动备份 Codex 配置，随时可以一键还原回官方设置。</div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="wrap">
+    <div class="foot-inner">
+      <a class="brand" href="#top">
+        <img src="assets/app-icon.png" alt="Codex助手图标">
+        Codex助手
+      </a>
+      <div class="links">
+        <a href="#features">功能</a>
+        <a href="#themes">主题</a>
+        <a href="#download">下载</a>
+        <a href="#faq">常见问题</a>
+      </div>
+    </div>
+    <div class="foot-copy">
+      <span>© 2026 Codex助手</span>
+      <span>本地适配器 · 数据不出设备</span>
+      <span>macOS / Windows</span>
+      <span>Codex 与 OpenAI 均为其各自所有者的商标，本产品与其无隶属关系</span>
+    </div>
+  </div>
+</footer>
+
+<div id="toast"></div>
+
+<script>
+(function () {
+  var API_BASE = 'http://43.160.233.155:8080';
+  var FILE_BASE = 'http://43.160.233.155';
+  var cached = { mac: null, win: null };
+
+  function $(s, c) { return (c || document).querySelector(s); }
+  function $$(s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); }
+
+  function showToast(msg) {
+    var t = $('#toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(function () { t.classList.remove('show'); }, 3200);
+  }
+
+  // ---- 平台检测：主按钮自动跟随当前系统 ----
+  function detectPlatform() {
+    var ua = navigator.userAgent;
+    if (/Windows/i.test(ua)) return 'win';
+    if (/Macintosh|Mac OS X/i.test(ua)) return 'mac';
+    return 'mac';
+  }
+  function swapPrimary(platform) {
+    var heroMac = $('.hero-cta [data-download="mac"]');
+    var heroWin = $('.hero-cta [data-download="win"]');
+    if (!heroMac || !heroWin) return;
+    var order = platform === 'win' ? [heroWin, heroMac] : [heroMac, heroWin];
+    heroMac.className = 'btn' + (platform === 'mac' ? ' btn-primary' : ' btn-ghost');
+    heroWin.className = 'btn' + (platform === 'win' ? ' btn-primary' : ' btn-ghost');
+    heroMac.parentNode.insertBefore(order[0], heroMac.parentNode.firstChild);
+    heroMac.parentNode.insertBefore(order[1], order[0].nextSibling);
+    $$('[data-download-tag="mac"]').forEach(function (el) {
+      el.textContent = platform === 'mac' ? '下载 macOS .dmg' : '下载 macOS .dmg';
+    });
+  }
+
+  // ---- 版本信息：拉取服务器最新版本号 ----
+  function fetchVersion(platform) {
+    return fetch(API_BASE + '/api/versions/check?platform=' + platform + '&current_version=0.0.0', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (res && res.code === 0 && res.data && res.data.version) {
+          return res.data;
+        }
+        return null;
+      })
+      .catch(function () { return null; });
+  }
+
+  function updateVersions() {
+    ['mac', 'win'].forEach(function (p) {
+      fetchVersion(p).then(function (data) {
+        if (!data) return;
+        cached[p] = data;
+        var v = 'v' + data.version;
+        if (p === 'mac') {
+          $('#mac-version-tag') && ($('#mac-version-tag').textContent = v);
+        }
+        $('#nav-version') && ($('#nav-version').textContent = v);
+        $('#hero-version') && ($('#hero-version').textContent = v + ' 已发布');
+      });
+    });
+  }
+
+  // ---- 下载：先取最新下载地址再跳转 ----
+  window.handleDownload = function (el) {
+    var platform = el.getAttribute('data-download') || detectPlatform();
+    var tag = $('[data-download-tag="' + platform + '"]');
+    if (tag) tag.textContent = platform === 'mac' ? '正在获取 macOS 下载地址…' : '正在获取 Windows 下载地址…';
+    showToast('正在获取最新版本下载地址…');
+
+    fetchVersion(platform).then(function (data) {
+      if (!data || !data.download_url) {
+        showToast('暂时无法获取下载地址，请稍后重试');
+        if (tag) tag.textContent = platform === 'mac' ? '下载 macOS 版' : '下载 Windows 版';
+        return;
+      }
+      var url = data.download_url.indexOf('http') === 0 ? data.download_url : FILE_BASE + data.download_url;
+      if (tag) tag.textContent = platform === 'mac' ? '下载 macOS 版' : '下载 Windows 版';
+      window.location.href = url;
+    });
+    return false;
+  };
+
+  // ---- 滚动入场动画 ----
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.12 });
+  $$('[data-reveal]').forEach(function (el) { io.observe(el); });
+
+  // ---- 初始化 ----
+  updateVersions();
+  swapPrimary(detectPlatform());
+})();
+</script>
+</body>
+</html>

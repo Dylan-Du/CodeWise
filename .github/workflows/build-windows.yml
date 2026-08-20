@@ -1,0 +1,86 @@
+name: Build Windows Installer
+
+on:
+  workflow_dispatch:  # 手动触发
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          pip install pywebview tomlkit werkzeug jinja2 markupsafe itsdangerous click pythonnet
+
+      - name: Build portable with PyInstaller
+        run: |
+          python -m PyInstaller --noconfirm --clean --windowed ^
+            --name "Codex助手" ^
+            --add-data "web;web" ^
+            --add-data "assets;assets" ^
+            --add-data "src;src" ^
+            --hidden-import=webview ^
+            --hidden-import=werkzeug ^
+            --hidden-import=jinja2 ^
+            --hidden-import=markupsafe ^
+            --hidden-import=itsdangerous ^
+            --hidden-import=click ^
+            src/web_launcher.py
+
+      - name: Install NSIS
+        run: |
+          choco install nsis -y
+
+      - name: Build installer with NSIS
+        shell: pwsh
+        run: |
+          $buildDir = "build/windows"
+          New-Item -ItemType Directory -Force -Path "$buildDir/files"
+
+          # Copy portable files
+          Copy-Item -Path "dist/Codex助手/*" -Destination "$buildDir/files/" -Recurse -Force
+
+          # Create NSIS script
+          $nsisContent = @"
+          !define APPNAME "Codex助手"
+          Unicode true
+          Name "`${APPNAME}"
+          OutFile "Codex助手-Windows-Setup.exe"
+          InstallDir "`$LOCALAPPDATA\Codex助手"
+          RequestExecutionLevel user
+          ShowInstDetails show
+          Page directory
+          Page instfiles
+          Section ""
+            SetOutPath "`$INSTDIR"
+            File /r "files\*.*"
+            CreateShortcut "`$DESKTOP\Codex助手.lnk" "`$INSTDIR\Codex助手.exe"
+            CreateDirectory "`$SMPROGRAMS\Codex助手"
+            CreateShortcut "`$SMPROGRAMS\Codex助手\Codex助手.lnk" "`$INSTDIR\Codex助手.exe"
+            WriteUninstaller "`$INSTDIR\uninstall.exe"
+          SectionEnd
+          Section "Uninstall"
+            Delete "`$DESKTOP\Codex助手.lnk"
+            RMDir /r "`$SMPROGRAMS\Codex助手"
+            RMDir /r "`$INSTDIR"
+          SectionEnd
+          "@
+
+          $nsisContent | Out-File -FilePath "$buildDir/installer.nsi" -Encoding UTF8
+
+          & "C:\Program Files (x86)\NSIS\makensis.exe" "$buildDir/installer.nsi"
+
+          Move-Item -Path "$buildDir/Codex助手-Windows-Setup.exe" -Destination "dist/" -Force
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: Codex助手-Windows-Setup
+          path: dist/Codex助手-Windows-Setup.exe

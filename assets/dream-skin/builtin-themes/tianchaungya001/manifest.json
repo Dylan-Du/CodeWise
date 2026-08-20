@@ -1,0 +1,45 @@
+{
+  "packageVersion": 1,
+  "themeId": "tianchaungya001",
+  "version": "0.1.0",
+  "skinApiVersion": 1,
+  "minClientVersion": "0.0.0",
+  "platforms": [
+    "windows"
+  ],
+  "capabilities": [
+    "background",
+    "tokens",
+    "safe-css"
+  ],
+  "publisher": {
+    "id": "tianchuangya",
+    "displayName": "tianchuangya"
+  },
+  "license": "MIT",
+  "provenance": {
+    "aiGenerated": false,
+    "summary": "网络"
+  },
+  "files": [
+    {
+      "path": "theme.json",
+      "mediaType": "application/json",
+      "bytes": 516,
+      "sha256": "84e41a907de013c9346ab8caf6d320b567c55a9e2e5bde9d5555c78455b99442"
+    },
+    {
+      "path": "background.jpg",
+      "mediaType": "image/jpeg",
+      "bytes": 207651,
+      "sha256": "45385f57c442d7ae50c58d076702560cbbee0146acdba8de98395a2d41b4f546"
+    },
+    {
+      "path": "theme.css",
+      "mediaType": "text/css",
+      "bytes": 103,
+      "sha256": "2122712785f408845e49a89e12c090a2dd2ce142d208e1e5320852258b8bc399"
+    }
+  ],
+  "createdAt": "2026-07-29T09:23:06.017Z"
+}

@@ -16,7 +16,7 @@ if errorlevel 1 (
 )
 
 echo [1/4] 安装 Python 依赖...
-pip install --upgrade pip pyinstaller pywebview tomlkit werkzeug jinja2 markupsafe itsdangerous click pythonnet
+pip install --upgrade pip pyinstaller pywebview tomlkit certifi werkzeug jinja2 markupsafe itsdangerous click pythonnet
 if errorlevel 1 (
     echo [错误] 依赖安装失败
     pause
@@ -37,18 +37,17 @@ python -m PyInstaller ^
   --add-data "assets\mascot-3d.png;assets" ^
   --add-data "assets\brand-text.png;assets" ^
   --add-data "assets\brand-text-dark.png;assets" ^
+  --add-data "assets\dream-skin;assets\dream-skin" ^
+  --collect-all tomlkit ^
+  --collect-all werkzeug ^
+  --collect-all jinja2 ^
+  --collect-all certifi ^
+  --hidden-import "certifi" ^
   --hidden-import "webview" ^
   --hidden-import "webview.platforms.winforms" ^
   --hidden-import "clr_loader" ^
   --hidden-import "werkzeug" ^
   --hidden-import "werkzeug.serving" ^
-  --hidden-import "tomlkit" ^
-  --hidden-import "tomlkit.api" ^
-  --hidden-import "tomlkit.container" ^
-  --hidden-import "tomlkit.items" ^
-  --hidden-import "tomlkit.parser" ^
-  --hidden-import "tomlkit.toml_document" ^
-  --hidden-import "tomlkit.toml_file" ^
   --hidden-import "jinja2" ^
   --hidden-import "markupsafe" ^
   --hidden-import "itsdangerous" ^

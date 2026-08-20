@@ -1,0 +1,46 @@
+{
+  "packageVersion": 1,
+  "themeId": "night",
+  "version": "0.1.0",
+  "skinApiVersion": 1,
+  "minClientVersion": "0.1.0",
+  "platforms": [
+    "macos",
+    "windows"
+  ],
+  "capabilities": [
+    "background",
+    "tokens",
+    "safe-css"
+  ],
+  "publisher": {
+    "id": "young",
+    "displayName": "油煎小白菜BB"
+  },
+  "license": "MIT",
+  "provenance": {
+    "aiGenerated": true,
+    "summary": "图片来源: 网图+AI"
+  },
+  "files": [
+    {
+      "path": "theme.json",
+      "mediaType": "application/json",
+      "bytes": 491,
+      "sha256": "d4dd3f3d7f750226da82f25341f55a7608e3948f546589026f24fb6c6f9775b2"
+    },
+    {
+      "path": "background.jpg",
+      "mediaType": "image/jpeg",
+      "bytes": 467991,
+      "sha256": "17aac230a05c3cf1c71fe57e5d5b034b2028762c8d34e7e85b60c3b55d9a75f2"
+    },
+    {
+      "path": "theme.css",
+      "mediaType": "text/css",
+      "bytes": 2956,
+      "sha256": "e0c257c9bbe27452f612ea37e98551e96b7f438969cbda2e2c9c4676820a124a"
+    }
+  ],
+  "createdAt": "2026-08-04T02:22:04.336Z"
+}

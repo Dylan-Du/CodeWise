@@ -40,7 +40,7 @@ export async function POST(
     await pool.query(
       `UPDATE activation_codes
        SET status = 'unused', device_type = NULL, device_id = NULL,
-           bound_at = NULL, expires_at = NULL
+           bound_at = NULL
        WHERE id = ?`,
       [id]
     );

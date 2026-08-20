@@ -25,11 +25,14 @@ import tomlkit
 import adapter
 
 HOME = Path(os.path.expanduser("~"))
-# 使用临时目录避免 macOS 沙箱限制
-CC_SWITCH_DIR = Path(tempfile.gettempdir()) / "cc-switch"
+# 持久化到用户目录，避免重启丢失配置
+CC_SWITCH_DIR = HOME / ".codex-helper" / "data"
+CC_SWITCH_DIR.mkdir(parents=True, exist_ok=True)
 CODEX_DIR = HOME / ".codex"
+CODEX_DIR.mkdir(parents=True, exist_ok=True)
 CONFIG_TOML = CODEX_DIR / "config.toml"
 BACKUP_TOML = CODEX_DIR / "config.toml.openai-backup"
+AUTH_JSON = CODEX_DIR / "auth.json"
 ADAPTER_JSON = CC_SWITCH_DIR / "codex-helper-config.json"
 KEYS_JSON = CC_SWITCH_DIR / "switcher-keys.json"
 CUSTOM_JSON = CC_SWITCH_DIR / "switcher-custom-providers.json"
@@ -64,8 +67,8 @@ PROVIDERS = {
 # 不直接出现在主下拉里；用户点"添加自定义"选模板后，base_url 自动填充。
 PRESETS = [
     {"label": "APINest", "model": "",
-     "upstream": "https://apinest.eu.cc/v1/chat/completions",
-     "key_url": "https://apinest.eu.cc"},
+     "upstream": "https://xn--xhqu89o.cc/v1/chat/completions",
+     "key_url": "https://xn--xhqu89o.cc/"},
     {"label": "智谱", "model": "glm-5.2",
      "upstream": "https://open.bigmodel.cn/api/paas/v4/chat/completions",
      "key_url": "https://open.bigmodel.cn"},
@@ -367,9 +370,16 @@ def apply_codex_config(model: str):
 
     content = tomlkit.dumps(doc)
     
+    # 写入 auth.json，让 Codex 认为已通过 API Key 认证（无需登录 ChatGPT）
+    # 因为真正的 API Key 由适配器管理，这里填占位值即可
+    auth_content = json.dumps({"OPENAI_API_KEY": "sk-codex-helper-local"}, indent=2)
+    
     # 直接写入
     try:
         CONFIG_TOML.write_text(content, encoding="utf-8")
+        # 只有 auth.json 不存在时才写入，避免覆盖用户已有的真实 OpenAI 登录
+        if not AUTH_JSON.exists():
+            AUTH_JSON.write_text(auth_content, encoding="utf-8")
         return
     except OSError as e:
         raise PermissionError(
@@ -390,6 +400,14 @@ def restore_openai_config() -> str:
     # 直接复制
     try:
         shutil.copy2(src, dest)
+        # 如果 auth.json 是我们创建的占位文件，删除它
+        if AUTH_JSON.exists():
+            try:
+                auth_data = json.loads(AUTH_JSON.read_text(encoding="utf-8"))
+                if auth_data.get("OPENAI_API_KEY") == "sk-codex-helper-local":
+                    AUTH_JSON.unlink()
+            except Exception:
+                pass
         return f"已从 {BACKUP_TOML.name} 还原 config.toml。"
     except Exception as e:
         return f"还原失败: {e}\n请手动复制：cp {src} {dest}"

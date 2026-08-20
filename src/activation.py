@@ -73,7 +73,7 @@ def get_device_id() -> str:
             pass
 
     raw = f"{mac_str}|{hw_uuid}"
-    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:32]
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:32]  # 截断为32位，保持向后兼容
 
 
 def get_device_type() -> str:
@@ -153,12 +153,23 @@ def is_activated() -> bool:
 
     import datetime
     try:
-        # Python 3.10 的 fromisoformat 不支持 Z 后缀，需替换为 +00:00
-        exp_str = expires_at.replace("Z", "+00:00") if expires_at.endswith("Z") else expires_at
+        # 解析过期时间，兼容多种格式：
+        #   2026-08-07T12:00:00Z（ISO 8601 UTC）
+        #   2026-08-07T12:00:00+08:00（ISO 8601 带偏移）
+        #   2026-08-07 12:00:00（旧格式，无时区）
+        exp_str = expires_at
+        if exp_str.endswith("Z"):
+            exp_str = exp_str.replace("Z", "+00:00")
         exp = datetime.datetime.fromisoformat(exp_str)
-        # 统一用 UTC 时间比较，避免时区差异
-        now_utc = datetime.datetime.now(datetime.timezone.utc)
-        if exp < now_utc:
+
+        if exp.tzinfo is not None:
+            # 带时区信息，用 UTC 比较
+            now = datetime.datetime.now(datetime.timezone.utc)
+        else:
+            # 无时区信息，按本地时间比较（不转换为 UTC，避免时区错位）
+            now = datetime.datetime.now()
+
+        if exp < now:
             # 已过期，清除本地记录
             clear_activation()
             return False

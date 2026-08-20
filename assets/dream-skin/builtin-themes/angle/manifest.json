@@ -1,0 +1,45 @@
+{
+  "packageVersion": 1,
+  "themeId": "angle",
+  "version": "0.1.0",
+  "skinApiVersion": 1,
+  "minClientVersion": "0.1.0",
+  "platforms": [
+    "windows"
+  ],
+  "capabilities": [
+    "background",
+    "tokens",
+    "safe-css"
+  ],
+  "publisher": {
+    "id": "AprwithU",
+    "displayName": "AprwithU"
+  },
+  "license": "cc by 4.0",
+  "provenance": {
+    "aiGenerated": false,
+    "summary": "最好的天使！！！"
+  },
+  "files": [
+    {
+      "path": "theme.json",
+      "mediaType": "application/json",
+      "bytes": 498,
+      "sha256": "c43790ce897bd60aeb34be125238be12539e5b7ef4624a28ca321ac0c3704924"
+    },
+    {
+      "path": "background.png",
+      "mediaType": "image/png",
+      "bytes": 4537496,
+      "sha256": "e166b7ccfafaf0e5155ee220dcbf819c78c0754a5fd62b18187886fa59909839"
+    },
+    {
+      "path": "theme.css",
+      "mediaType": "text/css",
+      "bytes": 918,
+      "sha256": "ac353b61bb9d7347f136ae7712ad094d61053fed0a18f7e286e1c32c532459bc"
+    }
+  ],
+  "createdAt": "2026-08-04T07:25:28.883Z"
+}
