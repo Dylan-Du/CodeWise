@@ -19,11 +19,11 @@ from pathlib import Path
 
 import core
 import adapter
-import activation
 import theme_manager
 
 HOST = "127.0.0.1"
 PORT = 18668  # 控制 API 端口(Codex助手 在 18667)
+ALLOWED_NEW_PROVIDERS = frozenset({"APINest", "自定义"})
 
 # HTML 文件路径（兼容开发环境和 PyInstaller 打包环境）
 if getattr(sys, 'frozen', False):
@@ -105,8 +105,6 @@ class APIHandler(BaseHTTPRequestHandler):
         # ─── API 路由 ───
         if path == "/api/status":
             self._handle_status()
-        elif path == "/api/activation/status":
-            self._handle_activation_status()
         elif path == "/api/models":
             self._handle_models()
         elif path == "/api/timeline":
@@ -154,8 +152,6 @@ class APIHandler(BaseHTTPRequestHandler):
 
         if path == "/api/toggle":
             self._handle_toggle()
-        elif path == "/api/activation/activate":
-            self._handle_activation_activate()
         elif path == "/api/model/select":
             self._handle_model_select()
         elif path == "/api/config/save":
@@ -166,6 +162,8 @@ class APIHandler(BaseHTTPRequestHandler):
             self._handle_config_edit()
         elif path == "/api/config/delete":
             self._handle_config_delete()
+        elif path == "/api/config/test-url":
+            self._handle_config_test_url()
         elif path == "/api/token/clear":
             self._handle_token_clear()
         elif path == "/api/themes/apply":
@@ -195,14 +193,18 @@ class APIHandler(BaseHTTPRequestHandler):
         model_label = cur_model
         model_name = cur_model
         if cur_model:
-            custom = core.load_custom()
-            found = False
-            for it in custom:
-                if it["model"] == cur_model:
-                    model_label = it["model"]
-                    model_name = it["model"]
-                    found = True
-                    break
+            # 内置 provider 模型：直接识别（不在自定义列表中）
+            if core.model_to_provider(cur_model):
+                found = True
+            else:
+                custom = core.load_custom()
+                found = False
+                for it in custom:
+                    if it["model"] == cur_model:
+                        model_label = it["model"]
+                        model_name = it["model"]
+                        found = True
+                        break
             # 如果当前配置的模型已不在模型列表中，显示未选择
             if not found:
                 cur_model = None
@@ -217,38 +219,6 @@ class APIHandler(BaseHTTPRequestHandler):
             "codex_in_adapter": codex_in_adapter,
             "token": token_totals,
         })
-
-    def _handle_activation_status(self):
-        """检查激活状态。"""
-        activated = activation.is_activated()
-        data = activation.load_activation() if activated else {}
-        device_id = activation.get_device_id() if not activated else ""
-        self.send_json(200, {
-            "activated": activated,
-            "device_id": device_id,
-            "type": data.get("type"),
-            "expires_at": data.get("expires_at"),
-        })
-
-    def _handle_activation_activate(self):
-        """激活码绑定。"""
-        body = self.read_body()
-        code = (body.get("code") or "").strip().upper()
-        if not code:
-            self.send_json(400, {"success": False, "message": "请输入激活码"})
-            return
-        result = activation.bind_code_online(code)
-        if result.get("code") == 0 and result.get("data", {}).get("bound"):
-            data = result.get("data", {})
-            self.send_json(200, {
-                "success": True,
-                "message": "激活成功",
-                "type": data.get("type"),
-                "expires_at": data.get("expires_at"),
-            })
-        else:
-            msg = result.get("message") or result.get("data", {}).get("message") or "激活失败"
-            self.send_json(200, {"success": False, "message": msg})
 
     def _handle_models(self):
         """首页模型列表只展示已配置的自定义模型"""
@@ -283,6 +253,7 @@ class APIHandler(BaseHTTPRequestHandler):
             models.append({
                 "label": it["model"],
                 "model": it["model"],
+                "provider": it.get("label", ""),
                 "route": f"custom:{idx}",
                 "is_custom": True,
             })
@@ -316,11 +287,6 @@ class APIHandler(BaseHTTPRequestHandler):
         body = self.read_body()
         action = body.get("action", "toggle")
         requested_model = body.get("model", "")
-
-        # 激活码校验：未激活不允许启动
-        if action in ("start", "toggle") and not activation.is_activated():
-            self.send_json(403, {"error": "请先激活后再启动服务", "need_activation": True})
-            return
 
         is_active = APIHandler.adapter_active
         if action == "start" or (action == "toggle" and not is_active):
@@ -369,8 +335,6 @@ class APIHandler(BaseHTTPRequestHandler):
             # 先停止 adapter（如果运行中），避免文件被占用
             if APIHandler.adapter_runner:
                 APIHandler.adapter_runner.stop()
-                import time
-                time.sleep(0.3)
             core.write_adapter_json(model, route)
             self.add_timeline("🔄", f"已写入 Codex助手 配置({label})", icon_color="switch")
             if core.backup_config_toml_if_needed():
@@ -400,6 +364,13 @@ class APIHandler(BaseHTTPRequestHandler):
                 on_error=self._on_error,
             )
 
+        # 启动前清理 18667 的外部占用者（守门进程/残留服务），
+        # 避免端口冲突导致"启动失败"
+        try:
+            core.clear_adapter_port()
+        except Exception:
+            pass
+
         if not APIHandler.adapter_runner.start():
             APIHandler._transitioning = False
             APIHandler.adapter_active = False
@@ -425,7 +396,7 @@ class APIHandler(BaseHTTPRequestHandler):
             pass
         # 短暂等待端口释放
         import time as _time
-        for _ in range(10):
+        for _ in range(5):
             if not core.adapter_running():
                 break
             _time.sleep(0.1)
@@ -436,6 +407,13 @@ class APIHandler(BaseHTTPRequestHandler):
             self.add_timeline("ERR", f"还原失败: {e}", icon_color="danger")
             self.send_json(500, {"error": f"还原失败: {e}"})
             return
+        # 启动守门进程占用 18667：历史对话（锁定本地适配器）请求时返回
+        # 明确指引，而不是 "502 Bad Gateway: Unknown error"
+        try:
+            if core.spawn_gatekeeper():
+                self.add_timeline("🚧", "守门服务已接管 18667（历史对话将收到明确提示）", icon_color="info")
+        except Exception:
+            pass
         self.add_timeline("⏹️", "Codex助手 服务已停止，已恢复 OpenAI 原始配置", icon_color="stop")
         self.send_json(200, {"ok": True, "running": False})
 
@@ -445,14 +423,9 @@ class APIHandler(BaseHTTPRequestHandler):
                          {"stats": {"input": input_tokens, "output": output_tokens, "cache": cache_tokens}}, icon_color="token")
 
     def _on_error(self, model: str, error_type: str, message: str, details: str = ""):
-        """记录错误并添加到时间线，同时上报到后台"""
+        """记录错误并添加到本地时间线。"""
         core.error_tracker.record(model, error_type, message, details)
         self.add_timeline("ERR", f"{model} 错误: {message}", {"error_details": details}, icon_color="danger")
-        # 异步上报到后台日志系统
-        try:
-            activation.report_error(error_type, f"[{model}] {message}", details)
-        except Exception:
-            pass
 
     def _handle_model_select(self):
         body = self.read_body()
@@ -520,11 +493,17 @@ class APIHandler(BaseHTTPRequestHandler):
 
         # 检查是否已存在相同模型（同 model + 同 upstream 视为重复，不同 upstream 允许同名模型）
         items = core.load_custom()
+        # 忽略配置文件中的非字典项，避免异常数据导致保存失败
+        items = [item for item in items if isinstance(item, dict)]
         existing_idx = -1
         for idx, it in enumerate(items):
-            if it["model"] == model and it.get("upstream") == url:
+            if it.get("model") == model and it.get("upstream") == url:
                 existing_idx = idx
                 break
+
+        if existing_idx < 0 and provider not in ALLOWED_NEW_PROVIDERS:
+            self.send_json(400, {"error": "新增模型服务商仅支持 APINest 或 自定义"})
+            return
 
         if existing_idx >= 0:
             # 编辑现有模型：保留 provider 作为 label
@@ -552,6 +531,10 @@ class APIHandler(BaseHTTPRequestHandler):
             self.send_json(400, {"error": f"缺少字段: {', '.join(missing)}"})
             return
 
+        if body["label"] not in ALLOWED_NEW_PROVIDERS:
+            self.send_json(400, {"error": "新增模型服务商仅支持 APINest 或 自定义"})
+            return
+
         if not body["upstream"].startswith(("http://", "https://")):
             self.send_json(400, {"error": "Base URL 必须以 http:// 或 https:// 开头"})
             return
@@ -574,13 +557,27 @@ class APIHandler(BaseHTTPRequestHandler):
         if index >= len(items):
             self.send_json(404, {"error": "配置不存在"})
             return
+        if not isinstance(items[index], dict):
+            self.send_json(400, {"error": "配置格式无效"})
+            return
+
+        current = items[index]
+        label = body.get("label", current.get("label", ""))
+        model = body.get("model", current.get("model", ""))
+        upstream = body.get("upstream", current.get("upstream", ""))
+        if not label or not model or not upstream:
+            self.send_json(400, {"error": "配置不能为空"})
+            return
+        if not upstream.startswith(("http://", "https://")):
+            self.send_json(400, {"error": "Base URL 必须以 http:// 或 https:// 开头"})
+            return
 
         items[index] = {
-            "label": body.get("label", items[index]["label"]),
-            "model": body.get("model", items[index]["model"]),
-            "upstream": body.get("upstream", items[index]["upstream"]),
-            "key_url": body.get("key_url", items[index].get("key_url", "")),
-            "api_key": body.get("api_key", items[index].get("api_key", "")),
+            "label": label,
+            "model": model,
+            "upstream": upstream,
+            "key_url": body.get("key_url", current.get("key_url", "")),
+            "api_key": body.get("api_key", current.get("api_key", "")),
         }
         core.save_custom_list(items)
         self.add_timeline("✏️", f"已编辑模型: {items[index]['label']}", icon_color="switch")
@@ -602,6 +599,14 @@ class APIHandler(BaseHTTPRequestHandler):
         core.remove_custom(index)
         self.add_timeline("🗑️", f"已删除模型: {label}", icon_color="stop")
         self.send_json(200, {"ok": True})
+
+    def _handle_config_test_url(self):
+        """测试 Base URL 连通性，返回分类诊断结果。"""
+        body = self.read_body()
+        url = body.get("url", "")
+        result = adapter.probe_url(url, timeout=8)
+        # 不可达时返回 200 + ok=false，方便前端统一处理
+        self.send_json(200, result)
 
     def _handle_token_clear(self):
         core.token_tracker.clear()
@@ -654,10 +659,6 @@ class APIHandler(BaseHTTPRequestHandler):
                 self.add_timeline("🖼️", f"已创建自定义主题: {result['theme_id']}", icon_color="success")
             else:
                 self.add_timeline("ERR", f"创建失败: {result['message']}", icon_color="danger")
-                try:
-                    activation.report_error("theme_create_error", result["message"], "")
-                except:
-                    pass
             
             self.send_json(200, result)
 
@@ -754,11 +755,6 @@ class APIHandler(BaseHTTPRequestHandler):
             self.add_timeline("🎨", f"已应用主题: {theme_id}", icon_color="success")
         else:
             self.add_timeline("ERR", f"主题应用失败: {result['message']}", icon_color="danger")
-            # 上报错误
-            try:
-                activation.report_error("theme_apply_error", result["message"], f"theme_id={theme_id}")
-            except:
-                pass
 
         self.send_json(200, result)
 
@@ -835,10 +831,6 @@ class APIHandler(BaseHTTPRequestHandler):
             self.add_timeline("🔄", "已恢复官方外观", icon_color="info")
         else:
             self.add_timeline("ERR", f"恢复失败: {result['message']}", icon_color="danger")
-            try:
-                activation.report_error("theme_restore_error", result["message"], "")
-            except:
-                pass
 
         self.send_json(200, result)
 
@@ -851,6 +843,10 @@ class APIHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(path.stat().st_size))
+        # 禁用缓存，保证前端页面/资源修改后刷新立即生效
+        self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+        self.send_header("Pragma", "no-cache")
+        self.send_header("Expires", "0")
         self.end_headers()
         with open(path, "rb") as f:
             self.wfile.write(f.read())
@@ -866,7 +862,12 @@ class WebServer:
     def start(self):
         if self.thread and self.thread.is_alive():
             return
-        self.httpd = ReusableThreadingHTTPServer((HOST, PORT), APIHandler)
+        try:
+            self.httpd = ReusableThreadingHTTPServer((HOST, PORT), APIHandler)
+        except OSError as e:
+            msg = f"控制 API 端口 {PORT} 已被占用（{e}）。可能已有另一个 Codex 助手实例正在运行，请先退出后再启动。"
+            print(msg, file=sys.stderr, flush=True)
+            raise RuntimeError(msg) from e
         self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
         self.thread.start()
         print(f"控制 API 已启动: http://{HOST}:{PORT}", flush=True)
@@ -889,6 +890,32 @@ def start_server():
 
 def stop_server():
     web_server.stop()
+
+
+def shutdown_and_restore():
+    """停止适配器并还原 Codex 配置（供窗口关闭/进程退出时调用）。
+
+    之前关闭窗口只杀进程、不还原 config.toml，导致 config.toml 里残留
+    model_provider = "codex_helper_adapter"，官方 Codex 启动时报
+    "Model provider codex_helper_adapter not found"。这里统一做清理。
+
+    还原后启动守门进程占用 18667，让仍指向本地适配器的历史对话收到
+    明确指引（而非 502 Unknown error）。
+    """
+    try:
+        if APIHandler.adapter_runner:
+            APIHandler.adapter_runner.stop()
+            APIHandler.adapter_runner = None
+    except Exception:
+        pass
+    try:
+        core.restore_openai_config()
+    except Exception:
+        pass
+    try:
+        core.spawn_gatekeeper()
+    except Exception:
+        pass
 
 
 if __name__ == "__main__":

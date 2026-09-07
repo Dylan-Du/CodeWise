@@ -4,6 +4,7 @@
 """
 import json
 import os
+import re
 import shutil
 import socket
 import sys
@@ -33,9 +34,19 @@ CODEX_DIR.mkdir(parents=True, exist_ok=True)
 CONFIG_TOML = CODEX_DIR / "config.toml"
 BACKUP_TOML = CODEX_DIR / "config.toml.openai-backup"
 AUTH_JSON = CODEX_DIR / "auth.json"
+MODEL_CATALOG_JSON = CODEX_DIR / "codex-helper-model-catalog.json"
+# Codex 桌面版门控要求模型目录字段完整（含 base_instructions 等），
+# 否则选择器不显示自定义模型。这里从 Codex 内置模板（gpt-5.5）复制完整结构。
+if getattr(sys, "_MEIPASS", None):
+    _RESOURCE_BASE = Path(sys._MEIPASS)
+else:
+    _RESOURCE_BASE = Path(__file__).parent.parent
+MODEL_TEMPLATE_JSON = _RESOURCE_BASE / "assets" / "codex-model-template.json"
 ADAPTER_JSON = CC_SWITCH_DIR / "codex-helper-config.json"
 KEYS_JSON = CC_SWITCH_DIR / "switcher-keys.json"
 CUSTOM_JSON = CC_SWITCH_DIR / "switcher-custom-providers.json"
+# 首次切入 Codex助手 前，用户官方配置的顶层字段快照（model 等）
+OFFICIAL_SNAPSHOT_JSON = CC_SWITCH_DIR / "official-snapshot.json"
 
 ADAPTER_HOST = "127.0.0.1"
 ADAPTER_PORT = 18667
@@ -211,12 +222,23 @@ CODEX_TOML_FIELDS = {
     "model_provider": "codex_helper_adapter",
     "model_reasoning_effort": "high",
     "disable_response_storage": True,
+    # DeepSeek 官方方案的关键字段：强制走 API Key 认证，跳过 ChatGPT 账号登录。
+    # 否则 Codex 桌面版会用官方 ChatGPT 登录态走 api.openai.com，触发官方账号
+    # 「使用上限」限流。参考 https://api-docs.deepseek.com/zh-cn/quick_start/agent_integrations/codex
+    "preferred_auth_method": "apikey",
+    "forced_login_method": "api",
 }
 PROVIDER_BLOCK = {
     "name": "Codex助手 Adapter",
     "base_url": f"http://{ADAPTER_HOST}:{ADAPTER_PORT}/v1",
     "wire_api": "responses",
-    "requires_openai_auth": False,
+    # 关键：不要设置 requires_openai_auth（默认 false）。之前误设为 true 会导致
+    # Codex 桌面版认为"需要 OpenAI 认证"，用官方 token 走 api.openai.com，触发
+    # 官方账号限流。DeepSeek 官方方案：不设 requires_openai_auth，用
+    # experimental_bearer_token 让 Codex 用第三方 token 走 base_url（本地适配器
+    # 18667）；配合顶层 forced_login_method="api" 跳过 ChatGPT 登录。适配器会
+    # 忽略这个占位 token，改用 config 里用户填的真实 key。
+    "experimental_bearer_token": "sk-codex-helper-local",
     "request_max_retries": 2,
     "stream_max_retries": 2,
     "stream_idle_timeout_ms": 300000,
@@ -346,6 +368,43 @@ def backup_config_toml_if_needed() -> bool:
     return False
 
 
+def _write_model_catalog(model: str):
+    """生成 Codex 桌面版识别第三方模型所需的模型目录文件。
+
+    Codex 桌面版的模型选择器门控要求模型目录字段完整（含 base_instructions、
+    model_messages、support_verbosity、context_window 等 36+ 字段），否则不显示
+    自定义模型。因此从 Codex 内置模板（gpt-5.5）复制完整结构，只替换模型标识。
+    """
+    ensure_dirs()
+    try:
+        template = json.loads(MODEL_TEMPLATE_JSON.read_text(encoding="utf-8"))
+    except Exception:
+        # 模板缺失时回退到最小可用结构（仅 CLI 可用，桌面版可能仍不显示）
+        template = {
+            "slug": "__MODEL__",
+            "display_name": "__MODEL__",
+            "description": "__MODEL__",
+            "default_reasoning_level": "high",
+            "supported_reasoning_levels": [
+                {"effort": "none", "description": "Think-Off"},
+                {"effort": "low", "description": "Fast responses with lighter reasoning"},
+                {"effort": "medium", "description": "Balances speed and reasoning depth"},
+                {"effort": "high", "description": "Greater reasoning depth"},
+            ],
+            "shell_type": "shell_command",
+            "visibility": "list",
+            "supported_in_api": True,
+            "priority": 0,
+        }
+    for key in ("slug", "display_name", "description"):
+        if key in template:
+            template[key] = model
+    catalog = {"models": [template]}
+    MODEL_CATALOG_JSON.write_text(
+        json.dumps(catalog, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+
+
 def apply_codex_config(model: str):
     """字段级合并，不冲掉用户其他配置。"""
     ensure_dirs()
@@ -353,6 +412,24 @@ def apply_codex_config(model: str):
         doc = tomlkit.parse(CONFIG_TOML.read_text(encoding="utf-8"))
     else:
         doc = tomlkit.document()
+
+    # 保存"切走前的官方顶层字段"快照（仅首次切入时保存）。还原时恢复，
+    # 避免每次切回官方后 Codex 因缺少 model 字段而反复弹出模型选择。
+    try:
+        if not OFFICIAL_SNAPSHOT_JSON.exists():
+            prev_model = doc.get("model")
+            snap = {}
+            if prev_model and str(prev_model) != model:
+                snap["model"] = str(prev_model)
+            prev_effort = doc.get("model_reasoning_effort")
+            if prev_effort is not None:
+                snap["model_reasoning_effort"] = str(prev_effort)
+            if snap:
+                OFFICIAL_SNAPSHOT_JSON.write_text(
+                    json.dumps(snap, ensure_ascii=False, indent=2), encoding="utf-8"
+                )
+    except Exception:
+        pass
 
     doc["model"] = model
     for k, v in CODEX_TOML_FIELDS.items():
@@ -368,17 +445,24 @@ def apply_codex_config(model: str):
         block[k] = v
     block["name"] = model
 
+    # 生成模型目录文件，并把 model_catalog_json 写入顶层和 provider 块
+    # （Codex 桌面版靠它才能在选择器里显示第三方模型，见 openai/codex#32349）
+    _write_model_catalog(model)
+    catalog_path = str(MODEL_CATALOG_JSON)
+    doc["model_catalog_json"] = catalog_path
+    block["model_catalog_json"] = catalog_path
+
     content = tomlkit.dumps(doc)
-    
-    # 写入 auth.json，让 Codex 认为已通过 API Key 认证（无需登录 ChatGPT）
-    # 因为真正的 API Key 由适配器管理，这里填占位值即可
-    auth_content = json.dumps({"OPENAI_API_KEY": "sk-codex-helper-local"}, indent=2)
-    
+
     # 直接写入
     try:
         CONFIG_TOML.write_text(content, encoding="utf-8")
-        # 只有 auth.json 不存在时才写入，避免覆盖用户已有的真实 OpenAI 登录
+        # auth.json：仅当完全不存在时才写入占位 API Key（兼容从未登录的场景）。
+        # 现在走 DeepSeek 官方方案：config.toml 里设 forced_login_method="api" +
+        # preferred_auth_method="apikey"，强制用 provider 块的 experimental_bearer_token
+        # 认证，跳过 ChatGPT 账号登录。auth.json 的官方登录态已无影响，无需覆盖。
         if not AUTH_JSON.exists():
+            auth_content = json.dumps({"OPENAI_API_KEY": "sk-codex-helper-local"}, indent=2)
             AUTH_JSON.write_text(auth_content, encoding="utf-8")
         return
     except OSError as e:
@@ -392,25 +476,338 @@ def apply_codex_config(model: str):
 
 
 def restore_openai_config() -> str:
-    if not BACKUP_TOML.exists():
-        return "未发现备份文件，跳过还原（你的 Codex 配置本来就没被改过）。"
-    src = str(BACKUP_TOML)
-    dest = str(CONFIG_TOML)
-    
-    # 直接复制
+    """切回 OpenAI 官方：字段级清理 Codex助手 写入的顶层字段。
+
+    不再整体覆盖旧备份（备份可能早已过时，会覆盖用户或其它工具后来新增的
+    plugins、projects、marketplaces 等配置）。改为从当前 config.toml 里精确
+    删除 Codex助手 写入的顶层字段。
+
+    关键：必须保留 [model_providers.codex_helper_adapter] 段！Codex 桌面版把
+    每个对话串的 model_provider 持久化在本地数据库（state sqlite）里，历史
+    对话串恢复时会按这个 provider id 去 config.toml 找对应段。如果切回官方时
+    把这个段删掉，那些在 Codex助手 模式下创建的对话串就会报
+    "Model provider codex_helper_adapter not found"，无法重新打开。
+    参考 openai/codex#22484 与 cc-switch#5398。
+    """
+    if not CONFIG_TOML.exists():
+        return "config.toml 不存在，无需还原。"
+
     try:
-        shutil.copy2(src, dest)
-        # 如果 auth.json 是我们创建的占位文件，删除它
-        if AUTH_JSON.exists():
-            try:
-                auth_data = json.loads(AUTH_JSON.read_text(encoding="utf-8"))
-                if auth_data.get("OPENAI_API_KEY") == "sk-codex-helper-local":
-                    AUTH_JSON.unlink()
-            except Exception:
-                pass
-        return f"已从 {BACKUP_TOML.name} 还原 config.toml。"
+        doc = tomlkit.parse(CONFIG_TOML.read_text(encoding="utf-8"))
     except Exception as e:
-        return f"还原失败: {e}\n请手动复制：cp {src} {dest}"
+        # 解析失败时回退到整体复制备份（尽力而为）
+        if BACKUP_TOML.exists():
+            shutil.copy2(str(BACKUP_TOML), str(CONFIG_TOML))
+            return f"config.toml 解析失败，已从备份整体还原（{e}）。"
+        return f"config.toml 解析失败且无备份: {e}"
+
+    # 1. 删除顶层 Codex助手 写入的字段。删除 model / model_provider 后，
+    #    新对话会回退到官方默认 provider；但保留 provider 段定义，让历史
+    #    对话串仍能恢复（见函数 docstring）。
+    for key in (
+        "model",
+        "model_provider",
+        "model_catalog_json",
+        "preferred_auth_method",
+        "forced_login_method",
+        "disable_response_storage",
+        "model_reasoning_effort",
+    ):
+        if key in doc:
+            del doc[key]
+
+    # 1.5 恢复"切走前的官方顶层字段"快照（model 等），避免 Codex 每次新
+    #     对话都因缺少 model 字段而弹出模型选择器。
+    restored_model = False
+    try:
+        if OFFICIAL_SNAPSHOT_JSON.exists():
+            snap = json.loads(OFFICIAL_SNAPSHOT_JSON.read_text(encoding="utf-8"))
+            if snap.get("model"):
+                doc["model"] = str(snap["model"])
+                restored_model = True
+            if snap.get("model_reasoning_effort"):
+                doc["model_reasoning_effort"] = str(snap["model_reasoning_effort"])
+    except Exception:
+        pass
+
+    # 2. 注意：不删除 [model_providers.codex_helper_adapter] 段。
+    #    保留它作为历史对话串的 provider 别名，避免恢复对话串时报
+    #    "Model provider codex_helper_adapter not found"。
+
+    # 3. 写回
+    try:
+        CONFIG_TOML.write_text(tomlkit.dumps(doc), encoding="utf-8")
+    except OSError as e:
+        return f"还原失败: {e}"
+
+    # 4. 如果 auth.json 是我们创建的占位文件，删除它
+    if AUTH_JSON.exists():
+        try:
+            auth_data = json.loads(AUTH_JSON.read_text(encoding="utf-8"))
+            if auth_data.get("OPENAI_API_KEY") == "sk-codex-helper-local":
+                AUTH_JSON.unlink()
+        except Exception:
+            pass
+
+    # 5. 把历史对话串从 codex_helper_adapter 迁移到 openai：关闭 Codex助手
+    #    后继续历史对话才不会再打到 127.0.0.1:18667（502/503 根因）。
+    migrate_msg = migrate_threads_to_openai()
+
+    return ("已从 config.toml 移除 Codex助手 顶层配置，恢复 OpenAI 官方。"
+            + ("已恢复切走前的官方模型设置。" if restored_model else "")
+            + migrate_msg)
+
+
+# ---------- 历史对话迁移（切官方时把第三方对话串迁移到官方） ----------
+
+THREAD_PROVIDER_ADAPTER = "codex_helper_adapter"
+THREAD_PROVIDER_OPENAI = "openai"
+THREAD_PROVIDER_OPENAI_HTTP = "openai_http"
+# Codex 桌面版官方默认模型（threads 表里官方对话的常见取值）
+OFFICIAL_DEFAULT_MODEL = "gpt-5.6-luna"
+
+# 第三方 provider id 集合（这些对话串在关闭 Codex助手 后都无法续聊，
+# 切官方时必须全部迁移到 openai）。codex_helper_adapter 是主适配器；
+# stepfun_codex_adapter / custom 是用户添加的自定义适配器/自定义 provider。
+THIRD_PARTY_PROVIDERS = (
+    THREAD_PROVIDER_ADAPTER,
+    "stepfun_codex_adapter",
+    "custom",
+)
+
+# Codex助手 本地为 Response item 生成的伪造 id 格式：rs_/msg_/fc_ + 32 位 hex
+# （见 adapter.output_from_chat_message）。官方后端未持久化这类 id，切官方续聊
+# 时按 id 引用会 404，迁移时须删除。官方格式 id（rs_resp_<uuid>、resp_<uuid>_msg、
+# fc_call_XX_<base62>）不匹配本正则，会原样保留。
+FAKE_ITEM_ID_RE = re.compile(r"^(rs|msg|fc)_[0-9a-f]{32}$")
+
+
+def _strip_responses_item_content(obj):
+    """递归清理 Responses item 中官方 API 不允许的 content 数组。
+
+    官方 Responses API 对 reasoning / function_call 输入 item 校验 content 长度
+    最大为 0（只允许空数组或省略该字段）。旧版 Codex助手 生成的 reasoning item
+    带 content: [{type: "reasoning_text", ...}]，Codex 存盘后切回官方续聊时原样
+    重放为 input，官方校验报「Invalid 'input[n].content': array too long.
+    Expected an array with maximum length 0, but got an array with length 1
+    instead.」。这里递归清理所有 type 为 reasoning / function_call 的 item。
+
+    返回是否发生了修改。幂等：已清理的条目返回 False。
+    """
+    if isinstance(obj, dict):
+        modified = False
+        typ = obj.get("type")
+        if typ in ("reasoning", "function_call"):
+            c = obj.get("content")
+            if isinstance(c, list) and len(c) > 0:
+                # 删除字段而不是置空数组：官方接受「缺省或空数组」两种形态，
+                # 删除后条目更接近官方原生格式；输入侧解析有 summary 兜底。
+                obj.pop("content", None)
+                modified = True
+        for v in obj.values():
+            if _strip_responses_item_content(v):
+                modified = True
+        return modified
+    if isinstance(obj, list):
+        modified = False
+        for v in obj:
+            if _strip_responses_item_content(v):
+                modified = True
+        return modified
+    return False
+
+
+def _strip_fake_item_ids(obj):
+    """递归移除 Response item 上本地伪造的 id 字段。
+
+    背景（重要）：Codex助手 在转发第三方模型响应时，为 reasoning / message /
+    function_call item 生成本地 id：rs_<hex32> / msg_<hex32> / fc_<hex32>
+    （见 adapter.output_from_chat_message）。这些 id 从未在官方后端持久化
+    （官方 Responses API 在 store=false 时不会把 input item 落库）。切回官方
+    续聊时，Codex 把这些带 id 的 item 原样重放为 input，官方 API 按「引用已
+    存储 item」解析 id，找不到就报：
+      unexpected status 404 Not Found: Item with id 'rs_08ee...' not found.
+      Items are not persisted when store is set to false. Try again with
+      store set to true, or remove this item from your input.
+
+    修复：删除这些伪造 id，让 item 变成纯内联输入（官方 API 对内联 item 直接
+    用内容、按需分配新 id，不再按 id 查存储，因此不会再 404）。
+
+    只删除匹配伪造格式（^(rs|msg|fc)_[0-9a-f]{32}$）的 id：
+      - 官方格式 id（rs_resp_<uuid> / resp_<uuid>_msg / fc_call_XX_<base62>）
+        是官方后端见过/可解析的 id，保留不动；
+      - call_id / tool_call_id 是 function_call 与 function_call_output 的
+        配对键（官方按 call_id 关联工具调用，不按 id 查存储），一律保留。
+
+    返回是否发生了修改。幂等：已清理的条目返回 False。
+    """
+    if isinstance(obj, dict):
+        modified = False
+        i = obj.get("id")
+        if isinstance(i, str) and FAKE_ITEM_ID_RE.match(i):
+            obj.pop("id", None)
+            modified = True
+        for v in obj.values():
+            if _strip_fake_item_ids(v):
+                modified = True
+        return modified
+    if isinstance(obj, list):
+        modified = False
+        for v in obj:
+            if _strip_fake_item_ids(v):
+                modified = True
+        return modified
+    return False
+
+
+def _rewrite_rollout_jsonl(path: Path) -> int:
+    """改写单个 rollout jsonl：把 session_meta 的 model_provider 改为 openai，
+    把 turn_context 里非官方模型名改为官方默认模型，清理 reasoning /
+    function_call item 中官方 API 不允许的 content 数组，并删除本地伪造的
+    item id（rs_/msg_/fc_ + hex32，切官方续聊按 id 引用会 404）。
+
+    返回改写的行数（0 表示没有需要改写的行）。文件先写临时文件再原子替换，
+    保持 UTF-8 编码与 compact JSON 格式（与 Codex 原始格式一致）。
+    """
+    changed = 0
+    lines_out = []
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.rstrip("\n")
+            if not line.strip():
+                lines_out.append(line)
+                continue
+            try:
+                obj = json.loads(line)
+            except Exception:
+                # 解析失败的行原样保留，不破坏文件
+                lines_out.append(line)
+                continue
+            t = obj.get("type")
+            modified = False
+            if t == "session_meta":
+                payload = obj.get("payload")
+                if isinstance(payload, dict) and payload.get("model_provider") in THIRD_PARTY_PROVIDERS:
+                    payload["model_provider"] = THREAD_PROVIDER_OPENAI
+                    modified = True
+            elif t == "turn_context":
+                payload = obj.get("payload")
+                if isinstance(payload, dict):
+                    m = payload.get("model")
+                    if isinstance(m, str) and not m.startswith("gpt-"):
+                        payload["model"] = OFFICIAL_DEFAULT_MODEL
+                        modified = True
+            # 全行递归清理 reasoning/function_call 的 content（任何事件类型都处理，
+            # 幂等）。官方 API 拒绝非空 content 数组，这是切官方续聊 400 的根因。
+            if _strip_responses_item_content(obj):
+                modified = True
+            # 全行递归删除本地伪造 item id（rs_/msg_/fc_ + hex32）。切官方续聊时
+            # 官方 API 按 id 引用未持久化 item 会 404，删除后 item 变纯内联。
+            if _strip_fake_item_ids(obj):
+                modified = True
+            if modified:
+                lines_out.append(json.dumps(obj, ensure_ascii=False, separators=(",", ":")))
+                changed += 1
+            else:
+                lines_out.append(line)
+    if changed:
+        tmp = path.with_suffix(path.suffix + ".tmp")
+        tmp.write_text("\n".join(lines_out) + "\n", encoding="utf-8")
+        tmp.replace(path)
+    return changed
+
+
+def migrate_threads_to_openai() -> str:
+    """切回官方时，把历史对话串从第三方 provider 迁移到 openai。
+
+    背景（重要）：Codex 桌面版把每个对话串的 model_provider 权威地持久化在
+    两处：
+      1) ~/.codex/state_*.sqlite 的 threads 表（model_provider / model 字段）；
+      2) ~/.codex/sessions/.../rollout-*.jsonl 的 session_meta / turn_context
+         事件（恢复对话时桌面版以 jsonl 为准，并会把 provider 回写到 sqlite）。
+    只改 sqlite 会被桌面版按 jsonl 回写覆盖（实测确认）。因此必须同时改写
+    jsonl，才能让关闭 Codex助手 后"继续上个任务"真正走官方、不再 502/503。
+
+    额外兜底（重要）：桌面版恢复对话以 jsonl 为权威，而 sqlite 可能因历史
+    迁移已标记为 openai、导致按 sqlite 扫描不到该对话串。因此除 sqlite 驱动
+    的迁移外，还会独立扫描全部 rollout-*.jsonl，凡最后一个 session_meta 的
+    model_provider 仍为第三方就一律改写，彻底覆盖"sqlite 已 openai 但 jsonl
+    仍是第三方"的漏网场景（曾导致退出 Codex助手 后继续上个任务仍 503）。
+
+    失败不影响切官方主流程，只返回描述信息供 UI 展示。
+    """
+    import sqlite3
+
+    migrated = 0
+    jsonl_fixed = 0
+    errors = []
+
+    # 遍历所有 state_*.sqlite（文件名带版本号，如 state_5.sqlite）
+    for db_path in sorted(CODEX_DIR.glob("state_*.sqlite")):
+        try:
+            conn = sqlite3.connect(str(db_path), timeout=5)
+            conn.execute("PRAGMA busy_timeout = 5000")
+            try:
+                rows = conn.execute(
+                    "SELECT id, model, rollout_path FROM threads "
+                    "WHERE model_provider IN (?, ?, ?)",
+                    THIRD_PARTY_PROVIDERS,
+                ).fetchall()
+                for tid, model, rollout_path in rows:
+                    new_model = model if (model or "").startswith("gpt-") else OFFICIAL_DEFAULT_MODEL
+                    # 1) 改写 rollout jsonl（权威来源，防止桌面版回写覆盖）
+                    if rollout_path:
+                        rp = Path(rollout_path)
+                        if rp.exists():
+                            try:
+                                jsonl_fixed += _rewrite_rollout_jsonl(rp)
+                            except Exception as e:
+                                errors.append(f"{rp.name}: {e}")
+                        # 文件不存在则跳过 jsonl 改写，sqlite 仍照常更新
+                    # 2) 更新 sqlite threads 表
+                    conn.execute(
+                        "UPDATE threads SET model_provider = ?, model = ? WHERE id = ?",
+                        (THREAD_PROVIDER_OPENAI, new_model, tid),
+                    )
+                    migrated += 1
+                conn.commit()
+            except sqlite3.OperationalError as e:
+                # 桌面版可能正持有写锁；记录但不让切官方失败
+                errors.append(f"{db_path.name}: {e}")
+            finally:
+                conn.close()
+        except Exception as e:
+            errors.append(f"{db_path.name}: {e}")
+
+    # 独立扫描全部 rollout jsonl（不依赖 sqlite 状态）。
+    # 场景：08-22 批次对话的 sqlite 行早已标记 openai，但 jsonl 仍是第三方，
+    # 旧逻辑按 sqlite 扫描不到它们 → 继续上个任务仍走 18667 → 503。
+    # _rewrite_rollout_jsonl 幂等：已是 openai 的文件返回 0，可安全全量调用。
+    jsonl_scan_files = 0
+    jsonl_scan_lines = 0
+    for rp in sorted(CODEX_DIR.glob("sessions/**/rollout-*.jsonl")):
+        try:
+            n = _rewrite_rollout_jsonl(rp)
+            if n:
+                jsonl_scan_lines += n
+                jsonl_scan_files += 1
+        except Exception as e:
+            errors.append(f"{rp.name}: {e}")
+
+    parts = []
+    if migrated:
+        parts.append(f"已将 {migrated} 个历史对话迁移到官方模型（继续对话不再报错）")
+    if jsonl_fixed:
+        parts.append(f"已改写 {jsonl_fixed} 条会话记录，桌面版恢复对话时将直接走官方")
+    if jsonl_scan_files:
+        parts.append(
+            f"已额外修复 {jsonl_scan_files} 个旧会话记录文件（{jsonl_scan_lines} 行），"
+            "这些记录此前在数据库中已标记官方但文件中仍为第三方，现一并修正"
+        )
+    if errors:
+        parts.append("部分历史对话迁移失败: " + "; ".join(errors))
+    return "。" + "。".join(parts) if parts else ""
+
 
 
 # ---------- Token 用量追踪 ----------
@@ -609,7 +1006,7 @@ class AdapterRunner:
             daemon=True,
         )
         self.thread.start()
-        for _ in range(20):
+        for _ in range(8):
             if adapter_running():
                 self.log(f"Codex助手 已启动：http://{adapter.HOST}:{adapter.PORT}")
                 return True
@@ -630,8 +1027,165 @@ class AdapterRunner:
             self.thread.join(timeout=2)
             self.thread = None
         # 等待端口完全释放
-        for _ in range(20):
+        for _ in range(5):
             if not adapter_running():
                 break
             time.sleep(0.1)
         self.log("Codex助手 已停止。")
+
+
+# ---------- 守门服务（gatekeeper） ----------
+
+GATEKEEPER_PID = CC_SWITCH_DIR / "gatekeeper.pid"
+
+GATEKEEPER_MESSAGE = (
+    "Codex助手 已停止：此对话使用第三方模型创建，无法直接切到官方。"
+    "请重新打开 Codex助手 继续使用第三方模型，或在 Codex 中新建对话使用官方模型。"
+)
+
+
+class _GatekeeperHandler(adapter.Handler):
+    """占用 18667 的守门 Handler：返回明确指引，替代连接拒绝/502 Unknown error。
+
+    Codex 桌面版把每个对话串的 model_provider 持久化在本地数据库，历史对话
+    恢复时会固定请求 http://127.0.0.1:18667。Codex助手 停止后若端口无服务，
+    Codex 只能报 "502 Bad Gateway: Unknown error"。守门进程返回标准 OpenAI
+    错误格式（error.message），让 Codex 界面直接显示中文指引。
+
+    自愈：收到模型请求说明仍有历史对话指向本端口（用户继续第三方会话时
+    Codex 界面会显示"重新连接"）。首次收到请求时自动把所有第三方 provider
+    的对话迁移到官方（幂等、可复用 migrate_threads_to_openai），这样用户
+    关闭该对话重新打开后即走官方，不再持续报错。进程内只迁移一次，避免
+    每次重试都全量扫描。
+    """
+
+    on_usage = None
+    on_error = None
+    _migrated_once = False
+
+    def do_GET(self):
+        self.send_json(503, {"error": {"message": GATEKEEPER_MESSAGE, "type": "server_error"}})
+
+    def do_POST(self):
+        try:
+            length = int(self.headers.get("content-length", "0"))
+            if length:
+                self.rfile.read(length)
+        except Exception:
+            pass
+        message = GATEKEEPER_MESSAGE
+        if not _GatekeeperHandler._migrated_once:
+            _GatekeeperHandler._migrated_once = True
+            try:
+                migrate_threads_to_openai()
+                message = (
+                    GATEKEEPER_MESSAGE
+                    + " 已自动将此对话迁移到官方模型：请关闭该对话后重新打开，即可继续使用官方模型。"
+                )
+            except Exception:
+                pass  # 迁移失败不影响返回指引
+        self.send_json(503, {"error": {"message": message, "type": "server_error"}})
+
+
+def run_gatekeeper():
+    """独立守门进程入口：占用 18667 直到被清理。"""
+    try:
+        httpd = ReusableHTTPServer((ADAPTER_HOST, ADAPTER_PORT), _GatekeeperHandler)
+    except OSError:
+        return  # 端口被占（适配器还在或别人占用），直接退出
+    try:
+        GATEKEEPER_PID.write_text(str(os.getpid()), encoding="utf-8")
+    except Exception:
+        pass
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        try:
+            if GATEKEEPER_PID.exists() and GATEKEEPER_PID.read_text().strip() == str(os.getpid()):
+                GATEKEEPER_PID.unlink()
+        except Exception:
+            pass
+
+
+def spawn_gatekeeper() -> bool:
+    """启动守门子进程（detached）。Codex助手 停止后由它接管 18667。"""
+    try:
+        stop_gatekeeper()
+    except Exception:
+        pass
+    # 等端口释放
+    for _ in range(10):
+        if not adapter_running():
+            break
+        time.sleep(0.1)
+    if adapter_running():
+        return False  # 仍有服务在 18667，无需守门
+    import subprocess
+    if getattr(sys, "frozen", False):
+        cmd = [sys.executable, "--gatekeeper"]
+    else:
+        cmd = [sys.executable, str(Path(__file__).resolve()), "--gatekeeper"]
+    try:
+        subprocess.Popen(
+            cmd,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            stdin=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+    except Exception:
+        return False
+    # 等守门进程就绪
+    for _ in range(20):
+        time.sleep(0.1)
+        try:
+            if GATEKEEPER_PID.exists():
+                return True
+        except Exception:
+            pass
+    return False
+
+
+def stop_gatekeeper():
+    """停止守门进程（按 pid 文件）。"""
+    try:
+        if GATEKEEPER_PID.exists():
+            pid = int(GATEKEEPER_PID.read_text().strip())
+            if pid != os.getpid():
+                os.kill(pid, 15)
+            GATEKEEPER_PID.unlink()
+    except Exception:
+        pass
+
+
+def clear_adapter_port():
+    """清理 18667 端口的所有外部占用者（守门孤儿进程/残留服务），供适配器启动前调用。"""
+    stop_gatekeeper()
+    import subprocess
+    try:
+        out = subprocess.run(
+            ["lsof", "-tiTCP:18667", "-sTCP:LISTEN"],
+            capture_output=True, text=True, timeout=5,
+        ).stdout
+        for pid_s in out.split():
+            try:
+                pid = int(pid_s)
+                if pid != os.getpid():
+                    os.kill(pid, 15)
+            except Exception:
+                pass
+    except Exception:
+        pass
+    for _ in range(10):
+        if not adapter_running():
+            return True
+        time.sleep(0.1)
+    return not adapter_running()
+
+
+if __name__ == "__main__":
+    # 源码模式独立入口：python core.py --gatekeeper
+    if "--gatekeeper" in sys.argv:
+        run_gatekeeper()

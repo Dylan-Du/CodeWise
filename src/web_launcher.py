@@ -15,6 +15,7 @@ from pathlib import Path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import web_api
+import core
 
 
 class JsApi:
@@ -158,8 +159,23 @@ def wait_for_server(host: str, port: int, timeout: float = 10.0) -> bool:
 
 
 def main():
-    # 启动控制 API 服务器
-    web_api.start_server()
+    # 守门独立进程模式：Codex助手 停止后占用 18667，给历史对话返回明确指引
+    if "--gatekeeper" in sys.argv:
+        core.run_gatekeeper()
+        return
+
+    # 启动控制 API 服务器（端口被占用时给出明确提示，避免直接崩溃闪退）
+    try:
+        web_api.start_server()
+    except Exception as e:
+        print(f"启动失败: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    # 主进程启动前清理守门进程对 18667 的占用
+    try:
+        core.stop_gatekeeper()
+    except Exception:
+        pass
 
     # 等待就绪
     if not wait_for_server(web_api.HOST, web_api.PORT):
@@ -203,7 +219,28 @@ def main():
         except Exception:
             pass
 
-    webview.start(debug=False)
+    # 关闭窗口时停止适配器并还原 config.toml，避免残留
+    # model_provider = "codex_helper_adapter" 导致官方 Codex 报
+    # "Model provider codex_helper_adapter not found"。
+    def _on_closed():
+        try:
+            web_api.shutdown_and_restore()
+        except Exception:
+            pass
+    try:
+        window.events.closed += _on_closed
+    except Exception:
+        pass
+
+    try:
+        webview.start(debug=False)
+    finally:
+        # 兜底：无论窗口以何种方式退出（含 close 事件未触发的情况），
+        # 都执行一次停止 + 还原，确保 config.toml 不残留第三方 provider 引用。
+        try:
+            web_api.shutdown_and_restore()
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":

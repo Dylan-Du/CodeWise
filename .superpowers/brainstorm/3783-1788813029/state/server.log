@@ -1,0 +1,4 @@
+{"type":"server-started","port":54891,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:54891","screen_dir":"/Users/dongqing/Downloads/Codex助手/.superpowers/brainstorm/3783-1788813029/content","state_dir":"/Users/dongqing/Downloads/Codex助手/.superpowers/brainstorm/3783-1788813029/state"}
+{"type":"screen-added","file":"/Users/dongqing/Downloads/Codex助手/.superpowers/brainstorm/3783-1788813029/content/ui-directions.html"}
+{"source":"user-event","type":"click","text":"B · 极简工作台\n    \n      Codex助手已就绪\n      \n        概览模型主题设置\n        \n          当前模型APINest / deepseek-v4\n          服务已启动配置模型","choice":"paper","id":null,"timestamp":1788813137176}
+{"type":"server-stopped","reason":"idle timeout"}

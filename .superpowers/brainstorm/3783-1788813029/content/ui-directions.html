@@ -1,0 +1,38 @@
+<h2>客户端 UI 方向</h2>
+<p class="subtitle">请选择更喜欢的视觉方向，后续我会按选定方向改造现有单文件界面</p>
+
+<div class="split">
+  <div class="mockup" data-choice="aurora" onclick="toggleSelect(this)">
+    <div class="mockup-header">A · 极光玻璃</div>
+    <div class="mockup-body" style="background:linear-gradient(145deg,#0d1424,#182b42);color:#eef6ff;padding:18px;min-height:300px;font-family:system-ui">
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ffffff1c;padding-bottom:14px"><strong style="font-size:18px">Codex助手</strong><span style="font-size:11px;color:#8fe5c4">● 本地运行</span></div>
+      <div style="display:grid;grid-template-columns:86px 1fr;gap:16px;margin-top:16px">
+        <div style="color:#9db0c8;font-size:12px;line-height:2.5">概览<br>模型<br>主题<br>设置</div>
+        <div>
+          <div style="font-size:12px;color:#9db0c8">当前模型</div><div style="font-size:25px;font-weight:700;margin:5px 0 18px">APINest / deepseek-v4</div>
+          <div style="display:flex;gap:8px"><span style="background:#58d6ae22;border:1px solid #58d6ae55;border-radius:8px;padding:8px 12px;font-size:12px">服务已启动</span><span style="background:#ffffff12;border-radius:8px;padding:8px 12px;font-size:12px">配置模型</span></div>
+          <div style="height:72px;margin-top:24px;border-radius:12px;background:linear-gradient(90deg,#55d6ae22,#7d8cff22);border:1px solid #ffffff12"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="mockup" data-choice="paper" onclick="toggleSelect(this)">
+    <div class="mockup-header">B · 极简工作台</div>
+    <div class="mockup-body" style="background:#f5f6f8;color:#18202b;padding:18px;min-height:300px;font-family:system-ui">
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #dfe3e8;padding-bottom:14px"><strong style="font-size:18px">Codex助手</strong><span style="font-size:11px;color:#26865b">已就绪</span></div>
+      <div style="display:grid;grid-template-columns:86px 1fr;gap:16px;margin-top:16px">
+        <div style="color:#687386;font-size:12px;line-height:2.5">概览<br>模型<br>主题<br>设置</div>
+        <div>
+          <div style="font-size:12px;color:#687386">当前模型</div><div style="font-size:25px;font-weight:700;margin:5px 0 18px">APINest / deepseek-v4</div>
+          <div style="display:flex;gap:8px"><span style="background:#e3f5eb;border:1px solid #a9ddbd;border-radius:8px;padding:8px 12px;font-size:12px;color:#26754c">服务已启动</span><span style="background:#e7ebf0;border-radius:8px;padding:8px 12px;font-size:12px">配置模型</span></div>
+          <div style="height:72px;margin-top:24px;border-radius:12px;background:#e9edf2;border:1px solid #dfe3e8"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>两种方向都会包含</h3>
+  <ul><li>移除激活弹窗后，首页直接进入本地工作台</li><li>模型配置表单只保留 APINest 和自定义</li><li>更清晰的服务状态、当前模型和启动操作</li><li>保留主题、统计和设置功能</li></ul>
+</div>

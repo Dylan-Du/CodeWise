@@ -877,8 +877,11 @@ class ModelEditDialog(ctk.CTkToplevel):
         self.colors = parent.colors
         self.configure(fg_color=self.colors["bg"])
 
+        # 新增模型仅提供 APINest 和自定义两个入口；编辑历史条目时保留原 provider。
+        allowed_labels = {"APINest", "自定义"}
+        presets = [p for p in core.PRESETS if p["label"] in allowed_labels]
         self.preset_labels = [f"{p['label']} · {p['model']}" if p['model'] else p['label']
-                              for p in core.PRESETS]
+                              for p in presets]
         self.template_var = ctk.StringVar(value=self.preset_labels[0])
         self.name_var = ctk.StringVar(value=item.get("label", "") if item else "")
         self.model_var = ctk.StringVar(value=item.get("model", "") if item else "")
@@ -963,6 +966,9 @@ class ModelEditDialog(ctk.CTkToplevel):
         missing = [n for n, v in (("显示名", name), ("模型 ID", model),
                                   ("Base URL", upstream), ("API Key", api_key))
                    if not v]
+        if self.index < 0 and name not in {"APINest", "自定义"}:
+            messagebox.showwarning("服务商限制", "新增模型服务商仅支持 APINest 或 自定义")
+            return
         if missing:
             messagebox.showwarning("缺字段", "以下字段必填:\n  " + "\n  ".join(missing))
             return

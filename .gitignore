@@ -51,11 +51,5 @@ CodexHelper.app/
 # ˽���ĵ���������
 docs/AI_PLAYBOOK.md
 
-# ===== 管理后台 =====
-# 本地 SQLite 数据（含激活码，服务器用 MySQL，不进 git）
-admin/data/
-admin/node_modules/
-admin/.next/
-
 # ===== Trae 工具临时分享包 =====
 .trae-html-share-packages/

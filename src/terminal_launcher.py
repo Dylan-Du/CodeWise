@@ -254,13 +254,10 @@ class CodexTUI:
 
     def add_model(self):
         """添加模型"""
-        # 简单版本,使用硬编码的服务商
+        # 新增模型只提供 APINest 和自定义两个服务商入口。
         providers = [
-            ("DeepSeek", "https://api.deepseek.com/chat/completions", "deepseek-v4-pro"),
-            ("DeepSeek", "https://api.deepseek.com/chat/completions", "deepseek-v4-flash"),
-            ("Claude", "https://api.anthropic.com/v1/messages", "claude-opus-5"),
-            ("Kimi CN", "https://api.moonshot.cn/v1/chat/completions", "kimi-k3"),
-            ("LongCat", "https://api.longcat.chat/openai/v1/chat/completions", "LongCat-2.0"),
+            ("APINest", "https://xn--xhqu89o.cc/v1/chat/completions", ""),
+            ("自定义", "", ""),
         ]
 
         height, width = self.stdscr.getmaxyx()
@@ -274,7 +271,7 @@ class CodexTUI:
         for i, (prov, url, model) in enumerate(providers):
             self.stdscr.addstr(prompt_y + 1 + i, 4, f"{i+1}. {prov} - {model}")
 
-        self.stdscr.addstr(prompt_y + len(providers) + 2, 2, "输入编号 (1-5): ", curses.color_pair(4))
+        self.stdscr.addstr(prompt_y + len(providers) + 2, 2, "输入编号 (1-2): ", curses.color_pair(4))
         self.stdscr.refresh()
 
         # 获取输入
@@ -284,10 +281,19 @@ class CodexTUI:
             idx = int(choice.decode()) - 1
             if 0 <= idx < len(providers):
                 prov, url, model = providers[idx]
-                # 输入 API Key
-                self.stdscr.addstr(prompt_y + len(providers) + 3, 2, "API Key: ", curses.color_pair(4))
+                row = prompt_y + len(providers) + 3
+                self.stdscr.addstr(row, 2, "模型 ID: ", curses.color_pair(4))
                 self.stdscr.refresh()
-                api_key = self.stdscr.getstr(prompt_y + len(providers) + 3, 12, 50).decode()
+                model = self.stdscr.getstr(row, 12, 50).decode().strip()
+                row += 1
+                if prov == "自定义":
+                    self.stdscr.addstr(row, 2, "Base URL: ", curses.color_pair(4))
+                    self.stdscr.refresh()
+                    url = self.stdscr.getstr(row, 12, 100).decode().strip()
+                    row += 1
+                self.stdscr.addstr(row, 2, "API Key: ", curses.color_pair(4))
+                self.stdscr.refresh()
+                api_key = self.stdscr.getstr(row, 12, 100).decode().strip()
 
                 # 保存
                 resp = api_post("/api/config/save", {

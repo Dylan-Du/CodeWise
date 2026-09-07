@@ -1131,6 +1131,21 @@ body > * { position: relative; z-index: 1; }
   opacity: 0.88;
 }
 
+.toggle-switch.busy {
+  opacity: 0.6;
+  cursor: progress;
+  animation: toggle-busy-pulse 1.1s ease-in-out infinite;
+}
+
+.toggle-switch:disabled {
+  cursor: progress;
+}
+
+@keyframes toggle-busy-pulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
 .status-hero.stopped .toggle-switch {
   background: color-mix(in srgb, var(--seed-fg) 12%, transparent);
 }
@@ -1259,87 +1274,50 @@ body > * { position: relative; z-index: 1; }
   flex-shrink: 0;
 }
 
-.pill-bar {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  padding-bottom: 2px;
+/* Model select dropdown (replaces pill bar) */
+.model-select-wrap {
+  position: relative;
 }
 
-.pill-bar::-webkit-scrollbar { display: none; }
-
-.model-pill {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 8px 14px;
-  border: 1.5px solid var(--color-border-strong);
-  border-radius: 20px;
-  background: transparent;
-  color: var(--color-text-muted);
+.model-select {
+  width: 100%;
+  height: 46px;
+  padding: 0 44px 0 42px;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1.5px solid color-mix(in srgb, var(--seed-primary) 60%, transparent);
+  border-radius: 14px;
+  background-color: color-mix(in srgb, var(--seed-primary) 10%, var(--seed-surface));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--seed-primary) 8%, transparent), 0 2px 10px color-mix(in srgb, var(--seed-primary) 10%, transparent);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='17' height='17' viewBox='0 0 24 24' fill='none' stroke='%235c7cff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3l1.8 4.9L18.7 9.7l-4.9 1.8L12 16.4l-1.8-4.9L5.3 9.7l4.9-1.8L12 3z'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235c7cff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat, no-repeat;
+  background-position: left 15px center, right 15px center;
+  background-size: 17px, 12px;
+  color: var(--color-text);
   font-family: inherit;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
   letter-spacing: 0.01em;
   cursor: pointer;
-  white-space: nowrap;
-  transition: border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease, color 0.2s ease, box-shadow 0.25s ease, transform 0.2s ease;
-  flex-shrink: 0;
-  animation: pillSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  transition: border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease, box-shadow 0.25s ease;
 }
 
-@keyframes pillSlideIn {
-  from { opacity: 0; transform: translateY(4px) scale(0.96); }
-}
-
-.model-pill:hover {
+.model-select:hover {
   border-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
-  color: var(--color-text);
-  background: color-mix(in srgb, var(--seed-primary) 5%, transparent);
-  transform: translateY(-1px);
+  background-color: color-mix(in srgb, var(--seed-primary) 4%, var(--seed-surface));
 }
 
-.model-pill:active {
-  transform: translateY(0px) scale(0.97);
-}
-
-.model-pill.active {
-  background: var(--color-primary);
+.model-select:focus {
+  outline: none;
   border-color: var(--color-primary);
-  color: var(--color-on-primary);
-  box-shadow: var(--shadow-primary);
-  font-weight: 600;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 16%, transparent);
 }
 
-.model-pill.active .pill-dot {
-  background: var(--hex-white) !important;
-  opacity: 0.9;
-}
-
-.pill-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  transition: background 0.2s ease, opacity 0.2s ease;
-}
-
-.pill-bar-empty {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 4px;
-  color: var(--color-text-subtle);
-  font-size: 13px;
-  animation: fadeIn 0.4s ease;
-}
-
-.pill-bar-empty svg {
-  width: 16px;
-  height: 16px;
-  opacity: 0.5;
-  flex-shrink: 0;
+.model-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 
@@ -1582,10 +1560,11 @@ body > * { position: relative; z-index: 1; }
 .btn-add-model svg { width: 16px; height: 16px; }
 
 .model-form {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
+  bottom: 0;
   width: 100%;
   height: 100%;
   padding: 16px;
@@ -1707,6 +1686,185 @@ select.form-input {
   color: var(--color-text-subtle);
   margin-top: 2px;
 }
+
+/* Form card (model pool style) */
+.form-card {
+  border: 1.5px solid var(--color-border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--seed-surface) 55%, transparent);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Base URL input row: input + quick link + test button */
+.url-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.url-input-row .form-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.apinest-quick-link {
+  display: none;
+  align-items: center;
+  gap: 5px;
+  height: 40px;
+  padding: 0 10px;
+  border: 1.5px solid color-mix(in srgb, var(--seed-primary) 35%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--seed-primary) 8%, transparent);
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.apinest-quick-link.visible { display: flex; }
+
+.apinest-quick-link img {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  object-fit: cover;
+}
+
+.apinest-quick-link svg {
+  width: 12px;
+  height: 12px;
+}
+
+.apinest-quick-link:hover {
+  background: color-mix(in srgb, var(--seed-primary) 14%, transparent);
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-primary);
+  transform: translateY(-1px);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* URL test result banner */
+.url-test-result {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  animation: resultIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes resultIn {
+  from { opacity: 0; transform: translateY(-4px); }
+}
+
+.url-test-result .url-test-icon {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.url-test-result.success {
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success) 35%, transparent);
+  color: var(--color-success);
+}
+
+.url-test-result.success .url-test-icon {
+  background: var(--color-success);
+}
+
+.url-test-result.success .url-test-icon::after {
+  content: "";
+  width: 7px;
+  height: 4px;
+  border-left: 2px solid var(--color-on-primary);
+  border-bottom: 2px solid var(--color-on-primary);
+  transform: rotate(-45deg) translateY(-1px);
+}
+
+.url-test-result.error {
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 35%, transparent);
+  color: var(--color-danger);
+}
+
+.url-test-result.error .url-test-icon {
+  background: var(--color-danger);
+  color: var(--color-on-primary);
+  font-weight: 700;
+}
+
+.url-test-result.error .url-test-icon::after {
+  content: "!";
+  font-size: 11px;
+}
+
+.url-test-result.loading {
+  background: color-mix(in srgb, var(--seed-primary) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--seed-primary) 25%, transparent);
+  color: var(--color-text-muted);
+}
+
+.url-test-result.loading .url-test-icon {
+  border: 2px solid color-mix(in srgb, var(--seed-primary) 30%, transparent);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  background: transparent;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Model list registry-style cards */
+.model-card-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.model-card-badge.configured {
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success) 30%, transparent);
+  color: var(--color-success);
+}
+
+.model-card-badge.missing {
+  background: color-mix(in srgb, var(--color-warn) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-warn) 30%, transparent);
+  color: var(--color-warn);
+}
+
+.model-card-badge svg { width: 11px; height: 11px; }
+
+.model-card .model-card-badge { margin-right: 8px; }
 
 .form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
 
@@ -2426,16 +2584,16 @@ select.form-input {
 
 /* Scrollbar */
 .tab-body::-webkit-scrollbar,
-.model-panel::-webkit-scrollbar { width: 5px; }
+.model-panel .center-body::-webkit-scrollbar { width: 5px; }
 .tab-body::-webkit-scrollbar-track,
-.model-panel::-webkit-scrollbar-track { background: transparent; }
+.model-panel .center-body::-webkit-scrollbar-track { background: transparent; }
 .tab-body::-webkit-scrollbar-thumb,
-.model-panel::-webkit-scrollbar-thumb {
+.model-panel .center-body::-webkit-scrollbar-thumb {
   background: var(--color-border-strong);
   border-radius: 3px;
 }
 .tab-body::-webkit-scrollbar-thumb:hover,
-.model-panel::-webkit-scrollbar-thumb:hover { background: var(--color-text-subtle); }
+.model-panel .center-body::-webkit-scrollbar-thumb:hover { background: var(--color-text-subtle); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -2443,6 +2601,7 @@ select.form-input {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
 /* ────────────────── Theme Card & Modal ────────────────── */
 .theme-status {
   display: flex;
@@ -2469,225 +2628,6 @@ select.form-input {
   color: var(--color-danger);
 }
 
-/* Theme Modal - iOS Style */
-.theme-modal {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-  justify-content: center;
-  align-items: center;
-}
-
-.theme-modal.active {
-  display: flex;
-}
-
-.theme-modal-content {
-  background: transparent;
-  width: 90%;
-  max-width: 400px;
-  max-height: 80vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Theme Tabs - iOS Style */
-.theme-tabs {
-  display: flex;
-  background: #fff;
-  border-radius: 12px;
-  margin-bottom: 12px;
-  padding: 4px;
-}
-
-.theme-tab {
-  flex: 1;
-  padding: 10px 8px;
-  background: none;
-  border: none;
-  font-size: 13px;
-  color: #8e8e93;
-  cursor: pointer;
-  transition: all 0.2s;
-  border-radius: 8px;
-}
-
-.theme-tab:hover {
-  color: #000;
-}
-
-.theme-tab.active {
-  color: #fff;
-  background: #007AFF;
-}
-
-/* Theme Tab Content */
-.theme-tab-content {
-  display: none;
-  padding: 0;
-  overflow-y: auto;
-  flex: 1;
-}
-
-.theme-tab-content.active {
-  display: block;
-}
-
-/* Theme List */
-.theme-list {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  padding: 0;
-}
-
-.theme-loading, .theme-empty {
-  grid-column: 1 / -1;
-  text-align: center;
-  color: #8e8e93;
-  padding: 24px;
-  background: #fff;
-  border-radius: 12px;
-}
-
-.theme-item {
-  border-radius: 12px;
-  overflow: hidden;
-  background: #fff;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.theme-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.theme-item:active {
-  transform: scale(0.98);
-}
-
-.theme-item-thumb {
-  width: 100%;
-  aspect-ratio: 16/10;
-  object-fit: cover;
-  background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
-}
-
-.theme-item-info {
-  padding: 10px;
-}
-
-.theme-item-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: #000;
-}
-
-.theme-item-author {
-  font-size: 11px;
-  color: #8e8e93;
-  margin-top: 2px;
-}
-
-.theme-refresh-btn {
-  width: 100%;
-  margin-top: 12px;
-  padding: 12px;
-  background: #fff;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: 14px;
-  color: #007AFF;
-  font-weight: 500;
-}
-
-.theme-refresh-btn:hover {
-  background: #f5f5f5;
-}
-
-.theme-refresh-btn svg {
-  width: 16px;
-  height: 16px;
-}
-
-/* Theme Upload - iOS Style */
-.theme-upload-area {
-  border: 2px dashed #d1d1d6;
-  border-radius: 12px;
-  padding: 32px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s;
-  background: #fff;
-}
-
-.theme-upload-area:hover {
-  border-color: #007AFF;
-  background: #f5f9ff;
-}
-
-.theme-upload-area svg {
-  width: 32px;
-  height: 32px;
-  color: #8e8e93;
-  margin-bottom: 8px;
-}
-
-.theme-upload-area p {
-  font-size: 13px;
-  color: #8e8e93;
-}
-
-.theme-preview {
-  margin-top: 16px;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.theme-preview img {
-  width: 100%;
-  display: block;
-}
-
-/* Theme Actions */
-.theme-actions {
-  padding: 0;
-  margin-top: 12px;
-}
-
-.ios-btn-secondary {
-  width: 100%;
-  padding: 14px;
-  background: #fff;
-  color: #007AFF;
-  border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.ios-btn-secondary:hover {
-  background: #f5f5f5;
-}
-
-.ios-btn-secondary:active {
-  background: #e8e8e8;
-}
-
 /* ─── Accessibility: focus-visible ─── */
 :focus-visible {
   outline: 2px solid var(--color-primary);
@@ -2696,7 +2636,6 @@ select.form-input {
 }
 button:focus-visible,
 a:focus-visible,
-.model-pill:focus-visible,
 .timeline-tab:focus-visible,
 .form-input:focus-visible {
   outline: 2px solid var(--color-primary);
@@ -2714,36 +2653,276 @@ a:focus-visible,
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ══════════════ Reference-style Model Center (registry cards) ══════════════ */
+.model-panel {
+  --mc-blue: var(--seed-primary);
+  --mc-line: var(--color-border);
+  --mc-ink: var(--color-text);
+  --mc-muted: var(--color-text-muted);
+  --mc-card: var(--seed-surface);
+}
+.model-panel { padding: 0; gap: 0; overflow: hidden; }
+
+/* Center header (sticky top) */
+.model-panel .center-header {
+  height: 78px; padding: 0 22px; flex-shrink: 0; z-index: 5;
+  display: grid; grid-template-columns: 40px 1fr auto; align-items: center; gap: 12px;
+  border-bottom: 1px solid var(--mc-line);
+  background: var(--mc-card);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--mc-ink) 5%, transparent);
+}
+.model-panel .header-eyebrow {
+  margin: 0; color: var(--mc-muted);
+  font-size: 10px; font-weight: 700; letter-spacing: .13em;
+}
+.model-panel .center-header h1 {
+  margin: 2px 0 0; color: var(--mc-ink);
+  font-size: 20px; font-weight: 900; letter-spacing: -0.06em;
+}
+.model-panel .back-mini {
+  width: 38px; height: 38px; padding: 0; color: var(--mc-muted);
+  border: 1px solid var(--mc-line); border-radius: 13px; background: var(--mc-card);
+  font: 400 30px/22px -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  cursor: pointer; transition: .18s;
+}
+.model-panel .back-mini:hover {
+  color: var(--mc-blue); border-color: color-mix(in srgb, var(--mc-blue) 45%, transparent);
+  box-shadow: 0 6px 14px color-mix(in srgb, var(--mc-blue) 14%, transparent);
+}
+.model-panel .add-model {
+  height: 42px; padding: 0 15px; display: flex; align-items: center; gap: 5px;
+  color: #fff; border: 0; border-radius: 13px; background: var(--mc-blue);
+  box-shadow: 0 9px 18px color-mix(in srgb, var(--mc-blue) 28%, transparent);
+  font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer; transition: .18s;
+}
+.model-panel .add-model:hover {
+  background: color-mix(in srgb, var(--mc-blue) 82%, #000); transform: translateY(-1px);
+}
+.model-panel .add-model svg { width: 15px; height: 15px; }
+
+/* Body & section heading */
+.model-panel .center-body { flex: 1; min-height: 0; overflow-y: auto; padding: 16px 22px 24px; }
+.model-panel .list-section-heading {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  margin: 2px 2px 12px;
+}
+.model-panel .micro-label {
+  margin: 0; color: var(--mc-muted); font-size: 10px; font-weight: 700; letter-spacing: .12em;
+}
+.model-panel .list-section-heading h2 {
+  margin: 2px 0 0; color: var(--mc-muted); font-size: 15px; font-weight: 800; letter-spacing: -0.02em;
+}
+.model-panel .list-section-heading h2 span {
+  margin-left: 6px; color: var(--mc-muted); font-size: 12px; font-weight: 800;
+}
+.model-panel .heading-note { margin: 0 0 2px; color: var(--mc-muted); font-size: 11px; }
+
+/* Registry cards */
+.model-panel .model-registry-cards { display: grid; gap: 13px; }
+.model-panel .registry-model-card {
+  min-height: 137px; padding: 15px 18px; position: relative; overflow: hidden;
+  border: 1px solid var(--mc-line); border-radius: 20px;
+  background: linear-gradient(115deg, var(--mc-card), color-mix(in srgb, var(--mc-card) 60%, #f6f8ff) 53%, color-mix(in srgb, var(--mc-card) 45%, #f2f7ff));
+  box-shadow: 0 10px 23px color-mix(in srgb, var(--mc-ink) 5%, transparent);
+  transition: .2s; cursor: pointer;
+  animation: cardSlideIn .35s cubic-bezier(.16,1,.3,1) backwards;
+}
+.model-panel .registry-model-card::before {
+  content: ""; position: absolute; width: 118px; height: 118px;
+  right: -36px; top: -42px; border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--mc-blue) 30%, transparent) 1px, transparent 1.5px);
+  background-size: 10px 10px; opacity: .55; pointer-events: none;
+}
+.model-panel .registry-model-card:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--mc-blue) 45%, transparent); }
+.model-panel .registry-model-card.selected {
+  border-color: color-mix(in srgb, var(--mc-blue) 45%, transparent);
+  background: linear-gradient(115deg, color-mix(in srgb, var(--mc-card) 60%, #f1f4ff), var(--mc-card) 55%, color-mix(in srgb, var(--mc-card) 50%, #edf7ff));
+  box-shadow: 0 13px 25px color-mix(in srgb, var(--mc-blue) 14%, transparent);
+}
+.model-panel .registry-card-top { display: flex; align-items: center; justify-content: space-between; position: relative; }
+.model-panel .model-number { color: var(--mc-muted); font-size: 10px; font-weight: 800; letter-spacing: .1em; }
+.model-panel .hero-status { padding: 6px 9px; display: flex; gap: 6px; align-items: center; border-radius: 11px; font-size: 11px; font-weight: 800; }
+.model-panel .hero-status i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.model-panel .hero-status.online { color: #138953; background: #e6f8ef; }
+.model-panel .hero-status.pending { color: #aa711d; background: #fff3de; }
+.model-panel .registry-card-core { display: flex; align-items: center; gap: 13px; margin-top: 8px; position: relative; }
+.model-panel .registry-orb {
+  width: 39px; height: 39px; display: grid; place-items: center; border-radius: 13px;
+  background: #fff; box-shadow: 0 8px 16px color-mix(in srgb, var(--mc-blue) 14%, transparent);
+  flex-shrink: 0; overflow: hidden;
+}
+.model-panel .registry-orb img { width: 100%; height: 100%; object-fit: cover; }
+.model-panel .registry-orb svg { width: 22px; color: inherit; }
+.model-panel .registry-card-core .core-text { min-width: 0; }
+.model-panel .registry-card-core h3 {
+  margin: 0; color: var(--mc-ink); font-size: 15px; font-weight: 900; letter-spacing: -0.04em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.model-panel .registry-card-core p {
+  margin: 4px 0 0; color: var(--mc-muted); font-size: 11px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.model-panel .registry-card-actions {
+  margin-top: 11px; padding-top: 10px; border-top: 1px solid var(--mc-line);
+  display: flex; align-items: center; gap: 7px; position: relative;
+}
+.model-panel .hero-edit {
+  height: 28px; padding: 0; border: 0; background: transparent; color: var(--mc-blue);
+  font-family: inherit; font-size: 11px; font-weight: 800; cursor: pointer; transition: .18s;
+}
+.model-panel .hero-edit:hover { color: color-mix(in srgb, var(--mc-blue) 75%, #000); }
+.model-panel .card-delete {
+  height: 30px; margin-left: auto; padding: 0 11px; color: #d95560;
+  background: #fff4f5; border: 1px solid #ffd9dd; border-radius: 9px;
+  font-family: inherit; font-size: 11px; font-weight: 700; cursor: pointer; transition: .18s;
+}
+.model-panel .card-delete:hover { color: #fff; border-color: #d84a56; background: #da5660; }
+
+/* Empty state */
+.model-panel .empty-model-state {
+  min-height: 300px; padding: 38px 26px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; text-align: center;
+  border: 1px dashed var(--mc-line); border-radius: 22px;
+  background: linear-gradient(135deg, var(--mc-card), color-mix(in srgb, var(--mc-card) 55%, #f1f5ff));
+}
+.model-panel .empty-orb {
+  width: 62px; height: 62px; display: grid; place-items: center; border-radius: 22px;
+  background: color-mix(in srgb, var(--mc-blue) 12%, var(--mc-card)); color: var(--mc-blue);
+  box-shadow: 0 10px 20px color-mix(in srgb, var(--mc-blue) 12%, transparent);
+}
+.model-panel .empty-orb svg { width: 26px; }
+.model-panel .empty-model-state h3 { margin: 16px 0 0; color: var(--mc-ink); font-size: 17px; font-weight: 900; letter-spacing: -0.05em; }
+.model-panel .empty-model-state p { margin: 6px 0 0; color: var(--mc-muted); font-size: 12px; line-height: 1.7; }
+.model-panel .empty-add {
+  height: 42px; margin-top: 20px; padding: 0 18px; display: flex; align-items: center; gap: 6px;
+  color: #fff; border: 0; border-radius: 13px; background: var(--mc-blue);
+  box-shadow: 0 9px 19px color-mix(in srgb, var(--mc-blue) 24%, transparent);
+  font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer; transition: .18s;
+}
+.model-panel .empty-add:hover { background: color-mix(in srgb, var(--mc-blue) 82%, #000); }
+.model-panel .empty-add svg { width: 14px; height: 14px; }
+
+/* Compact recommendation (APINest logo preserved) */
+.model-panel .compact-recommendation {
+  margin-top: 17px; padding: 15px 18px; display: flex; align-items: center; gap: 13px;
+  border: 1px solid var(--mc-line); border-radius: 19px;
+  background: linear-gradient(115deg, var(--mc-card), color-mix(in srgb, var(--mc-card) 55%, #f5f8ff) 55%, color-mix(in srgb, var(--mc-card) 40%, #eff5ff));
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--mc-ink) 3%, transparent);
+  text-decoration: none; transition: .2s;
+}
+.model-panel .compact-recommendation:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--mc-blue) 40%, transparent); }
+.model-panel .recommend-icon {
+  width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; overflow: hidden;
+  background: #fff; box-shadow: 0 6px 12px color-mix(in srgb, var(--mc-blue) 14%, transparent);
+  flex-shrink: 0;
+}
+.model-panel .recommend-icon img { width: 100%; height: 100%; object-fit: cover; }
+.model-panel .recommend-text { flex: 1; min-width: 0; }
+.model-panel .recommend-text h4 { margin: 0; color: var(--mc-ink); font-size: 13px; font-weight: 800; }
+.model-panel .recommend-text p { margin: 3px 0 0; color: var(--mc-muted); font-size: 11px; line-height: 1.5; }
+.model-panel .recommend-link { color: var(--mc-blue); font-size: 12px; font-weight: 800; white-space: nowrap; }
+
+/* ══════════════ Reference-style Model Form (01/02 sections) ══════════════ */
+.model-form { --mc-blue: var(--seed-primary); --mc-line: var(--color-border); --mc-ink: var(--color-text); --mc-muted: var(--color-text-muted); --mc-card: var(--seed-surface); }
+.model-form { padding: 0; gap: 0; background: var(--seed-bg); backdrop-filter: none; -webkit-backdrop-filter: none; }
+
+/* Form intro header */
+.model-form .form-intro { padding: 22px 22px 0; flex-shrink: 0; }
+.model-form .form-intro-head { display: flex; align-items: center; gap: 12px; }
+.model-form .form-intro .header-eyebrow {
+  margin: 0; color: var(--mc-muted); font-size: 10px; font-weight: 700; letter-spacing: .13em;
+}
+.model-form .form-intro h1 { margin: 2px 0 0; color: var(--mc-ink); font-size: 18px; font-weight: 900; letter-spacing: -0.06em; }
+.model-form .form-intro .back-mini {
+  width: 38px; height: 38px; padding: 0; color: var(--mc-muted);
+  border: 1px solid var(--mc-line); border-radius: 13px; background: var(--mc-card);
+  font: 400 30px/22px -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  cursor: pointer; transition: .18s;
+}
+.model-form .form-intro .back-mini:hover {
+  color: var(--mc-blue); border-color: color-mix(in srgb, var(--mc-blue) 45%, transparent);
+  box-shadow: 0 6px 14px color-mix(in srgb, var(--mc-blue) 14%, transparent);
+}
+.model-form .form-security {
+  margin: 16px 0 0; padding: 10px 13px; display: flex; align-items: center; gap: 8px;
+  border: 1px solid color-mix(in srgb, var(--mc-blue) 16%, transparent); border-radius: 12px;
+  background: color-mix(in srgb, var(--mc-blue) 7%, transparent);
+  color: var(--mc-muted); font-size: 11px; line-height: 1.5;
+}
+.model-form .form-security svg { width: 14px; height: 14px; color: var(--mc-blue); flex-shrink: 0; }
+
+/* Sections */
+.model-form-inner { padding: 22px 22px 26px; display: flex; flex-direction: column; flex: 1; min-height: 0; overflow-y: auto; }
+.model-form .form-heading { display: flex; align-items: center; gap: 11px; margin: 0 0 18px; }
+.model-form .form-heading > span {
+  width: 31px; height: 31px; display: grid; place-items: center; border-radius: 11px;
+  color: #5e73ff; background: #e5eaff; font: 500 11px/1 -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+.model-form .form-heading h2 { margin: 0; color: var(--mc-ink); font-size: 15px; font-weight: 900; letter-spacing: -0.05em; }
+.model-form .form-heading p { margin: 3px 0 0; color: var(--mc-muted); font-size: 11.5px; }
+.model-form .form-divider { margin: 18px 0; border-top: 1px solid var(--mc-line); }
+
+/* Field restyle: taller inputs, focus glow */
+.model-form .form-card { border: none; background: transparent; box-shadow: none; padding: 0; gap: 17px; }
+.model-form .form-field > label { margin-bottom: 8px; }
+.model-form .form-input {
+  height: 56px; border-radius: 16px; font-size: 15px;
+  border: 1.5px solid var(--mc-line); background: var(--mc-card); color: var(--mc-ink);
+  padding: 0 16px;
+}
+.model-form select.form-input {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238a92a6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 12px;
+  padding-right: 42px;
+}
+.model-form .form-input:focus {
+  border-color: color-mix(in srgb, var(--mc-blue) 55%, var(--mc-line));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--mc-blue) 10%, transparent), 0 8px 19px color-mix(in srgb, var(--mc-ink) 5%, transparent);
+}
+.model-form .form-input::placeholder { color: color-mix(in srgb, var(--mc-muted) 75%, transparent); }
+.model-form .form-input.mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 13.5px; }
+
+/* URL row: full-width input + action toolbar below */
+.model-form .url-row-actions { display: flex; align-items: center; gap: 8px; margin-top: 9px; }
+.model-form .apinest-quick-link {
+  height: 38px; margin: 0; padding: 0 13px; border-radius: 12px;
+  font-size: 12px; font-weight: 800;
+}
+.model-form .apinest-quick-link img { width: 20px; height: 20px; }
+.model-form .url-test-result { margin-top: 9px; }
+
+/* Actions */
+.model-form .form-actions {
+  margin-top: 0; padding: 16px 22px 22px; flex-shrink: 0;
+  display: flex; justify-content: flex-end; gap: 12px;
+  background: var(--seed-bg);
+}
+.model-form .form-actions .btn-ghost {
+  height: 52px; min-height: 52px; padding: 0 24px; border: 1px solid var(--mc-line);
+  border-radius: 16px; color: var(--mc-muted); background: transparent;
+  font-size: 14px; font-weight: 600;
+}
+.model-form .form-actions .btn-ghost:hover { border-color: color-mix(in srgb, var(--mc-ink) 20%, transparent); color: var(--mc-ink); }
+.model-form .form-actions .btn-primary {
+  height: 52px; min-height: 52px; padding: 0 26px; border-radius: 16px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--mc-blue) 92%, #fff), var(--mc-blue));
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--mc-blue) 30%, transparent);
+  font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 6px;
+}
+.model-form .form-actions .btn-primary:hover {
+  background: linear-gradient(135deg, var(--mc-blue), color-mix(in srgb, var(--mc-blue) 78%, #000));
+}
+.model-form .form-actions .btn-primary svg, .model-form .form-actions .btn-primary span { transition: transform .18s; }
+.model-form .form-actions .btn-primary:hover svg, .model-form .form-actions .btn-primary:hover span { transform: translateX(3px); }
 </style>
 </head>
 <body>
 
 <div class="toast-container" id="toast-container"></div>
 
-<!-- ────────── Activation Modal ────────── -->
-<div class="confirm-modal-overlay" id="activation-overlay" style="display:none;">
-  <div class="confirm-modal" style="max-width:360px;text-align:left;">
-    <div style="text-align:center;margin-bottom:16px;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:40px;height:40px;">
-        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-      </svg>
-      <div style="font-size:17px;font-weight:700;margin-top:8px;color:var(--color-text);">激活 Codex助手</div>
-      <div style="font-size:13px;color:var(--color-text-secondary);margin-top:4px;">请输入激活码以继续使用</div>
-    </div>
-    <div style="margin-bottom:12px;">
-      <input id="activation-code-input" type="text" class="form-input mono" placeholder="XXXX-XXXX-XXXX-XXXX" style="text-align:center;font-size:15px;letter-spacing:1px;text-transform:uppercase;" autocomplete="off">
-    </div>
-    <div id="activation-error" style="font-size:12px;color:var(--color-danger);margin-bottom:8px;min-height:16px;"></div>
-    <div style="display:flex;gap:8px;">
-      <button class="btn-ghost" id="activation-cancel" type="button" style="flex:1;">稍后</button>
-      <button class="btn-primary" id="activation-submit" type="button" style="flex:1;">激活</button>
-    </div>
-    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--color-border);font-size:11px;color:var(--color-text-tertiary);text-align:center;">
-      设备码: <span id="activation-device-id" class="mono" style="user-select:all;"></span>
-    </div>
-  </div>
-</div>
 
 <!-- ────────── Brand Header ────────── -->
 <header class="brand-header" data-component="Brand Header" data-od-id="brand-header">
@@ -2791,7 +2970,6 @@ a:focus-visible,
 
   <!-- ─── Status Hero Panel ─── -->
   <section class="status-hero glass" id="status-hero" data-component="Status Hero" data-od-id="status-hero">
-    <div id="license-badge" style="position:absolute;top:8px;right:8px;font-size:10px;color:var(--color-success);font-weight:500;display:none;"></div>
     <div class="character-wrap" data-component="Mascot" data-od-id="mascot">
       <div class="mascot-halo"></div>
       <img class="mascot-img" src="assets/mascot-3d.png" alt="mascot">
@@ -2821,8 +2999,8 @@ a:focus-visible,
         模型配置
       </button>
     </div>
-    <div class="pill-bar" id="pill-bar">
-      <!-- pills will be dynamically populated -->
+    <div class="model-select-wrap">
+      <select class="model-select" id="model-select" aria-label="选择当前会话模型"></select>
     </div>
   </section>
 
@@ -2924,37 +3102,42 @@ a:focus-visible,
 
 </main>
 
-<!-- ────────── Model Config Panel ────────── -->
+<!-- ────────── Model Config Panel (Model Center) ────────── -->
 <div class="model-panel" id="model-panel" data-component="Model Config Panel" data-od-id="model-config-panel">
-  <div class="model-panel-header">
-    <button class="model-panel-back" id="close-model-config" type="button">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="15 18 9 12 15 6"></polyline>
-      </svg>
-      返回
-    </button>
-    <span class="model-panel-title">模型配置</span>
-    <button class="btn-primary" id="open-add-form" type="button" style="height:32px;padding:0 14px;font-size:13px;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;">
-        <line x1="12" y1="5" x2="12" y2="19"></line>
-        <line x1="5" y1="12" x2="19" y2="12"></line>
-      </svg>
-      新增模型
-    </button>
-  </div>
-
-  <div class="model-list" id="model-list">
-    <!-- model cards will be dynamically populated -->
-  </div>
-
-  <a class="promo-banner" href="https://xn--xhqu89o.cc/" target="_blank" rel="noopener noreferrer">
-    <div class="promo-icon"><img src="assets/apinest-logo.png" alt="APINest"></div>
-    <div class="promo-content">
-      <div class="promo-title">推荐 Token 聚合平台 · APINest</div>
-      <div class="promo-desc">多模型聚合 API，一个 Key 调用 DeepSeek / Claude / Gemini 等主流大模型，无需代理</div>
+  <header class="center-header">
+    <button class="back-mini" id="close-model-config" type="button" aria-label="返回">‹</button>
+    <div>
+      <p class="header-eyebrow">MODEL REGISTRY</p>
+      <h1>模型中心</h1>
     </div>
-    <span class="promo-arrow">-></span>
-  </a>
+    <button class="add-model" id="open-add-form" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      新增
+    </button>
+  </header>
+
+  <div class="center-body">
+    <div class="list-section-heading registry-heading">
+      <div>
+        <p class="micro-label">MODEL POOL</p>
+        <h2>已接入的模型 <span id="model-count">0</span></h2>
+      </div>
+      <p class="heading-note">点击卡片即可设为当前会话模型</p>
+    </div>
+
+    <div class="model-registry-cards" id="model-list">
+      <!-- model cards will be dynamically populated -->
+    </div>
+
+    <a class="compact-recommendation" href="https://xn--xhqu89o.cc/" target="_blank" rel="noopener noreferrer">
+      <span class="recommend-icon"><img src="assets/apinest-logo.png" alt="APINest"></span>
+      <div class="recommend-text">
+        <h4>APINest·推荐Token聚合平台</h4>
+        <p>通过 APINest 用一个 Key 连接 DeepSeek、Claude、Gemini 等模型。</p>
+      </div>
+      <span class="recommend-link">探索服务 →</span>
+    </a>
+  </div>
 </div>
 
 <!-- ────────── Settings Modal (iOS Style with Theme) ────────── -->
@@ -2965,8 +3148,8 @@ a:focus-visible,
     <!-- 版本信息卡片 -->
     <div class="ios-card-group">
       <div class="ios-card-item version-info">
-        <div class="version-title" id="app-version">当前版本 v1.0.46</div>
-        <div class="version-notes" id="release-notes-text">修复上游API错误处理、增强主题持久化、新增502/503/504网关错误自动重试</div>
+        <div class="version-title" id="app-version">当前版本 v1.0.75</div>
+        <div class="version-notes" id="release-notes-text">修复：关闭 Codex助手 后继续历史第三方会话不再持续报“重新连接”——守门进程收到请求时自动把该对话迁移到官方模型，重开对话即可继续</div>
       </div>
     </div>
     
@@ -3035,42 +3218,86 @@ a:focus-visible,
 
 <!-- ────────── Add/Edit Model Form ────────── -->
 <div class="model-form glass" id="model-form">
-  <div class="model-panel-header" style="margin-bottom:10px;">
-    <button class="model-panel-back" id="close-form" type="button">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="15 18 9 12 15 6"></polyline>
-      </svg>
-      返回
-    </button>
-    <span class="model-panel-title" id="form-title">新增模型</span>
-    <div style="width:60px;"></div>
+  <div class="form-intro">
+    <div class="form-intro-head">
+      <button class="back-mini" id="close-form" type="button" aria-label="返回">‹</button>
+      <div>
+        <p class="header-eyebrow">NEW CONNECTION</p>
+        <h1 id="form-title">新增模型</h1>
+      </div>
+    </div>
+    <div class="form-security">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+      凭据仅保存在本机，始终由你掌控
+    </div>
   </div>
-  <div class="form-field">
-    <label for="form-provider-select">服务商</label>
-    <select class="form-input" id="form-provider-select">
-      <option value="">选择服务商</option>
-    </select>
-    <span class="form-hint">选择服务商后自动填充官方地址和模型</span>
-  </div>
-  <div class="form-field">
-    <label for="form-model-select">模型名称</label>
-    <select class="form-input" id="form-model-select">
-      <option value="">选择模型</option>
-    </select>
-    <input class="form-input" id="form-model" type="text" placeholder="或输入自定义模型名称" style="margin-top:6px;">
-  </div>
-  <div class="form-field">
-    <label for="form-url">Base URL</label>
-    <input class="form-input mono" id="form-url" type="text" placeholder="https://api.example.com/v1/chat/completions">
-    <span class="form-hint">选择服务商后自动填充官方请求地址</span>
-  </div>
-  <div class="form-field">
-    <label for="form-key">API Key</label>
-    <input class="form-input mono" id="form-key" type="password" placeholder="输入 API Key">
+  <div class="model-form-inner">
+    <div class="form-heading">
+      <span>01</span>
+      <div>
+        <h2>模型连接</h2>
+        <p>从服务商开始配置</p>
+      </div>
+    </div>
+    <div class="form-card">
+      <div class="form-field">
+        <label for="form-provider-select">
+          <span class="required-dot"></span>服务商
+        </label>
+        <select class="form-input" id="form-provider-select">
+          <option value="">选择服务商</option>
+        </select>
+        <span class="form-hint">选择服务商后自动填充官方地址和模型</span>
+      </div>
+    </div>
+    <div class="form-divider"></div>
+    <div class="form-heading">
+      <span>02</span>
+      <div>
+        <h2>模型与凭据</h2>
+        <p>选择模型并完成授权</p>
+      </div>
+    </div>
+    <div class="form-card">
+      <div class="form-field">
+        <label for="form-model-select">
+          <span class="required-dot"></span>模型名称
+        </label>
+        <select class="form-input" id="form-model-select">
+          <option value="">选择模型</option>
+        </select>
+        <input class="form-input" id="form-model" type="text" placeholder="或输入自定义模型名称" style="margin-top:8px;">
+      </div>
+      <div class="form-field">
+        <label for="form-url">
+          <span class="required-dot"></span>Base URL
+        </label>
+        <input class="form-input mono" id="form-url" type="text" placeholder="https://api.example.com/v1/chat/completions" autocomplete="off" spellcheck="false">
+        <div class="url-row-actions">
+          <a class="apinest-quick-link" id="apinest-quick-link" href="https://xn--xhqu89o.cc/" target="_blank" rel="noopener noreferrer" title="前往 APINest 获取 API Key">
+            <img src="assets/apinest-logo.png" alt="APINest">
+            <span>获取Key</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+          </a>
+        </div>
+        <div class="url-test-result" id="url-test-result" style="display:none;">
+          <span class="url-test-icon"></span>
+          <span class="url-test-msg"></span>
+        </div>
+        <span class="form-hint">选择服务商后自动填充官方请求地址，保存时将自动测试连通性</span>
+      </div>
+      <div class="form-field">
+        <label for="form-key">API Key</label>
+        <input class="form-input mono" id="form-key" type="password" placeholder="输入 API Key" autocomplete="off">
+      </div>
+    </div>
   </div>
   <div class="form-actions">
     <button class="btn-ghost" type="button" id="cancel-form">取消</button>
-    <button class="btn-primary" type="button" id="save-model">保存</button>
+    <button class="btn-primary" type="button" id="save-model">
+      <span>测试连通并保存</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 19 12"></polyline><polyline points="12 5 19 12 12 19"></polyline></svg>
+    </button>
   </div>
 </div>
 
@@ -3099,10 +3326,19 @@ a:focus-visible,
   };
 
   // ─── API helpers ───
-  async function apiGet(path) { var r = await fetch(API_BASE + path); return r.json(); }
+  async function apiFetch(path, opts, timeoutMs) {
+    var ctrl = new AbortController();
+    var timer = setTimeout(function() { ctrl.abort(); }, timeoutMs || 20000);
+    try {
+      var r = await fetch(API_BASE + path, Object.assign({}, opts || {}, { signal: ctrl.signal }));
+      return r.json();
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  async function apiGet(path) { return apiFetch(path, {}); }
   async function apiPost(path, data) {
-    var r = await fetch(API_BASE + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data || {}) });
-    return r.json();
+    return apiFetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data || {}) });
   }
 
   // ─── Toast Notification ───
@@ -3143,7 +3379,7 @@ a:focus-visible,
   var powerBtn = document.getElementById('power-btn');
   var statusHero = document.getElementById('status-hero');
   var statusLabel = document.getElementById('status-label');
-  var pillBar = document.getElementById('pill-bar');
+  var modelSelect = document.getElementById('model-select');
   var modelPanel = document.getElementById('model-panel');
   var modelList = document.getElementById('model-list');
   var logsList = document.getElementById('logs-list');
@@ -3160,6 +3396,74 @@ a:focus-visible,
   var permissionModal = null;
 
   // ─── Render functions ───
+  var ORB_PALETTE = ['#5874ff', '#875cff', '#d87243', '#10a37f', '#4285f4', '#06b6d4', '#e05cb5', '#f59e0b'];
+  var ORB_COLOR_MAP = {
+    'apinest': '#4f70ff',
+    'anthropic': '#d87243', 'claude': '#d87243',
+    'deepseek': '#4d6bfe',
+    'openai': '#10a37f',
+    'google': '#4285f4', 'gemini': '#4285f4',
+    'moonshot': '#1e1e1e', 'kimi': '#1e1e1e',
+    'zhipu': '#3859ff', 'glm': '#3859ff', 'bigmodel': '#3859ff', '智谱': '#3859ff',
+    'qwen': '#6e5bff', 'dashscope': '#6e5bff', '通义': '#6e5bff',
+    'siliconflow': '#f59e0b', '硅基流动': '#f59e0b',
+    'groq': '#f55036',
+    'xai': '#1e1e1e',
+    'mistral': '#f7a600',
+    'ollama': '#000000',
+    'azure': '#0078d4'
+  };
+  function orbColor(m) {
+    var key = String(m.provider || m.label || '').toLowerCase();
+    for (var name in ORB_COLOR_MAP) {
+      if (key.indexOf(name) !== -1) return ORB_COLOR_MAP[name];
+    }
+    var h = 0;
+    for (var i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
+    return ORB_PALETTE[h % ORB_PALETTE.length];
+  }
+
+  // 品牌徽标识别：从模型名/provider/label 中识别真实品牌，用于已接入列表的图标
+  var BRAND_MAP = [
+    { keys: ['anthropic', 'claude'], abbr: 'CL', color: '#d87243' },
+    { keys: ['deepseek'], abbr: 'DS', color: '#4d6bfe' },
+    { keys: ['openai', 'chatgpt', 'gpt'], abbr: 'GPT', color: '#10a37f' },
+    { keys: ['google', 'gemini'], abbr: 'GE', color: '#4285f4' },
+    { keys: ['qwen', 'dashscope', 'aliyun', '阿里云', '通义'], abbr: 'QW', color: '#6e5bff' },
+    { keys: ['kimi', 'moonshot'], abbr: 'KI', color: '#1e1e1e' },
+    { keys: ['glm', 'zhipu', 'bigmodel', '智谱'], abbr: 'GLM', color: '#3859ff' },
+    { keys: ['longcat'], abbr: 'LC', color: '#f97316' },
+    { keys: ['stepfun', 'step-'], abbr: 'ST', color: '#8b5cf6' },
+    { keys: ['mimo', 'xiaomi', '小米'], abbr: 'MI', color: '#ff6900' },
+    { keys: ['groq'], abbr: 'GQ', color: '#f55036' },
+    { keys: ['xai', 'x-ai', 'grok'], abbr: 'X', color: '#1e1e1e' },
+    { keys: ['mistral'], abbr: 'MS', color: '#f7a600' },
+    { keys: ['ollama'], abbr: 'OL', color: '#000000' },
+    { keys: ['azure'], abbr: 'AZ', color: '#0078d4' },
+    { keys: ['siliconflow', '硅基流动'], abbr: 'SF', color: '#f59e0b' },
+    { keys: ['openrouter'], abbr: 'OR', color: '#8b5cf6' }
+  ];
+  function modelBrand(m) {
+    var hay = String((m.model || '') + ' ' + (m.provider || '') + ' ' + (m.label || '')).toLowerCase();
+    for (var i = 0; i < BRAND_MAP.length; i++) {
+      var entry = BRAND_MAP[i];
+      for (var k = 0; k < entry.keys.length; k++) {
+        if (hay.indexOf(entry.keys[k]) !== -1) return entry;
+      }
+    }
+    return null;
+  }
+  function brandOrbHtml(m) {
+    var brand = modelBrand(m);
+    if (brand) {
+      return '<span class="registry-orb" style="color:' + brand.color + ';background:' + brand.color + '1a;"><b class="brand-abbr">' + brand.abbr + '</b></span>';
+    }
+    if (m.provider === 'APINest') {
+      return '<span class="registry-orb"><img src="assets/apinest-logo.png" alt="APINest"></span>';
+    }
+    return '<span class="registry-orb" style="color:' + orbColor(m) + '"><svg viewBox="0 0 36 36"><path d="M18 2.5 22 14l11.5 4L22 22l-4 11.5L14 22 2.5 18l11.5-4L18 2.5Z" fill="currentColor"/><circle cx="18" cy="18" r="3.4" fill="white"/></svg></span>';
+  }
+
   function renderStatus() {
     if (state.running) { powerBtn.classList.add('on'); statusHero.classList.remove('stopped'); statusLabel.textContent = '运行中'; }
     else { powerBtn.classList.remove('on'); statusHero.classList.add('stopped'); statusLabel.textContent = '已停止'; }
@@ -3168,42 +3472,72 @@ a:focus-visible,
   }
 
   function renderPills() {
-    if (!pillBar) return;
-    pillBar.innerHTML = '';
-    if (state.models.length === 0) {
-      var empty = document.createElement('div');
-      empty.className = 'pill-bar-empty';
-      empty.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg><span>暂无模型，请点击右上角"模型配置"添加</span>';
-      pillBar.appendChild(empty);
+    if (!modelSelect) return;
+    // 模型集合签名：未变化时只更新选中态，避免 3 秒轮询触发全量重建
+    var sig = state.models.map(function(m) { return m.route + '|' + m.label + '|' + m.model; }).join('\u0001');
+    if (modelSelect.__sig === sig) {
+      for (var i = 0; i < modelSelect.options.length; i++) {
+        var cur = modelSelect.options[i];
+        if (cur.value) cur.selected = cur.value.split('\u0001')[1] === state.model;
+      }
       return;
     }
-    state.models.forEach(function(m, idx) {
-      var btn = document.createElement('button');
-      btn.className = 'model-pill' + (m.model === state.model ? ' active' : '');
-      btn.textContent = m.label;
-      btn.style.animationDelay = (idx * 30) + 'ms';
-      btn.onclick = function() { selectModel(m.route, m.model); };
-      pillBar.appendChild(btn);
+    modelSelect.__sig = sig;
+    modelSelect.innerHTML = '';
+    if (state.models.length === 0) {
+      var emptyOpt = document.createElement('option');
+      emptyOpt.value = '';
+      emptyOpt.textContent = '暂无模型，请点击右上角"模型配置"添加';
+      emptyOpt.disabled = true;
+      modelSelect.appendChild(emptyOpt);
+      modelSelect.disabled = true;
+      return;
+    }
+    modelSelect.disabled = false;
+    state.models.forEach(function(m) {
+      var opt = document.createElement('option');
+      opt.value = m.route + '\u0001' + m.model;
+      opt.textContent = m.label;
+      opt.selected = m.model === state.model;
+      modelSelect.appendChild(opt);
     });
   }
 
   function renderModelList() {
     if (!modelList) return;
     modelList.innerHTML = '';
+    var countEl = document.getElementById('model-count');
     if (!state.config || state.config.length === 0) {
-      var emptyCard = document.createElement('div');
-      emptyCard.className = 'model-card-empty';
-      emptyCard.innerHTML = '<div class="empty-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"></path></svg></div><div class="empty-title">还没有配置模型</div><div class="empty-desc">点击下方按钮添加你的第一个模型</div>';
-      modelList.appendChild(emptyCard);
+      if (countEl) countEl.textContent = '0';
+      var emptyState = document.createElement('div');
+      emptyState.className = 'empty-model-state';
+      emptyState.innerHTML = '<span class="empty-orb"><svg viewBox="0 0 36 36"><path d="M18 2.5 22 14l11.5 4L22 22l-4 11.5L14 22 2.5 18l11.5-4L18 2.5Z" fill="currentColor"/><circle cx="18" cy="18" r="3.4" fill="white"/></svg></span><p class="micro-label">NOTHING CONNECTED YET</p><h3>还没有接入模型</h3><p>接入一个模型后，就可以开始与你的 Codex 助手对话。</p><button class="empty-add" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>接入第一个模型</button>';
+      var addBtn = emptyState.querySelector('.empty-add');
+      if (addBtn) addBtn.onclick = function() { openAddForm(); };
+      modelList.appendChild(emptyState);
       return;
     }
+    if (countEl) countEl.textContent = String(state.config.length);
     state.config.forEach(function(m, idx) {
-      var card = document.createElement('div');
-      card.className = 'model-card glass';
+      var hasKey = m.api_key && m.api_key.length > 0;
+      var num = (idx + 1 < 10 ? '0' : '') + (idx + 1);
+      var orb = brandOrbHtml(m);
+      var status = hasKey
+        ? '<span class="hero-status online"><i></i>API Key 已配置</span>'
+        : '<span class="hero-status pending"><i></i>未配置 Key</span>';
+      var card = document.createElement('article');
+      card.className = 'registry-model-card' + (m.model === state.model ? ' selected' : '');
       card.setAttribute('data-model-id', idx);
       card.style.animationDelay = (idx * 50) + 'ms';
-      var hasKey = m.api_key && m.api_key.length > 0;
-      card.innerHTML = '<div class="model-card-info"><span class="model-card-name">' + (m.label || m.model) + '</span><span class="model-card-provider"><span class="provider-dot ' + (hasKey ? 'configured' : 'missing') + '"></span>' + (m.provider || '自定义') + (m.model ? ' · ' + m.model : '') + '</span></div><div class="model-card-actions"><button class="model-action-btn" type="button" aria-label="编辑模型" onclick="window.openEditForm(' + idx + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button><button class="model-action-btn delete" type="button" aria-label="删除模型" onclick="window.deleteModel(' + idx + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button></div>';
+      card.innerHTML = '<div class="registry-card-top"><span class="model-number">' + num + '</span>' + status + '</div>' +
+        '<div class="registry-card-core">' + orb + '<div class="core-text"><h3>' + (m.label || m.model) + '</h3><p>' + (m.provider || '自定义') + ' · ' + (hasKey ? 'API Key 已配置' : '尚未配置 Key') + '</p></div></div>' +
+        '<div class="registry-card-actions"><button type="button" class="hero-edit">编辑配置 →</button><button type="button" class="card-delete">删除</button></div>';
+      var modelEntry = state.models[idx];
+      if (modelEntry) {
+        card.addEventListener('click', function() { selectModel(modelEntry.route, modelEntry.model); });
+      }
+      card.querySelector('.hero-edit').addEventListener('click', function(e) { e.stopPropagation(); window.openEditForm(idx); });
+      card.querySelector('.card-delete').addEventListener('click', function(e) { e.stopPropagation(); window.deleteModel(idx); });
       modelList.appendChild(card);
     });
   }
@@ -3362,6 +3696,18 @@ a:focus-visible,
     }
   }
 
+  function setServiceBusy(busy, label) {
+    if (powerBtn) {
+      powerBtn.disabled = busy;
+      powerBtn.classList.toggle('busy', busy);
+    }
+    if (busy && label && statusLabel) {
+      statusLabel.textContent = label;
+    } else {
+      renderStatus();
+    }
+  }
+
   async function startService() {
     if (!state.model) {
       if (state.models.length === 0) {
@@ -3371,41 +3717,30 @@ a:focus-visible,
       }
       return;
     }
-    // 启动前检查激活状态
-    try {
-      var actResp = await apiGet('/api/activation/status');
-      if (actResp && !actResp.activated) {
-        // 未激活，弹出激活弹窗
-        showActivationModal(actResp.device_id || '');
-        return;
-      }
-      // 已激活，更新有效期标签
-      if (actResp && actResp.activated) {
-        updateLicenseBadge(actResp.type, actResp.expires_at);
-      }
-    } catch (e) {
-      console.error('Activation check before start failed:', e);
-    }
+    setServiceBusy(true, '启动中…');
     try {
       var resp = await apiPost('/api/toggle', { action: 'start', model: state.model });
-      if (resp.ok) { state.running = true; showToast('Codex助手 服务已启动', 'success'); addTimeline('OK', 'Codex助手 服务已启动，可在 Codex App 中使用', 'success'); renderStatus(); }
+      if (resp.ok) { state.running = true; showToast('Codex助手 服务已启动', 'success'); addTimeline('OK', 'Codex助手 服务已启动，可在 Codex App 中使用', 'success'); }
       else if (resp.permission_error) { showPermissionGuide(); addTimeline('ERR', '权限错误: ' + (resp.error || '未知错误'), 'danger'); }
       else { showToast('启动失败: ' + (resp.error || '未知错误'), 'error', resp.debug); addTimeline('ERR', '启动失败: ' + (resp.error || '未知错误'), 'danger'); }
     } catch (e) { showToast('启动失败: ' + e.message, 'error'); addTimeline('ERR', '启动失败: ' + e.message, 'danger'); }
+    finally { setServiceBusy(false); }
   }
 
   async function stopService() {
+    setServiceBusy(true, '停止中…');
     try {
       var resp = await apiPost('/api/toggle', { action: 'stop' });
-      if (resp.ok) { state.running = false; state.stopGuard = Date.now() + 5000; showToast('Codex助手 服务已停止', 'info'); addTimeline('STOP', 'Codex助手 服务已停止，已恢复 OpenAI 原始配置', 'stop'); renderStatus(); }
+      if (resp.ok) { state.running = false; state.stopGuard = Date.now() + 5000; showToast('Codex助手 服务已停止', 'info'); addTimeline('STOP', 'Codex助手 服务已停止，已恢复 OpenAI 原始配置', 'stop'); }
       else { showToast('停止失败: ' + (resp.error || '未知错误'), 'error', resp.debug); addTimeline('ERR', '停止失败: ' + (resp.error || '未知错误'), 'danger'); }
     } catch (e) { showToast('停止失败: ' + e.message, 'error'); addTimeline('ERR', '停止失败: ' + e.message, 'danger'); }
+    finally { setServiceBusy(false); }
   }
 
   async function selectModel(route, model) {
     try {
       var resp = await apiPost('/api/model/select', { route: route, model: model });
-      if (resp.ok) { state.model = model; state.modelName = resp.model_name || model; showToast('已切换到 ' + (resp.model_name || model), 'success'); addTimeline('SWITCH', '已切换到 ' + (resp.model_name || model), 'switch'); renderStatus(); renderPills(); }
+      if (resp.ok) { state.model = model; state.modelName = resp.model_name || model; showToast('已切换到 ' + (resp.model_name || model), 'success'); addTimeline('SWITCH', '已切换到 ' + (resp.model_name || model), 'switch'); renderStatus(); renderPills(); renderModelList(); }
       else if (resp.permission_error) { showPermissionGuide(); addTimeline('ERR', '权限错误: ' + (resp.error || '未知错误'), 'danger'); }
       else { showToast('切换失败: ' + (resp.error || '未知错误'), 'error', resp.debug); addTimeline('ERR', '切换失败: ' + (resp.error || '未知错误'), 'danger'); }
     } catch (e) { showToast('切换失败: ' + e.message, 'error'); addTimeline('ERR', '切换失败: ' + e.message, 'danger'); }
@@ -3438,6 +3773,27 @@ a:focus-visible,
       // 未选择服务商时，清空自定义模型输入
       formModel.value = '';
     }
+    updateApinestQuickLink(providerName);
+    hideUrlTestResult();
+  }
+
+  function updateApinestQuickLink(providerName) {
+    var link = document.getElementById('apinest-quick-link');
+    if (!link) return;
+    link.classList.toggle('visible', providerName === 'APINest');
+  }
+
+  function hideUrlTestResult() {
+    var el = document.getElementById('url-test-result');
+    if (el) { el.style.display = 'none'; }
+  }
+
+  function showUrlTestResult(kind, message) {
+    var el = document.getElementById('url-test-result');
+    if (!el) return;
+    el.className = 'url-test-result ' + kind;
+    el.style.display = 'flex';
+    el.querySelector('.url-test-msg').textContent = message;
   }
 
   function onModelSelect() {
@@ -3462,17 +3818,31 @@ a:focus-visible,
     var model = formModel.value.trim() || formModelSelect.value.trim();
     var url = formUrl.value.trim();
     var key = formKey.value.trim();
-    if (!provider || !model || !url) { alert('请填写服务商、模型名称和 Base URL'); return; }
+    if (!provider || !model || !url) { showUrlTestResult('error', '请填写服务商、模型名称和 Base URL'); return; }
+    var saveBtn = document.getElementById('save-model');
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.classList.add('testing'); }
+    showUrlTestResult('loading', '正在测试连通性，请稍候…');
     try {
+      // 第一步：测试 Base URL 连通性，失败则提示原因且不保存
+      var testResp = await apiPost('/api/config/test-url', { url: url });
+      if (!testResp || !testResp.ok) {
+        showUrlTestResult('error', testResp && testResp.message ? testResp.message : '连接失败，请检查地址后重试');
+        return;
+      }
+      // 第二步：连通性通过，执行保存
+      showUrlTestResult('loading', '连接正常，正在保存…');
       var resp = await apiPost('/api/config/save', { provider: provider, model: model, url: url, api_key: key });
       if (resp.ok) {
         formPanel.classList.remove('active');
         addTimeline('SAVE', '已保存模型: ' + model, 'success');
         await loadConfig();
       } else {
-        addTimeline('ERR', '保存失败: ' + (resp.error || '未知错误'), 'danger');
+        showUrlTestResult('error', '保存失败: ' + (resp.error || '未知错误'));
       }
-    } catch (e) { addTimeline('ERR', '保存失败: ' + e.message, 'danger'); }
+    } catch (e) { showUrlTestResult('error', '保存失败: ' + e.message); }
+    finally {
+      if (saveBtn) { saveBtn.disabled = false; saveBtn.classList.remove('testing'); }
+    }
   }
 
   // ─── Data loading ───
@@ -3626,6 +3996,14 @@ a:focus-visible,
     var closeBtn = document.getElementById('close-model-config');
     if (openBtn) openBtn.onclick = function() { modelPanel.classList.add('active'); };
     if (closeBtn) closeBtn.onclick = function() { modelPanel.classList.remove('active'); formPanel.classList.remove('active'); };
+    if (modelSelect) {
+      modelSelect.onchange = function() {
+        var v = modelSelect.value;
+        if (!v) return;
+        var parts = v.split('\u0001');
+        selectModel(parts[0], parts[1]);
+      };
+    }
   }
 
   function initForm() {
@@ -3638,7 +4016,7 @@ a:focus-visible,
     if (closeFormBtn) closeFormBtn.onclick = function() { formPanel.classList.remove('active'); };
     if (saveBtn) saveBtn.onclick = saveModel;
     if (formProvider) {
-      Object.keys(PROVIDER_CONFIGS).forEach(function(name) {
+      ['APINest', '自定义'].forEach(function(name) {
         var opt = document.createElement('option');
         opt.value = name; opt.textContent = name;
         formProvider.appendChild(opt);
@@ -3654,6 +4032,8 @@ a:focus-visible,
     formProvider.value = '';
     formModelSelect.innerHTML = '<option value="">选择模型</option>';
     formModel.value = ''; formUrl.value = ''; formKey.value = '';
+    updateApinestQuickLink('');
+    hideUrlTestResult();
     formPanel.classList.add('active');
   }
 
@@ -3681,6 +4061,8 @@ a:focus-visible,
     }
     formUrl.value = model.upstream || '';
     formKey.value = model.api_key || '';
+    updateApinestQuickLink(providerName);
+    hideUrlTestResult();
     formPanel.classList.add('active');
   };
 
@@ -3694,129 +4076,8 @@ a:focus-visible,
     } catch (e) { addTimeline('ERR', '删除失败: ' + e.message, 'danger'); }
   };
 
-  // ─── 激活码功能 ───
-
-  async function checkActivation() {
-    try {
-      var resp = await apiGet('/api/activation/status');
-      if (resp && resp.activated) {
-        updateLicenseBadge(resp.type, resp.expires_at);
-        return;
-      }
-      showActivationModal((resp && resp.device_id) || '');
-    } catch (e) {
-      console.error('Activation check failed:', e);
-      // 即使请求失败也弹窗（可能后端没连上，但本地没激活记录）
-      showActivationModal('');
-    }
-  }
-
-  function updateLicenseBadge(type, expiresAt) {
-    var badge = document.getElementById('license-badge');
-    if (!badge) return;
-    if (type === 'permanent') {
-      badge.textContent = '永久有效';
-      badge.style.display = 'block';
-    } else if (expiresAt) {
-      var exp = new Date(expiresAt);
-      var now = new Date();
-      var daysLeft = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
-      var pad = function(n) { return n < 10 ? '0' + n : n; };
-      var dateStr = pad(exp.getMonth()+1) + '-' + pad(exp.getDate()) + ' ' + pad(exp.getHours()) + ':' + pad(exp.getMinutes());
-      if (daysLeft <= 0) {
-        badge.textContent = '已过期';
-        badge.style.color = 'var(--color-danger)';
-      } else if (daysLeft <= 3) {
-        badge.textContent = '剩余 ' + daysLeft + ' 天（至 ' + dateStr + '）';
-        badge.style.color = 'var(--color-warn)';
-      } else {
-        badge.textContent = '有效期 ' + daysLeft + ' 天（至 ' + dateStr + '）';
-        badge.style.color = 'var(--color-success)';
-      }
-      badge.style.display = 'block';
-    }
-  }
-
-  function showActivationModal(deviceId) {
-    var overlay = document.getElementById('activation-overlay');
-    if (!overlay) { console.error('activation overlay not found'); return; }
-    var span = document.getElementById('activation-device-id');
-    if (span) span.textContent = deviceId ? deviceId.substring(0, 16) + '...' : '获取中';
-    overlay.style.display = 'flex';
-    var input = document.getElementById('activation-code-input');
-    if (input) { input.value = ''; input.focus(); }
-    var err = document.getElementById('activation-error');
-    if (err) err.textContent = '';
-  }
-
-  function hideActivationModal() {
-    var overlay = document.getElementById('activation-overlay');
-    if (overlay) overlay.style.display = 'none';
-  }
-
-  // 初始化激活弹窗事件（在 DOMContentLoaded 中调用）
-  function initActivation() {
-    var submitBtn = document.getElementById('activation-submit');
-    var cancelBtn = document.getElementById('activation-cancel');
-    var inputEl = document.getElementById('activation-code-input');
-
-    if (submitBtn) {
-      submitBtn.onclick = async function() {
-        var code = inputEl.value.trim().toUpperCase();
-        var errEl = document.getElementById('activation-error');
-        if (!code) { if (errEl) errEl.textContent = '请输入激活码'; return; }
-        submitBtn.disabled = true;
-        submitBtn.textContent = '激活中...';
-        if (errEl) errEl.textContent = '';
-        try {
-          var resp = await apiPost('/api/activation/activate', { code: code });
-          if (resp.success) {
-            // 显示有效期信息
-            var validityText = '';
-            if (resp.type === 'permanent') {
-              validityText = '永久有效';
-            } else if (resp.expires_at) {
-              var exp = new Date(resp.expires_at);
-              var now = new Date();
-              var daysLeft = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
-              var pad = function(n) { return n < 10 ? '0' + n : n; };
-              var dateStr = exp.getFullYear() + '-' + pad(exp.getMonth()+1) + '-' + pad(exp.getDate());
-              validityText = '有效期 ' + daysLeft + ' 天（至 ' + dateStr + '）';
-            }
-            hideActivationModal();
-            showToast(validityText ? '激活成功 · ' + validityText : '激活成功', 'success');
-            updateLicenseBadge(resp.type, resp.expires_at);
-            await loadStatus();
-          } else {
-            if (errEl) errEl.textContent = resp.message || '激活失败';
-          }
-        } catch (e) {
-          if (errEl) errEl.textContent = '激活失败: ' + e.message;
-        }
-        submitBtn.disabled = false;
-        submitBtn.textContent = '激活';
-      };
-    }
-
-    if (cancelBtn) {
-      cancelBtn.onclick = function() {
-        // 只关闭弹窗，不关闭应用
-        hideActivationModal();
-      };
-    }
-
-    if (inputEl) {
-      inputEl.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-          var btn = document.getElementById('activation-submit');
-          if (btn) btn.click();
-        }
-      });
-    }
-  }
-
   // ─── Settings Modal ───
-  var APP_VERSION = "1.0.46"; // 当前版本，需与HTML中的版本号一致
+  var APP_VERSION = "1.0.75"; // 当前版本，需与HTML中的版本号一致
   // 从HTML元素中解析实际版本号，确保一致性
   (function() {
     var versionEl = document.getElementById('app-version');
@@ -3825,13 +4086,10 @@ a:focus-visible,
       if (match) APP_VERSION = match[1];
     }
   })();
-  var SERVER_URL = "http://43.160.233.155:8080";
   var settingsBtn = document.getElementById('settings-btn');
   var settingsModal = document.getElementById('settings-modal');
   var settingsCloseBtn = document.getElementById('settings-close-btn');
   var checkUpdateBtn = document.getElementById('check-update-btn');
-  var updateBanner = null;
-  var versionElement = document.getElementById('app-version');
 
   function openSettings() { settingsModal.classList.add('active'); }
   function closeSettings() { settingsModal.classList.remove('active'); }
@@ -3842,298 +4100,14 @@ a:focus-visible,
     if (e.target === settingsModal) closeSettings();
   });
 
-  // 上报错误到后台
-  function reportErrorToServer(errorType, message, details) {
-    try {
-      fetch(SERVER_URL + '/api/activation/report-error', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error_type: errorType, message: message, details: details || '' })
-      }).catch(function(){});
-    } catch(e) {}
-  }
-
-  // 从后台获取最新版本信息（仅用于检查更新对比，不更新当前版本显示）
-  async function fetchServerVersion() {
-    try {
-      var resp = await fetch(SERVER_URL + '/api/versions/check?platform=mac&current_version=0.0.0');
-      var data = await resp.json();
-      if (data.code === 0 && data.data) {
-        // 保存最新版本信息，用于检查更新对比
-        window.LATEST_VERSION = data.data.version;
-        window.LATEST_DOWNLOAD_URL = data.data.download_url;
-        // 显示版本更新说明（如果有的话）
-        var notesText = document.getElementById('release-notes-text');
-        if (notesText && data.data.release_notes) {
-          notesText.textContent = data.data.release_notes;
-        }
-      }
-    } catch(e) {
-      // 静默失败
-    }
-  }
-
-  // 版本号比较：返回 true 表示 latest 比 current 新
-  function isNewerVersion(current, latest) {
-    var cleanCurrent = (current || '0.0.0').replace(/^v/i, '').trim();
-    var cleanLatest = (latest || '0.0.0').replace(/^v/i, '').trim();
-    var partsC = cleanCurrent.split('.').map(function(n) { return parseInt(n) || 0; });
-    var partsL = cleanLatest.split('.').map(function(n) { return parseInt(n) || 0; });
-    for (var i = 0; i < Math.max(partsC.length, partsL.length); i++) {
-      var c = partsC[i] || 0;
-      var l = partsL[i] || 0;
-      if (l > c) return true;
-      if (l < c) return false;
-    }
-    return false;
-  }
-
-  // 显示下载弹窗（紧凑版）
-  function showDownloadDialog(version, downloadUrl) {
-    var existing = document.getElementById('download-dialog');
-    if (existing) existing.remove();
-    
-    // 提取文件名
-    var filename = downloadUrl.split('/').pop() || 'Codex助手.dmg';
-    
-    var dialog = document.createElement('div');
-    dialog.id = 'download-dialog';
-    dialog.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;';
-    dialog.innerHTML = `
-      <div class="download-card" style="background:var(--color-surface);border-radius:12px;padding:20px 24px;width:280px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.25);">
-        <div style="font-size:18px;font-weight:600;color:var(--color-text);margin-bottom:12px;">发现新版本 v${version}</div>
-        <div id="download-status" style="color:var(--color-text-muted);font-size:13px;margin-bottom:16px;">点击下方按钮下载更新</div>
-        <div id="download-progress-box" style="display:none;margin-bottom:16px;">
-          <div style="background:var(--color-border);border-radius:4px;height:6px;overflow:hidden;">
-            <div id="download-progress-bar" style="width:0%;height:100%;background:#3FDB6C;transition:width 0.3s;"></div>
-          </div>
-          <div id="download-progress-text" style="font-size:11px;color:var(--color-text-muted);margin-top:4px;">准备下载...</div>
-        </div>
-        <div id="download-buttons" style="display:flex;gap:8px;justify-content:center;">
-          <button id="download-link-btn" style="flex:1;padding:10px 16px;background:#3FDB6C;color:white;border:none;border-radius:6px;font-size:14px;cursor:pointer;">下载</button>
-          <button id="close-download-dialog" style="padding:10px 16px;background:transparent;border:1px solid var(--color-border);border-radius:6px;color:var(--color-text-muted);cursor:pointer;font-size:14px;">关闭</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(dialog);
-    
-    // 点击背景关闭
-    dialog.addEventListener('click', function(e) {
-      if (e.target === dialog) dialog.remove();
-    });
-    
-    document.getElementById('close-download-dialog').addEventListener('click', function() {
-      dialog.remove();
-    });
-    
-    var statusEl = document.getElementById('download-status');
-    var progressBox = document.getElementById('download-progress-box');
-    var progressBar = document.getElementById('download-progress-bar');
-    var progressText = document.getElementById('download-progress-text');
-    var downloadBtn = document.getElementById('download-link-btn');
-    var closeBtn = document.getElementById('close-download-dialog');
-    var progressInterval = null;
-    var downloadStarted = false;
-    
-    // 进度更新回调
-    window._downloadProgress = function(percent) {
-      downloadStarted = true;
-      if (percent < 0) {
-        // -1 表示无法获取总大小，显示不定进度动画
-        progressBar.style.width = '100%';
-        progressBar.style.background = 'linear-gradient(90deg, #3FDB6C 0%, #3FDB6C 30%, transparent 30%, transparent 100%)';
-        progressBar.style.backgroundSize = '200% 100%';
-        progressBar.style.animation = 'downloadIndeterminate 1.5s linear infinite';
-        progressText.textContent = '正在下载...';
-      } else {
-        progressBar.style.animation = 'none';
-        progressBar.style.background = '#3FDB6C';
-        progressBar.style.width = percent + '%';
-        progressText.textContent = '正在下载 ' + percent + '%';
-      }
-    };
-    
-    // 下载完成回调
-    window._downloadComplete = function() {
-      if (progressInterval) clearInterval(progressInterval);
-      progressBar.style.animation = 'none';
-      progressBar.style.background = '#3FDB6C';
-      progressBar.style.width = '100%';
-      progressText.textContent = '✓ 下载完成，正在打开安装包...';
-      progressText.style.color = '#3FDB6C';
-      downloadBtn.textContent = '已下载';
-      downloadBtn.disabled = true;
-      downloadBtn.style.background = '#ccc';
-    };
-    
-    // 下载错误回调
-    window._downloadError = function(err) {
-      if (progressInterval) clearInterval(progressInterval);
-      progressBar.style.animation = 'none';
-      progressBar.style.background = '#3FDB6C';
-      progressText.textContent = '下载失败: ' + err;
-      progressText.style.color = '#f44336';
-      downloadBtn.textContent = '重试';
-      downloadBtn.disabled = false;
-    };
-    
-    downloadBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      
-      // 重置状态
-      downloadStarted = false;
-      progressText.style.color = '';
-      
-      // 显示进度
-      statusEl.style.display = 'none';
-      progressBox.style.display = 'block';
-      downloadBtn.textContent = '下载中...';
-      downloadBtn.disabled = true;
-      
-      // 超时计时器：15 秒无进度则回退到浏览器打开
-      var fallbackTimer = setTimeout(function() {
-        if (!downloadStarted) {
-          // pywebview 下载超时，回退到浏览器
-          progressText.textContent = '尝试在浏览器中打开...';
-          if (window.pywebview && window.pywebview.api && window.pywebview.api.openUrl) {
-            window.pywebview.api.openUrl(downloadUrl);
-          } else {
-            window.open(downloadUrl, '_blank');
-          }
-          progressBar.style.animation = 'none';
-          progressBar.style.background = '#3FDB6C';
-          progressBar.style.width = '100%';
-          progressText.textContent = '已在浏览器中打开下载链接';
-          downloadBtn.textContent = '已打开';
-          downloadBtn.disabled = false;
-        }
-      }, 15000);
-      
-      // 尝试使用 pywebview API 下载文件
-      if (window.pywebview && window.pywebview.api && window.pywebview.api.downloadFile) {
-        window.pywebview.api.downloadFile(downloadUrl, filename).then(function(result) {
-          if (result && result.success) {
-            progressText.textContent = '正在连接...';
-          } else {
-            clearTimeout(fallbackTimer);
-            window._downloadError(result ? result.message : '下载失败');
-          }
-        }).catch(function(err) {
-          clearTimeout(fallbackTimer);
-          // pywebview API 异常，回退到浏览器打开
-          progressText.textContent = '尝试在浏览器中打开...';
-          if (window.pywebview && window.pywebview.api && window.pywebview.api.openUrl) {
-            window.pywebview.api.openUrl(downloadUrl);
-          } else {
-            window.open(downloadUrl, '_blank');
-          }
-          progressBar.style.width = '100%';
-          progressText.textContent = '已在浏览器中打开下载链接';
-          downloadBtn.textContent = '已打开';
-          downloadBtn.disabled = false;
-        });
-      } else if (window.pywebview && window.pywebview.api && window.pywebview.api.openUrl) {
-        clearTimeout(fallbackTimer);
-        // 备用：打开浏览器下载
-        window.pywebview.api.openUrl(downloadUrl);
-        progressBar.style.width = '100%';
-        progressText.textContent = '已在浏览器中打开下载链接';
-        downloadBtn.textContent = '已打开';
-        downloadBtn.disabled = false;
-      } else {
-        clearTimeout(fallbackTimer);
-        // 最后备用：直接打开链接
-        window.open(downloadUrl, '_blank');
-        progressBar.style.width = '100%';
-        progressText.textContent = '已打开下载链接';
-        downloadBtn.textContent = '已打开';
-        downloadBtn.disabled = false;
-      }
-    });
-  }
-
-  // 检查更新
-  if (checkUpdateBtn) checkUpdateBtn.addEventListener('click', async function() {
-    checkUpdateBtn.textContent = '检查中...';
-    try {
-      var resp = await fetch(SERVER_URL + '/api/versions/check?platform=mac&current_version=' + APP_VERSION);
-      var data = await resp.json();
-      if (data.code === 0 && data.data) {
-        var latestVer = data.data.version;
-        var downloadUrl = data.data.download_url;
-        // 拼接完整下载 URL（服务端返回的是相对路径）
-        if (downloadUrl && downloadUrl.startsWith('/')) {
-          downloadUrl = SERVER_URL + downloadUrl;
-        }
-        // 本地版本比较（不依赖后端 has_update 字段）
-        if (isNewerVersion(APP_VERSION, latestVer)) {
-          checkUpdateBtn.textContent = '有新版本';
-          // 更新显示的版本号
-          if (versionElement) versionElement.textContent = 'v' + APP_VERSION + ' (有新版本 v' + latestVer + ')';
-          // 显示下载弹窗
-          showDownloadDialog(latestVer, downloadUrl);
-        } else {
-          checkUpdateBtn.textContent = '已是最新版';
-          showToast('当前已是最新版本', 'info');
-          if (versionElement) versionElement.textContent = 'v' + APP_VERSION;
-        }
-      } else {
-        checkUpdateBtn.textContent = '检查失败';
-        showToast('检查更新失败', 'error');
-        reportErrorToServer('update_check_error', '检查更新失败: ' + (data.message || '未知错误'), JSON.stringify(data));
-      }
-    } catch (e) {
-      checkUpdateBtn.textContent = '检查失败';
-      showToast('检查更新失败: ' + e.message, 'error');
-      reportErrorToServer('update_check_error', '检查更新失败: ' + e.message, e.stack || '');
-    }
-    setTimeout(function() { checkUpdateBtn.textContent = '检查更新'; }, 3000);
+  // 版本更新通过发布包完成，客户端保持纯本地运行。
+  if (checkUpdateBtn) checkUpdateBtn.addEventListener('click', function() {
+    showToast('当前版本已是本地安装版本，请从项目发布页获取更新包', 'info');
   });
 
-  // 启动时自动检查更新
-  async function autoCheckUpdate() {
-    try {
-      var resp = await fetch(SERVER_URL + '/api/versions/check?platform=mac&current_version=' + APP_VERSION);
-      var data = await resp.json();
-      if (data.code === 0 && data.data) {
-        var latestVer = data.data.version;
-        var downloadUrl = data.data.download_url;
-        // 拼接完整下载 URL（服务端返回的是相对路径）
-        if (downloadUrl && downloadUrl.startsWith('/')) {
-          downloadUrl = SERVER_URL + downloadUrl;
-        }
-        // 本地版本比较（不依赖后端 has_update 字段）
-        if (isNewerVersion(APP_VERSION, latestVer)) {
-          // 更新显示
-          if (versionElement) versionElement.textContent = 'v' + APP_VERSION + ' (有新版本 v' + latestVer + ')';
-          // 在页面顶部显示更新提示条
-          var banner = document.createElement('div');
-          banner.className = 'update-banner';
-          banner.style.display = 'block';
-          banner.innerHTML = '发现新版本 v' + latestVer + '，点击立即更新';
-          banner.style.cursor = 'pointer';
-          banner.addEventListener('click', function() {
-            showDownloadDialog(latestVer, downloadUrl);
-          });
-          var container = document.querySelector('.app-container') || document.body;
-          container.insertBefore(banner, container.firstChild);
-          updateBanner = banner;
-        }
-      }
-    } catch (e) {
-      // 自动检查失败也上报
-      reportErrorToServer('auto_update_check_error', '自动检查更新失败: ' + e.message, e.stack || '');
-    }
-  }
-
-  // 全局错误捕获：未捕获的 JS 异常
-  window.addEventListener('error', function(e) {
-    reportErrorToServer('js_error', e.message, (e.filename || '') + ':' + (e.lineno || 0) + ' ' + (e.error && e.error.stack || ''));
-  });
-  // 全局 Promise 未捕获异常
-  window.addEventListener('unhandledrejection', function(e) {
-    var msg = (e.reason && e.reason.message) || String(e.reason || '未知错误');
-    reportErrorToServer('promise_error', msg, (e.reason && e.reason.stack) || '');
+  // 版本更新通过发布包完成，客户端保持纯本地运行。
+  if (checkUpdateBtn) checkUpdateBtn.addEventListener('click', function() {
+    showToast('当前版本已是本地安装版本，请从项目发布页获取更新包', 'info');
   });
 
   document.addEventListener('DOMContentLoaded', async function() {
@@ -4143,15 +4117,11 @@ a:focus-visible,
     initTabs();
     initModelPanel();
     initForm();
-    initActivation();
-    await checkActivation();
     await loadStatus();
     await loadConfig();
     await loadStats();
     await loadErrors();
     updateCounts();
-    await fetchServerVersion();
-    autoCheckUpdate();
     setInterval(async function() { await loadStatus(); await loadStats(); await loadErrors(); }, 3000);
   });
 

@@ -460,7 +460,7 @@
   </div>
   <h1>Codex助手 用户操作手册</h1>
   <p class="subtitle">从安装到使用，一站式指南</p>
-  <div class="version">v1.0.1</div>
+  <div class="version">v1.0.75</div>
 </div>
 
 <!-- 目录 -->
@@ -468,12 +468,11 @@
   <h2>目录</h2>
   <ol>
     <li><a href="#install">安装指南</a></li>
-    <li><a href="#activate">激活应用</a></li>
     <li><a href="#model">配置模型</a></li>
     <li><a href="#start">启动服务</a></li>
     <li><a href="#codex">连接 Codex</a></li>
     <li><a href="#settings">设置功能</a></li>
-    <li><a href="#update">检查更新</a></li>
+    <li><a href="#update">获取更新</a></li>
     <li><a href="#faq">常见问题</a></li>
   </ol>
 </div>
@@ -526,49 +525,11 @@
   </div>
 </section>
 
-<!-- 2. 激活应用 -->
-<section id="activate">
-  <h2><span class="num">2</span> 激活应用</h2>
-
-  <p>首次打开应用后，需要输入激活码才能使用。</p>
-
-  <ol class="steps">
-    <li>打开应用后，会自动弹出激活窗口</li>
-    <li>输入获取到的激活码</li>
-    <li>点击"激活"按钮</li>
-    <li>激活成功后即可使用全部功能</li>
-  </ol>
-
-  <div class="screenshot">
-    <div class="screenshot-bar">
-      <span class="dot red"></span>
-      <span class="dot yellow"></span>
-      <span class="dot green"></span>
-    </div>
-    <div class="screenshot-body" style="padding:40px;">
-      <div style="max-width:340px;margin:0 auto;">
-        <h4 style="text-align:center;margin-bottom:20px;font-size:17px;">激活 Codex助手</h4>
-        <div style="background:#f8f9fb;border:1px solid var(--rule);border-radius:8px;padding:14px;margin-bottom:12px;">
-          <div style="font-size:13px;color:var(--muted);margin-bottom:6px;">请输入激活码</div>
-          <div style="background:#fff;border:1px solid var(--rule);border-radius:6px;padding:10px;font-size:14px;color:var(--muted);">XXXX-XXXX-XXXX-XXXX</div>
-        </div>
-        <button style="width:100%;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;">激 活</button>
-      </div>
-    </div>
-  </div>
-  <p class="figure-caption">图2：激活码输入界面</p>
-
-  <div class="tip">
-    <strong>提示</strong>
-    每个激活码只能绑定一台设备。如果更换设备，请联系管理员解绑后重新激活。
-  </div>
-</section>
-
 <!-- 3. 配置模型 -->
 <section id="model">
-  <h2><span class="num">3</span> 配置模型</h2>
+  <h2><span class="num">2</span> 配置模型</h2>
 
-  <p>激活后，需要配置 API 服务商和模型才能使用。点击主界面的"+"按钮添加模型。</p>
+  <p>安装后即可配置 API 服务商和模型。点击主界面的"+"按钮添加模型。</p>
 
   <div class="screenshot">
     <div class="screenshot-bar">
@@ -620,7 +581,7 @@
   <h3>添加模型步骤</h3>
   <ol class="steps">
     <li>点击模型栏右侧的"+ 添加模型"按钮</li>
-    <li>填写服务商名称（如 APINest、OpenRouter）</li>
+    <li>选择服务商（仅支持 APINest 或自定义）</li>
     <li>填写模型名称（如 deepseek-v4-flash）</li>
     <li>填写 Base URL（以 http:// 或 https:// 开头）</li>
     <li>填写 API Key</li>
@@ -629,7 +590,7 @@
 
   <div class="tip">
     <strong>多服务商支持</strong>
-    不同服务商可以添加相同的模型名称。例如可以同时添加 APINest 的 deepseek-v4 和 OpenRouter 的 deepseek-v4，通过切换选择使用哪个。
+    可以添加多个 APINest 或自定义模型条目；历史配置中的其他 provider 仍可继续使用和编辑。
   </div>
 </section>
 
@@ -756,11 +717,11 @@
           <h4>设置</h4>
           <div class="ui-modal-item">
             <span class="label">当前版本</span>
-            <span class="value">v1.0.1</span>
+            <span class="value">v1.0.75</span>
           </div>
           <div class="ui-modal-item">
-            <span class="label">检查更新</span>
-            <span class="action">检查更新</span>
+            <span class="label">获取更新</span>
+            <span class="action">打开发布页</span>
           </div>
           <div class="ui-modal-item">
             <span class="label">操作文档</span>
@@ -787,8 +748,8 @@
         <td>显示当前安装的应用版本号</td>
       </tr>
       <tr>
-        <td>检查更新</td>
-        <td>手动检查是否有新版本，有新版本会提示下载</td>
+        <td>获取更新</td>
+        <td>打开项目发布页，下载最新安装包并覆盖安装</td>
       </tr>
       <tr>
         <td>操作文档</td>
@@ -798,48 +759,22 @@
   </table>
 </section>
 
-<!-- 7. 检查更新 -->
+<!-- 7. 获取更新 -->
 <section id="update">
-  <h2><span class="num">7</span> 检查更新</h2>
+  <h2><span class="num">7</span> 获取更新</h2>
 
-  <p>应用启动时会自动检查是否有新版本。如果有新版本，页面顶部会显示更新提示条。</p>
-
-  <div class="screenshot">
-    <div class="screenshot-bar">
-      <span class="dot red"></span>
-      <span class="dot yellow"></span>
-      <span class="dot green"></span>
-    </div>
-    <div class="screenshot-body">
-      <div class="ui-banner">发现新版本 v1.0.2，点击立即更新</div>
-      <div class="ui-header">
-        <div class="ui-brand">
-          <div class="ui-brand-icon"></div>
-          <span>Codex助手</span>
-        </div>
-        <div class="ui-header-right">
-          <div class="ui-toggle">
-            <div class="tbtn active"></div>
-            <div class="tbtn"></div>
-            <div class="tbtn"></div>
-          </div>
-          <div class="ui-gear">⚙</div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <p class="figure-caption">图7：更新提示条</p>
+  <p>客户端保持纯本地运行，不会自动连接远程版本服务。需要更新时，请从项目发布页获取对应平台的最新安装包。</p>
 
   <ol class="steps">
-    <li>应用启动时自动检查更新</li>
-    <li>如有新版本，页面顶部显示蓝色提示条</li>
-    <li>点击提示条，浏览器自动打开下载页面</li>
-    <li>下载新版本安装包后重新安装即可</li>
+    <li>打开项目发布页，查看最新版本和更新说明</li>
+    <li>下载对应平台的 macOS 或 Windows 安装包</li>
+    <li>退出当前版本后安装新版本</li>
+    <li>重新打开应用，原有本地配置会继续保留</li>
   </ol>
 
   <div class="tip">
-    <strong>手动检查</strong>
-    也可以在设置面板中点击"检查更新"手动检查。
+    <strong>本地数据</strong>
+    API Key、模型配置、用量统计和主题设置保存在本机，更新应用不会主动删除这些数据。
   </div>
 </section>
 
@@ -864,17 +799,12 @@
 
   <div class="faq-item">
     <h4>Q: API 报错怎么办？</h4>
-    <p>检查 API Key 是否正确、Base URL 是否以 <code>/v1</code> 结尾、模型名称是否与服务商匹配。错误信息会自动上报到后台，联系管理员查看。</p>
+    <p>检查 API Key 是否正确、Base URL 是否以 <code>/v1</code> 结尾、模型名称是否与服务商匹配；同时查看应用内的本地错误记录和适配器状态。</p>
   </div>
 
   <div class="faq-item">
     <h4>Q: 如何切换不同服务商的模型？</h4>
     <p>在模型栏点击对应模型即可切换。支持添加多个服务商的相同模型，按需切换使用。</p>
-  </div>
-
-  <div class="faq-item">
-    <h4>Q: 更换电脑后如何激活？</h4>
-    <p>联系管理员解绑旧设备，然后在新电脑上重新输入激活码即可。</p>
   </div>
 
   <div class="faq-item">

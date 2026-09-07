@@ -17,9 +17,16 @@ mkdir -p "$BUILD_DIR/python"
 mkdir -p "$BUILD_DIR/assets"
 mkdir -p "$BUILD_DIR/web"
 
-# 2. 解压 Python embeddable
-echo "[1/5] 解压 Python embeddable..."
-unzip -q -o /tmp/python-embed.zip -d "$BUILD_DIR/python/"
+# 2. 下载并解压 Python embeddable
+ echo "[1/5] 准备 Python embeddable..."
+PYTHON_EMBED_VERSION="3.10.11"
+PYTHON_EMBED_URL="https://www.python.org/ftp/python/${PYTHON_EMBED_VERSION}/python-${PYTHON_EMBED_VERSION}-embed-amd64.zip"
+PYTHON_EMBED_ZIP="/tmp/python-${PYTHON_EMBED_VERSION}-embed-amd64.zip"
+if [ ! -f "$PYTHON_EMBED_ZIP" ]; then
+  echo "下载 Python ${PYTHON_EMBED_VERSION} Windows embeddable 包..."
+  curl -fL --retry 2 -o "$PYTHON_EMBED_ZIP" "$PYTHON_EMBED_URL"
+fi
+unzip -q -o "$PYTHON_EMBED_ZIP" -d "$BUILD_DIR/python/"
 
 # 3. 启用 pip (取消 site-packages 注释)
 echo "[2/5] 配置 Python..."

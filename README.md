@@ -1,249 +1,136 @@
 # Codex助手
 
-> 给 OpenAI **Codex App** 接入 DeepSeek / Kimi / 智谱 / 通义 / 小米MiMo / LongCat 等任意 OpenAI 兼容大模型的桌面助手。**一键切换、一键回滚。** macOS / Windows 双平台支持，内置激活码管理系统与 Codex 主题皮肤。
+> 给 OpenAI **Codex App** 接入 APINest 或任意 OpenAI 兼容大模型的纯本地桌面助手。**无需账号、无需激活，开箱即用。** 支持 macOS / Windows，内置 Codex 主题皮肤。
 
 ![status](https://img.shields.io/badge/status-beta-orange)
 ![platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows-blue)
 ![license](https://img.shields.io/badge/license-MIT-green)
-![version](https://img.shields.io/badge/version-1.0.42-blue)
-
----
-
-## 它解决什么
-
-OpenAI Codex App 默认只能用官方 GPT 模型。但你可能希望：
-
-- **省钱**：换成 DeepSeek、Kimi、智谱、通义、小米MiMo 等便宜很多倍的模型
-- **国内速度**：直连国内厂商 API，不走代理
-- **多家随手切**：今天用 DeepSeek，明天用 Kimi，再后天试自己加的小米 MiMo
-
-Codex助手 在你本机起一个适配器（Codex `Responses` API ↔ OpenAI `chat/completions`），帮你把 Codex 的请求转给你选的任何 OpenAI 兼容上游。
-
----
+![version](https://img.shields.io/badge/version-1.0.75-blue)
 
 ## 特性
 
-- 🪄 **一键切换**：选模型 → 输 Key → 点按钮，完事
-- ↩️ **一键回滚**：随时切回 OpenAI 原版，零残留
-- ➕ **自定义提供商**：内置 10+ 常见平台模板，选模板自动填 Base URL 和模型名，只补 Key 就能用
-- 🔐 **Key 分家存**：每家 Key 单独保存，互不覆盖，下次自动加载
-- 🛡️ **不破坏原配置**：字段级合并 Codex `config.toml`，保留你所有原有的配置
-- 💾 **自动备份**：第一次切之前自动把原 `config.toml` 备份到 `.openai-backup`
-- 📊 **用量统计**：实时统计 Token 用量（输入/输出/缓存），按模型分组展示，支持调用历史记录
-- 🚨 **错误追踪**：自动记录上游 API 错误，兼容 4 种错误格式，方便排查问题
-- 🎨 **主题皮肤**：20 个内置 Codex 主题（原神、星穹铁道等），CDP 注入自动持久化，支持自定义壁纸
-- 🌗 **浅色/深色/专注**：三套 UI 主题，品牌图随主题自动切换
-- 🔄 **自动更新**：内置版本检查与一键更新，支持增量下载
-- 📦 **双平台支持**：macOS 原生 .app + Windows 便携版，开箱即用
-- 🔑 **激活码系统**：内置激活码管理后台，支持按天/永久两种授权模式，设备绑定防滥用
+- **纯本地运行**：无需账号、无需激活、无需设备绑定，不依赖授权服务器
+- **一键切换**：选择模型、填写 API Key 后即可启动本地适配器
+- **一键回滚**：随时切回 OpenAI 原版，自动保留配置备份
+- **新增服务商**：新增模型仅提供 `APINest` 和 `自定义` 两个选项；历史 provider 配置继续兼容
+- **本地存储**：API Key、模型配置、统计和主题配置保存在本机
+- **用量统计**：实时统计输入、输出、缓存 Token，并支持调用历史
+- **错误处理**：记录本地错误日志，兼容多种上游错误格式
+- **主题皮肤**：20 个内置 Codex 主题，支持 CDP 注入、持久化和自定义壁纸
+- **双平台支持**：macOS 原生 `.app/.dmg` 与 Windows 便携版
+- **发布包更新**：客户端不执行远程版本检查，更新从项目发布页获取新安装包
 
----
+## 支持的模型
 
-## 谁能用
+内置配置保留 DeepSeek、Kimi、智谱、通义、小米 MiMo、StepFun、LongCat、Claude、Gemini、APINest 等历史 provider，便于升级兼容。
 
-- **OS**：macOS 12+ / Windows 10+
-- **前置**：装好 OpenAI Codex App（任意版本）
-- **依赖**：无（macOS .app 和 Windows 便携版均自带运行时；自己跑源码需 Python 3.10+）
+新增模型时请选择：
 
----
-
-## 内置支持的平台
-
-| 平台 | 模型示例 | Base URL |
-|------|---------|----------|
-| DeepSeek | deepseek-v4-pro / deepseek-v4-flash | api.deepseek.com |
-| Kimi CN | kimi-k3 / kimi-k2.7-code / kimi-k2.6 | api.moonshot.cn |
-| 智谱 | glm-5.2 / glm-5.1 / glm-5-turbo | open.bigmodel.cn |
-| 通义 | qwen3.8-max-preview / qwen3.7-max / qwen3.7-plus | dashscope.aliyuncs.com |
-| 小米MiMo | mimo-v2.5-pro / mimo-v2.5 | api.xiaomimimo.com |
-| StepFun | step-3.7-flash / step-3.5-flash | api.stepfun.com |
-| LongCat | LongCat-2.0 / LongCat-Flash | api.longcat.chat |
-| Claude | claude-opus-5 / claude-sonnet-5 | api.anthropic.com |
-| Gemini | gemini-3.6-flash / gemini-3.5-flash | generativelanguage.googleapis.com |
-| APINest | 多模型聚合 | apinest.eu.cc |
-
-> 也可以选「自定义」，手动填写任意 OpenAI 兼容的 Base URL / 模型名 / API Key。
-
----
+- `APINest`：使用 APINest 预设地址和模型列表
+- `自定义`：填写任意 OpenAI Chat Completions 兼容的 Base URL、模型名称和 API Key
 
 ## 用法
 
-1. 下载 `Codex助手.dmg`（macOS）或 `Codex助手-Windows-portable.zip`（Windows）
-2. 安装并启动
-3. 首次使用需要输入激活码（联系管理员获取）
-4. 在窗口里：
-   - 点击「模型配置」添加你要用的模型
-   - 选择服务商和模型，粘贴对应平台的 API Key
-   - 保存后回到首页，点开关按钮启动服务
-5. 打开 Codex App，开始用
-6. 不用了：点开关按钮停止服务，自动切回 OpenAI 原版
+1. 下载对应平台的安装包并启动
+2. 安装后直接使用，无需输入激活码或登录账号
+3. 打开「模型配置」，选择 `APINest` 或 `自定义`
+4. 填写模型、Base URL 和 API Key，保存配置
+5. 回到首页启动本地服务，然后打开 Codex App
+6. 不使用第三方模型时，停止服务即可恢复官方 OpenAI 配置
 
----
-
-## 主题皮肤
-
-Codex助手内置 20 个精心制作的 Codex 主题，覆盖原神、星穹铁道等热门角色：
-
-- **一键换肤**：在设置面板选择主题，自动通过 CDP 协议注入 Codex App
-- **自动持久化**：Codex 重启后自动恢复上次设置的主题
-- **自定义壁纸**：支持上传本地图片创建个性化主题
-- **毛玻璃效果**：面板、头部、输入框区域均支持半透明毛玻璃
-
-内置主题包括：芙宁娜、纳西妲、薰子、篠澤广、鸣潮·永璋、Elysia、Karina、樱、海洋、极光等。
-
----
-
-## 激活码管理后台
-
-项目内置一个独立的 Web 管理后台，用于管理激活码：
-
-- 创建/删除/禁用激活码
-- 支持按天授权和永久授权两种模式
-- 查看激活码绑定状态和设备信息
-- 查看操作日志
-- 版本管理与安装包上传
-- 设备绑定，一码一机
-
-### 后台部署
-
-```bash
-# 1. 进入 admin 目录
-cd admin
-
-# 2. 安装依赖
-npm install
-
-# 3. 配置环境变量
-cat > .env << 'EOF'
-ADMIN_TOKEN=your-secure-token
-PORT=3000
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_USER=your-db-user
-DB_PASSWORD=your-db-password
-DB_NAME=codex_admin
-EOF
-
-# 4. 启动开发模式
-npm run dev
-
-# 5. 或构建生产模式
-npm run build && npm run start
-```
-
-后台基于 Next.js 14 + SQLite/MySQL + Arco Design 构建。
-
----
+历史第三方会话在适配器关闭后可能仍指向本地端口。重新打开 Codex助手时，内置 gatekeeper 会自动尝试将历史会话迁移到官方 OpenAI，按提示关闭并重新打开对应会话即可继续使用。
 
 ## 适配器工作原理
 
+```text
+Codex App --[Responses API]--> 127.0.0.1:18667 本地适配器 --[Chat Completions]--> 上游模型 API
+                                  │
+                                  └── 127.0.0.1:18668 本地控制 API + Web UI
 ```
-Codex App  --[Responses API]-->  适配器 (127.0.0.1:18667)  --[chat/completions]-->  上游模型 API
-```
 
-- 适配器在本地 `127.0.0.1:18667` 监听，接收 Codex 的 Responses API 请求
-- 自动转换为 OpenAI Chat Completions 格式，转发给你配置的上游 API
-- 支持**流式输出**和**非流式**两种模式
-- 支持**函数调用**（Function Calling / Tool Use）
-- **SSL 自动重试**：遇到 UNEXPECTED_EOF 等瞬时错误自动重试，重试时降级 TLS 版本
-- **多格式错误处理**：兼容 OpenAI 标准、非标准 code+message、无 choices 等 4 种错误格式
-- 请求中的 Authorization 头会被替换为你配置的 API Key
-- `requires_openai_auth = false`，无论 Codex 用 API Key 登录还是账号登录都能正常工作
+- 接收 Codex Responses API 请求并转换为 OpenAI Chat Completions 格式
+- 支持流式输出、非流式输出和函数调用
+- API Key 仅用于本地转发配置，不经过第三方授权服务
+- 支持 SSL 自动重试和多格式上游错误解析
+- 适配器只监听 `127.0.0.1`，不对外网开放
 
----
+## 主题皮肤
 
-## 自己跑源码 / 自己打包
+Codex助手内置 20 个主题，支持一键切换、Codex 重启后自动恢复、自定义壁纸和玻璃风界面。主题注入依赖 Codex 的 CDP 调试端口。
+
+## 自己运行和打包
 
 ```bash
-# 1. 克隆
-git clone https://gitee.com/hidylan/codex-assistant.git
-cd codex-assistant
-
-# 2. 装依赖
+git clone https://github.com/Dylan-Du/CodeWise.git
+cd CodeWise
 pip install -r requirements.txt
 
-# 3. 启动 Web 版
+# 启动 Web 版
 python src/web_launcher.py
 
 # 或启动 GUI 版
 python src/gui_ctk.py
 
-# 4. 打包 macOS .app
+# macOS
 bash build_app.sh
-# 产物：dist/Codex助手.app
-
-# 5. 打包 macOS .dmg
 bash build_dmg.sh
-# 产物：dist/Codex助手-1.0.42.dmg
 
-# 6. 打包 Windows 便携版
+# Windows 便携版
 bash build_windows_portable.sh
-# 产物：dist/Codex助手-Windows-portable.zip
 ```
 
----
+源码运行需要 Python 3.10+；发布包自带运行时。构建产物位于 `dist/`，发布前请从项目发布页上传并分发安装包。
 
 ## 项目结构
 
-```
+```text
 codex-assistant/
 ├─ src/
-│   ├─ adapter.py            # 适配器：Codex Responses ↔ OpenAI chat/completions
-│   ├─ core.py               # 配置管理、provider 路由、Key 存储、适配器启停
-│   ├─ web_api.py            # HTTP 控制 API 服务器 + 状态管理
-│   ├─ web_launcher.py       # pywebview 桌面启动器
-│   ├─ activation.py         # 激活码验证与设备绑定
-│   ├─ theme_manager.py      # Codex 主题注入（CDP 协议）
-│   ├─ macos_permissions.py  # macOS 权限管理
-│   └─ tests/                # 测试
-├─ web/
-│   └─ index.html            # Web 前端界面（含三套主题）
-├─ admin/                    # 激活码管理后台（Next.js 14）
-│   ├─ app/                  # Next.js App Router 页面和 API
-│   ├─ lib/                  # 数据库、工具库
-│   └─ package.json
-├─ assets/
-│   ├─ dream-skin/           # 主题系统（20 个内置主题 + 基础 CSS）
-│   │   ├─ builtin-themes/   # 内置主题目录
-│   │   └─ dream-skin-base.css  # 主题基础 CSS（56KB）
-│   ├─ logo.svg              # 应用图标
-│   └─ mascot-3d.png         # 吉祥物
-├─ build_dmg.sh              # macOS DMG 打包脚本
-├─ build_app.sh              # macOS APP 打包脚本
-├─ build_windows_portable.sh # Windows 便携版打包脚本
-├─ deploy.sh                 # 服务器一键部署脚本
-├─ update_admin.sh           # 管理后台更新脚本
+│  ├─ adapter.py            # Responses API ↔ Chat Completions 适配器
+│  ├─ core.py               # 配置、provider、Key 存储、启停和回滚
+│  ├─ web_api.py            # 本地控制 API 和页面托管
+│  ├─ web_launcher.py       # pywebview 桌面启动器
+│  ├─ theme_manager.py      # Codex 主题注入
+│  ├─ macos_permissions.py  # macOS 权限管理
+│  └─ tests/                # 测试
+├─ web/index.html           # 单文件 Web UI
+├─ assets/dream-skin/       # 主题系统
+├─ build_app.sh             # macOS App 打包
+├─ build_dmg.sh             # macOS DMG 打包
+├─ build_windows_portable.sh# Windows 便携版打包
 ├─ requirements.txt
-├─ AGENTS.md                 # AI 协作指南
-├─ LICENSE                   # MIT
+├─ AGENTS.md
+├─ LICENSE
 └─ README.md
 ```
 
----
-
-## 数据存哪
+## 数据存储
 
 | 文件 | 内容 |
 |---|---|
-| `~/.codex-helper/data/codex-helper-config.json` | 适配器当前激活配置（upstream / model / api_key） |
-| `~/.codex-helper/data/switcher-keys.json` | 内置 provider 的 API Key |
-| `~/.codex-helper/data/switcher-custom-providers.json` | 自定义 provider 条目 |
+| `~/.codex-helper/data/codex-helper-config.json` | 当前适配器配置 |
+| `~/.codex-helper/data/switcher-keys.json` | API Key |
+| `~/.codex-helper/data/switcher-custom-providers.json` | 自定义模型条目 |
 | `~/.codex-helper/data/token-usage.json` | Token 用量统计 |
 | `~/.codex-helper/theme_config.json` | 主题配置 |
-| `~/.codex-helper/activation.json` | 激活码本地缓存（设备绑定信息） |
-| `~/.codex/config.toml` | Codex 主配置（被字段级修改） |
-| `~/.codex/config.toml.openai-backup` | 切换前的完整备份，用于回滚 |
+| `~/.codex/config.toml` | Codex 主配置 |
+| `~/.codex/config.toml.openai-backup` | 切换前的官方配置备份 |
 
----
+旧版本留下的本地授权文件不会被新版本读取，也不会影响启动；客户端不会主动删除用户历史数据。
+
+## 测试
+
+```bash
+python3 -m py_compile src/*.py
+python3 src/tests/test_core.py
+```
 
 ## 已知限制
 
-- 自定义提供商功能假设上游是 **OpenAI Chat Completions 兼容**协议
-- 适配器只在 `127.0.0.1:18667` 监听，外网访问不到
-- 同一时刻只能挂一家上游（这是 Codex 的限制）
+- 自定义 provider 需要兼容 OpenAI Chat Completions 协议
+- 同一时刻只能挂载一家上游模型服务
 - 主题注入需要 Codex 以 CDP 调试模式启动
-
----
+- 客户端更新通过发布包完成，不在应用内访问版本服务器
 
 ## License
 

@@ -7,6 +7,7 @@ import socket
 import sqlite3
 import ssl
 import time
+import threading
 import traceback
 import urllib.error
 import urllib.parse
@@ -36,6 +37,13 @@ _SSL_RETRY_BASE_DELAY = 0.5  # 秒，每次重试递增（0.5s → 1.0s）
 # 502/503/504 是网关/代理层瞬时错误（如 nginx 超时、服务短暂不可用），
 # 重试通常能成功。与 4xx 等永久性错误不同，这些值得自动重试。
 _RETRYABLE_HTTP_CODES = {502, 503, 504}
+
+# ─── 输出 token 下限保护 ───
+# DeepSeek 等 thinking 模式上游的 max_tokens 是「思维链(reasoning_content)
+# + 最终答案(content)」的总预算。Codex 默认 4096 会被思维链耗尽，导致
+# content 为空、界面只显示"正在思考"后无输出。此处强制下限，给思维链
+# 和最终答案都留出空间。
+_MIN_OUTPUT_TOKENS = 16384
 
 
 def _is_retryable_ssl_error(exc):
@@ -140,10 +148,16 @@ DB_PATH = _CONFIG_DIR / "cc-switch.db"
 
 # 日志文件
 _LOG_FILE = _CONFIG_DIR / "adapter-debug.log"
+_MAX_LOG_SIZE = 1024 * 1024  # 超过 1MB 自动轮转，防止无限增长
 
 def _log(msg):
-    """写入日志文件"""
+    """写入日志文件（带大小轮转）"""
     try:
+        if _LOG_FILE.exists() and _LOG_FILE.stat().st_size > _MAX_LOG_SIZE:
+            try:
+                _LOG_FILE.replace(_LOG_FILE.with_name("adapter-debug.log.old"))
+            except Exception:
+                _LOG_FILE.unlink(missing_ok=True)
         with open(_LOG_FILE, "a", encoding="utf-8") as f:
             f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}\n")
     except Exception:
@@ -230,16 +244,8 @@ def responses_to_messages(body):
             messages.append({"role": "user", "content": inp})
         return messages or [{"role": "user", "content": ""}]
 
-    # 先收集所有 function_call_output 的 call_id
-    output_call_ids = set()
     if isinstance(inp, list):
-        for item in inp:
-            if isinstance(item, dict) and item.get("type") == "function_call_output":
-                cid = item.get("call_id") or item.get("id")
-                if cid:
-                    output_call_ids.add(cid)
-
-    if isinstance(inp, list):
+        pending_reasoning = None
         for item in inp:
             if not isinstance(item, dict):
                 text = extract_text(item)
@@ -258,132 +264,155 @@ def responses_to_messages(body):
 
             if typ == "function_call":
                 call_id = item.get("call_id") or item.get("id") or "call_unknown"
-                msg = {
-                    "role": "assistant",
-                    "content": None,
-                    "tool_calls": [{
-                        "id": call_id,
-                        "type": "function",
-                        "function": {
-                            "name": item.get("name") or "unknown",
-                            "arguments": item.get("arguments") or "{}",
-                        },
-                    }],
+                call_obj = {
+                    "id": call_id,
+                    "type": "function",
+                    "function": {
+                        "name": item.get("name") or "unknown",
+                        "arguments": item.get("arguments") or "{}",
+                    },
                 }
-                reasoning = item.get("reasoning_content") or item.get("reasoning")
-                if reasoning:
-                    msg["reasoning_content"] = reasoning
-                messages.append(msg)
-
-                if call_id not in output_call_ids:
-                    messages.append({
-                        "role": "tool",
-                        "tool_call_id": call_id,
+                # DeepSeek thinking 模式：带 tool_calls 的 assistant 消息必须
+                # 携带 reasoning_content（思维链），否则上游返回 HTTP 400。
+                reasoning = pending_reasoning or item.get("reasoning_content") or item.get("reasoning")
+                prev = messages[-1] if messages else None
+                if prev and prev.get("role") == "assistant" and prev.get("tool_calls"):
+                    # 并行工具调用：本轮多个 tool_calls，合并到同一条 assistant 消息
+                    prev["tool_calls"].append(call_obj)
+                    if reasoning and not prev.get("reasoning_content"):
+                        prev["reasoning_content"] = reasoning
+                        pending_reasoning = None
+                elif prev and prev.get("role") == "assistant" and not prev.get("tool_calls"):
+                    # 关键修复：模型一轮同时返回「正文 + 工具调用 + 思维链」时，
+                    # 正文和工具调用是同一条 assistant 消息。Codex 回传时正文是
+                    # message item、工具调用是紧随其后的 function_call item。这里
+                    # 必须把 tool_calls 合并到前一条正文消息上，而不是新建一条
+                    # assistant(tool_calls)，否则 reasoning 只挂在正文上、工具调用
+                    # 那条缺 reasoning_content，触发 DeepSeek 400。
+                    prev["tool_calls"] = [call_obj]
+                    if reasoning and not prev.get("reasoning_content"):
+                        prev["reasoning_content"] = reasoning
+                        pending_reasoning = None
+                else:
+                    msg = {
+                        "role": "assistant",
                         "content": "",
-                    })
+                        "tool_calls": [call_obj],
+                    }
+                    if reasoning:
+                        msg["reasoning_content"] = reasoning
+                        pending_reasoning = None
+                    messages.append(msg)
                 continue
 
-            # 处理 reasoning 类型 item：将其合并到前一个 assistant 消息的 reasoning_content
+            # 处理 reasoning 类型 item：把思维链文本挂到对应的 assistant 消息上。
+            # 兼容两种顺序：reasoning 在 message 之前（新顺序，缓存 pending_reasoning
+            # 等后续 message 挂载）；reasoning 在 message 之后（旧顺序/Codex 重排，
+            # 直接挂到紧邻的前一个 assistant 消息），避免错位挂到下一个 assistant。
             if typ == "reasoning":
-                reasoning_text = extract_text(item.get("content"))
+                reasoning_text = extract_text(item.get("content")) or extract_text(item.get("summary"))
                 if reasoning_text:
-                    if messages and messages[-1].get("role") == "assistant" and not messages[-1].get("reasoning_content"):
-                        messages[-1]["reasoning_content"] = reasoning_text
-                    else:
-                        messages.append({
-                            "role": "assistant",
-                            "content": "",
-                            "reasoning_content": reasoning_text,
-                        })
+                    attached = False
+                    for m in reversed(messages):
+                        if m.get("role") == "assistant" and not m.get("reasoning_content"):
+                            m["reasoning_content"] = reasoning_text
+                            attached = True
+                            break
+                    if not attached:
+                        pending_reasoning = reasoning_text
                 continue
 
             role = normalize_role(item.get("role") or ("assistant" if typ == "message" else "user"))
             text = extract_text(item.get("content"))
             if not text and typ:
                 text = extract_text(item)
-            if text:
-                msg = {"role": role, "content": text}
-                if role == "assistant":
-                    reasoning = item.get("reasoning_content") or item.get("reasoning")
-                    if reasoning:
-                        msg["reasoning_content"] = reasoning
+            reasoning = item.get("reasoning_content") or item.get("reasoning")
+            if role == "assistant" and not reasoning and pending_reasoning:
+                reasoning = pending_reasoning
+            if text or reasoning:
+                msg = {"role": role, "content": text or ""}
+                if role == "assistant" and reasoning:
+                    msg["reasoning_content"] = reasoning
+                    pending_reasoning = None
                 messages.append(msg)
 
-    # 前处理：检测孤立的 tool 消息（前面没有对应的 assistant tool_calls）
-    # 这通常发生在对话历史被截断或压缩，丢失了原始的 function_call 但保留了 function_call_output
-    # OpenAI API 要求每个 tool 消息前面必须有带 tool_calls 的 assistant 消息
-    seen_call_ids = set()
-    for msg in messages:
-        if msg.get("role") == "assistant" and msg.get("tool_calls"):
-            for call in msg["tool_calls"]:
-                cid = call.get("id")
-                if cid:
-                    seen_call_ids.add(cid)
+    # 兜底：若 reasoning item 位于序列末尾、之后没有 assistant 消息可挂载，
+    # 则把它挂到最后一个 assistant 消息上（无工具调用轮次上游会忽略，不报错）。
+    if pending_reasoning:
+        for m in reversed(messages):
+            if m.get("role") == "assistant" and not m.get("reasoning_content"):
+                m["reasoning_content"] = pending_reasoning
+                break
 
-    pre_fixed = []
-    for msg in messages:
-        if msg.get("role") == "tool":
-            tid = msg.get("tool_call_id")
-            if tid and tid not in seen_call_ids:
-                # 这个 tool 消息没有对应的 assistant tool_calls，补一个
-                pre_fixed.append({
+    # 工具消息严格配对：
+    # OpenAI / DeepSeek 等上游要求每个 tool 消息必须紧跟声明了对应
+    # tool_calls 的 assistant 消息（严格相邻）。对话历史截断/压缩、
+    # 并行工具调用、或 function_call 嵌套在 assistant 消息的 output
+    # 数组中时，会产生孤立的 tool 消息（前面没有声明它的 assistant），
+    # 导致上游 HTTP 400："Messages with role 'tool' must be a response
+    # to a preceding message with 'tool calls'"。
+    # 这里按顺序做严格配对：
+    #   1) assistant(tool_calls) 后紧随的 tool 响应原样保留
+    #   2) 缺失的 tool 响应补空内容（保持相邻）
+    #   3) 孤立的 tool 消息在其前面补一个 assistant tool_calls 占位
+    paired = []
+    i = 0
+    n = len(messages)
+    while i < n:
+        m = messages[i]
+        if m.get("role") == "assistant" and m.get("tool_calls"):
+            paired.append(m)
+            call_ids = [c.get("id", "call_unknown") for c in m["tool_calls"]]
+            # 收集紧随其后的 tool 响应（同一轮的并行工具调用）
+            j = i + 1
+            responded = {}
+            unmatched = []
+            while j < n and messages[j].get("role") == "tool":
+                tid = messages[j].get("tool_call_id")
+                if tid in call_ids and tid not in responded:
+                    responded[tid] = messages[j]
+                elif tid not in call_ids:
+                    unmatched.append(messages[j])
+                j += 1
+            # 按声明顺序输出 tool 响应，缺失的补空内容
+            for cid in call_ids:
+                if cid in responded:
+                    paired.append(responded[cid])
+                else:
+                    paired.append({"role": "tool", "tool_call_id": cid, "content": ""})
+            # 不属于当前 assistant 的 tool 响应，作为孤立消息补 assistant 占位
+            for u in unmatched:
+                utid = u.get("tool_call_id") or "call_unknown"
+                paired.append({
                     "role": "assistant",
-                    "content": None,
+                    "content": "",
                     "tool_calls": [{
-                        "id": tid,
+                        "id": utid,
                         "type": "function",
-                        "function": {
-                            "name": "tool",
-                            "arguments": "{}",
-                        },
+                        "function": {"name": "tool", "arguments": "{}"},
                     }],
                 })
-                seen_call_ids.add(tid)
-        pre_fixed.append(msg)
-
-    messages = pre_fixed
-
-    # 后处理：确保 messages 中每个带 tool_calls 的 assistant 消息后面都紧跟对应的 tool 响应
-    # 某些 API（如 DeepSeek）要求每个 assistant tool_calls 后立即跟 tool 响应
-    fixed_messages = []
-    for i, msg in enumerate(messages):
-        fixed_messages.append(msg)
-        if msg.get("role") == "assistant" and msg.get("tool_calls"):
-            # 检查这个 assistant 消息后面是否紧跟 tool 响应
-            next_msg = messages[i + 1] if i + 1 < len(messages) else None
-            if not next_msg or next_msg.get("role") != "tool":
-                # 下一条不是 tool 响应，需要补上所有缺失的 tool 响应
-                for call in msg["tool_calls"]:
-                    call_id = call.get("id", "call_unknown")
-                    fixed_messages.append({
-                        "role": "tool",
-                        "tool_call_id": call_id,
-                        "content": "",
-                    })
-            elif next_msg and next_msg.get("role") == "tool":
-                # 下一条是 tool 响应，但需要检查是否覆盖了所有 tool_calls
-                next_call_id = next_msg.get("tool_call_id")
-                for call in msg["tool_calls"]:
-                    call_id = call.get("id", "call_unknown")
-                    if call_id != next_call_id:
-                        # 这个 call_id 没有对应的 tool 响应，补上
-                        fixed_messages.append({
-                            "role": "tool",
-                            "tool_call_id": call_id,
-                            "content": "",
-                        })
-
-    # 检查最后一条消息，如果以 assistant tool_calls 结尾，补上 tool 响应
-    if fixed_messages and fixed_messages[-1].get("role") == "assistant" and fixed_messages[-1].get("tool_calls"):
-        for call in fixed_messages[-1]["tool_calls"]:
-            call_id = call.get("id", "call_unknown")
-            fixed_messages.append({
-                "role": "tool",
-                "tool_call_id": call_id,
+                paired.append(u)
+            i = j
+        elif m.get("role") == "tool":
+            # 孤立 tool 消息：前面没有声明它的 assistant，补一个占位
+            tid = m.get("tool_call_id") or "call_unknown"
+            paired.append({
+                "role": "assistant",
                 "content": "",
+                "tool_calls": [{
+                    "id": tid,
+                    "type": "function",
+                    "function": {"name": "tool", "arguments": "{}"},
+                }],
             })
+            paired.append(m)
+            i += 1
+        else:
+            paired.append(m)
+            i += 1
 
-    messages = fixed_messages
+    messages = paired
 
     # 调试日志：打印消息结构到文件
     msg_summary = []
@@ -391,6 +420,7 @@ def responses_to_messages(body):
         role = m.get("role")
         has_tc = bool(m.get("tool_calls"))
         has_tid = "tool_call_id" in m
+        has_rc = bool(m.get("reasoning_content"))
         tc_ids = [c.get("id","?") for c in m.get("tool_calls",[])]
         tid = m.get("tool_call_id","")
         info = ""
@@ -398,6 +428,8 @@ def responses_to_messages(body):
             info = f"(tc:{','.join(tc_ids)})"
         elif has_tid:
             info = f"(tid:{tid})"
+        if has_rc:
+            info += "(rc)"
         msg_summary.append(f"{role}{info}")
     _log(f"messages: {' -> '.join(msg_summary)}")
 
@@ -463,6 +495,21 @@ def output_from_chat_message(message):
     if not text and isinstance(audio, dict):
         text = audio.get("transcript") or ""
     reasoning = message.get("reasoning_content") or message.get("reasoning")
+    # 保留 reasoning_content（思考模式）作为独立 reasoning item，且必须排在
+    # message 之前（思考先于回答）。否则 Codex 回传对话历史时，reasoning 会
+    # 错位挂到下一个 assistant 消息上，导致 DeepSeek 多轮对话报
+    # 「The reasoning_content in the thinking mode must be passed back to the API」。
+    # 注意：reasoning item 的 content 数组必须为空/省略！官方 Responses API 对
+    # reasoning 输入 item 校验 content 长度最大为 0（只接受 summary）。若带上
+    # content 数组，Codex 存盘后切回官方续聊时会报
+    # 「Invalid 'input[n].content': array too long. Expected an array with maximum
+    # length 0, but got an array with length 1 instead.」
+    if reasoning:
+        output.append({
+            "id": "rs_" + uuid.uuid4().hex,
+            "type": "reasoning",
+            "summary": [{"type": "summary_text", "text": reasoning}],
+        })
     if text:
         msg_item = {
             "id": "msg_" + uuid.uuid4().hex,
@@ -474,15 +521,23 @@ def output_from_chat_message(message):
         if reasoning:
             msg_item["reasoning_content"] = reasoning
         output.append(msg_item)
-    # 保留 reasoning_content（思考模式）作为独立 item（兼容旧版 Codex）
-    if reasoning:
-        output.append({
-            "id": "rs_" + uuid.uuid4().hex,
-            "type": "reasoning",
+    elif reasoning and not (message.get("tool_calls")):
+        # thinking 模型思维链耗尽等场景：只有 reasoning、没有最终答案，且没有
+        # 工具调用（有工具调用时 content 为空是正常的，不能误判为耗尽）。
+        # 注入明确提示，避免 Codex 界面"只显示正在思考后无输出"。
+        hint = (f"[提示] 模型思考完成但未生成最终答案，输出可能被 max_tokens 截断"
+                f"（思维链耗尽了全部预算）。Codex 助手已自动将 max_tokens 提升到 {_MIN_OUTPUT_TOKENS}，"
+                f"请重试。")
+        msg_item = {
+            "id": "msg_" + uuid.uuid4().hex,
+            "type": "message",
             "status": "completed",
             "role": "assistant",
-            "content": [{"type": "output_text", "text": reasoning, "annotations": []}],
-        })
+            "content": [{"type": "output_text", "text": hint, "annotations": []}],
+        }
+        if reasoning:
+            msg_item["reasoning_content"] = reasoning
+        output.append(msg_item)
     for call in message.get("tool_calls") or []:
         fn = call.get("function") or {}
         output.append({
@@ -577,6 +632,61 @@ def _clean_http_error(code, body):
     return f"HTTP {code}: {text[:300]}" if text else f"HTTP {code}"
 
 
+def probe_url(url, timeout=8):
+    """探测 Base URL 连通性，返回分类后的诊断结果。
+
+    用于"测试链接"功能：前端调用控制 API，后端用标准库对目标
+    URL 发起请求，按失败类型给出可读原因（超时 / DNS / SSL /
+    连接拒绝 / HTTP 状态码等）。
+
+    返回: dict
+        {"ok": True,  "status": int, "message": str}  可达（含 4xx/5xx）
+        {"ok": False, "status": None, "message": str} 不可达，message 为原因
+    """
+    if not url:
+        return {"ok": False, "status": None, "message": "请输入 Base URL"}
+    if not url.startswith(("http://", "https://")):
+        return {"ok": False, "status": None, "message": "Base URL 必须以 http:// 或 https:// 开头"}
+
+    request = urllib.request.Request(
+        url,
+        method="GET",
+        headers={
+            "User-Agent": "CodexHelper/1.0 (connectivity-probe)",
+            "Accept": "*/*",
+        },
+    )
+    try:
+        # 只读取响应头即关闭，不消费响应体，避免触发大流量
+        with urllib.request.urlopen(request, timeout=timeout, context=_SSL_CONTEXT) as resp:
+            status = resp.getcode()
+            return {"ok": True, "status": status, "message": f"连接成功（HTTP {status}），Base URL 可用"}
+    except urllib.error.HTTPError as exc:
+        # 任何 HTTP 状态码都说明服务器可达（4xx/5xx 属业务层拒绝）
+        status = exc.code
+        reason = _clean_http_error(status, str(getattr(exc, "read", lambda: b"")())[:300] if hasattr(exc, "read") else "")
+        return {"ok": True, "status": status, "message": f"服务器有响应（HTTP {status}），Base URL 可达"}
+    except urllib.error.URLError as exc:
+        reason = exc.reason
+        if isinstance(reason, ssl.SSLError):
+            return {"ok": False, "status": None, "message": f"SSL 证书错误：{reason}"}
+        if isinstance(reason, socket.timeout):
+            return {"ok": False, "status": None, "message": f"连接超时：{timeout} 秒内无响应，请检查地址或网络"}
+        if isinstance(reason, socket.gaierror):
+            return {"ok": False, "status": None, "message": f"域名解析失败（DNS）：{getattr(reason, 'strerror', None) or reason}"}
+        if isinstance(reason, ConnectionRefusedError):
+            return {"ok": False, "status": None, "message": "连接被拒绝：该地址和端口没有服务在监听"}
+        return {"ok": False, "status": None, "message": f"网络错误：{reason}"}
+    except socket.timeout:
+        return {"ok": False, "status": None, "message": f"连接超时：{timeout} 秒内无响应，请检查地址或网络"}
+    except ssl.SSLError as exc:
+        return {"ok": False, "status": None, "message": f"SSL 证书错误：{exc}"}
+    except ConnectionRefusedError:
+        return {"ok": False, "status": None, "message": "连接被拒绝：该地址和端口没有服务在监听"}
+    except Exception as exc:
+        return {"ok": False, "status": None, "message": f"连接失败：{exc}"}
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "codex-helper/0.1"
 
@@ -629,11 +739,19 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_error(401, "Missing API key")
                 return
             messages = responses_to_messages(body)
-            max_tokens = body.get("max_output_tokens") or body.get("max_tokens") or 4096
+            orig_max_tokens = body.get("max_output_tokens") or body.get("max_tokens")
+            max_tokens = orig_max_tokens or _MIN_OUTPUT_TOKENS
+            # DeepSeek 等 thinking 模式上游的 max_tokens 是「思维链 + 最终答案」的
+            # 总预算。Codex 默认 4096 会被思维链耗尽，导致 content 为空、
+            # 界面只显示"正在思考"后无输出。此处强制下限，给思维链留足空间。
+            if max_tokens < _MIN_OUTPUT_TOKENS:
+                _log(f"max_tokens={max_tokens} 低于下限 {_MIN_OUTPUT_TOKENS}，已自动抬升")
+                max_tokens = _MIN_OUTPUT_TOKENS
             upstream_body = {
                 "model": config["model"],
                 "messages": messages,
-                "stream": False,
+                # "stream" 由各 handler 设置：handle_stream 用 True（真流式，
+                # 实时转发思考过程），handle_non_stream 用 False
                 "max_tokens": max_tokens,
             }
             chat_tools = responses_tools_to_chat_tools(body.get("tools"))
@@ -647,8 +765,10 @@ class Handler(BaseHTTPRequestHandler):
                     upstream_body[key] = body[key]
 
             if body.get("stream", True) is not False:
+                upstream_body["stream"] = True
                 self.handle_stream(auth, config, upstream_body)
             else:
+                upstream_body["stream"] = False
                 self.handle_non_stream(auth, config, upstream_body)
         except (BrokenPipeError, ConnectionResetError, socket.timeout):
             return
@@ -747,6 +867,74 @@ class Handler(BaseHTTPRequestHandler):
         # 理论上不会到达这里
         raise last_exc
 
+    def stream_upstream(self, auth, config, upstream_body):
+        """真流式：按行迭代上游 SSE 响应，逐 chunk 产出解析后的 JSON。
+
+        兼容两种上游行为：
+        1. 标准 SSE 流（data: {...}）→ 逐 chunk yield
+        2. 忽略 stream 参数直接返回完整 JSON → yield 一次 {"_non_stream": data}
+
+        重试策略与 fetch_upstream 一致，但仅覆盖「连接建立 / 首个 chunk
+        读取」阶段；一旦开始产出 chunk（started=True），流中断直接抛出，
+        由调用方负责提示截断，避免重试导致内容重复发送。
+        """
+        last_exc = None
+        for attempt in range(_MAX_SSL_RETRIES + 1):
+            started = False
+            ctx = _SSL_CONTEXT if attempt == 0 else _SSL_CONTEXT_DOWNGRADED
+            try:
+                resp = self.upstream_request(auth, config, upstream_body, ssl_context=ctx)
+                try:
+                    sse_found = False
+                    buf = []
+                    for raw in resp:
+                        line = raw.decode("utf-8", "replace").strip()
+                        if line.startswith("data:"):
+                            sse_found = True
+                            payload = line[len("data:"):].strip()
+                            if payload == "[DONE]":
+                                break
+                            try:
+                                chunk = json.loads(payload)
+                            except json.JSONDecodeError:
+                                continue
+                            started = True
+                            yield chunk
+                        else:
+                            if not sse_found:
+                                buf.append(line)
+                finally:
+                    resp.close()
+                if not sse_found:
+                    # 上游返回了非流式 JSON（完整响应或错误）
+                    full = "".join(buf).strip()
+                    if not full:
+                        raise RuntimeError("上游返回了空响应")
+                    data = json.loads(full) if full.startswith(("{", "[")) else {}
+                    if data:
+                        yield {"_non_stream": data}
+                return
+            except urllib.error.HTTPError as http_err:
+                if http_err.code in _RETRYABLE_HTTP_CODES and attempt < _MAX_SSL_RETRIES and not started:
+                    delay = _SSL_RETRY_BASE_DELAY * (attempt + 1) * 2  # HTTP 重试延迟更长（1s → 2s）
+                    _log(f"上游返回 HTTP {http_err.code}（第 {attempt+1}/{_MAX_SSL_RETRIES+1} 次），"
+                         f"{delay}s 后重试")
+                    time.sleep(delay)
+                    last_exc = http_err
+                    continue
+                raise
+            except Exception as exc:
+                if attempt < _MAX_SSL_RETRIES and _is_retryable_ssl_error(exc) and not started:
+                    delay = _SSL_RETRY_BASE_DELAY * (attempt + 1)
+                    ctx_name = "默认" if attempt == 0 else "降级 TLS"
+                    _log(f"上游流式请求失败（第 {attempt+1}/{_MAX_SSL_RETRIES+1} 次，{ctx_name}上下文），"
+                         f"{delay}s 后重试: {type(exc).__name__}: {exc}")
+                    time.sleep(delay)
+                    last_exc = exc
+                    continue
+                raise
+        raise last_exc
+
     def handle_non_stream(self, auth, config, upstream_body):
         try:
             data = self.fetch_upstream(auth, config, upstream_body)
@@ -838,8 +1026,29 @@ class Handler(BaseHTTPRequestHandler):
         }):
             return
 
+        # 伪流式在等待上游完整响应期间（思考模型可能十几秒）不发任何数据，
+        # Codex 客户端会误判连接断开并显示"重新连接"。这里启动心跳线程，
+        # 定期发送 SSE 注释行（: keep-alive）保持连接活跃。
+        stop_hb = threading.Event()
+
+        def _heartbeat():
+            while not stop_hb.wait(3.0):
+                try:
+                    self.wfile.write(b": keep-alive\n\n")
+                    self.wfile.flush()
+                except Exception:
+                    break
+
+        hb_thread = threading.Thread(target=_heartbeat, daemon=True)
+
         try:
-            data = self.fetch_upstream(auth, config, upstream_body)
+            # handle_stream 是伪流式：先等上游完整响应，再拆成 SSE 事件
+            # 逐条转发。因此必须强制 stream=false —— 否则上游返回 SSE 流，
+            # fetch_upstream 的 json.loads 无法解析，导致 500 且无 usage 上报。
+            non_stream_body = dict(upstream_body)
+            non_stream_body["stream"] = False
+            hb_thread.start()
+            data = self.fetch_upstream(auth, config, non_stream_body)
         except urllib.error.HTTPError as err:
             detail = err.read().decode("utf-8", "replace")
             clean_msg = _clean_http_error(err.code, detail)
@@ -861,6 +1070,8 @@ class Handler(BaseHTTPRequestHandler):
                 except Exception:
                     pass
             data = {"choices": [{"message": {"content": f"Upstream connection failed: {detail[:1200]}"}}]}
+        finally:
+            stop_hb.set()
 
         # 检查上游是否在响应体中返回了错误（兼容标准和非标准格式）
         err_msg = _extract_upstream_error(data)
