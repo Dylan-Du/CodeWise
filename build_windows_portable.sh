@@ -51,15 +51,31 @@ CORE_BRAND_ASSETS=(
   "assets/brand-text.png"
   "assets/brand-text-dark.png"
   "assets/icon-1024.png"
+  "assets/codex-model-template.json"
+  "assets/dream-skin"
 )
 for asset in "${CORE_BRAND_ASSETS[@]}"; do
-  if [ ! -f "$asset" ]; then
+  if [ ! -e "$asset" ]; then
     echo "错误：缺少核心品牌资源：$asset" >&2
     exit 1
   fi
-  cp -f "$asset" "$BUILD_DIR/assets/"
+  if [ -d "$asset" ]; then
+    cp -R "$asset" "$BUILD_DIR/assets/"
+  else
+    cp -f "$asset" "$BUILD_DIR/assets/"
+  fi
 done
-cp -R src "$BUILD_DIR/src"
+mkdir -p "$BUILD_DIR/src"
+for module in src/*.py; do
+  module_name="$(basename "$module")"
+  case "$module_name" in
+    activation.py|admin.py|remote*.py)
+      echo "跳过非发行运行时模块：$module_name"
+      continue
+      ;;
+  esac
+  cp -f "$module" "$BUILD_DIR/src/"
+done
 
 # 6. 创建启动脚本
 echo "[5/5] 创建启动脚本..."

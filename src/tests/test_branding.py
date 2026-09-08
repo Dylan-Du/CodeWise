@@ -192,9 +192,11 @@ class BrandingTest(unittest.TestCase):
             "assets/brand-text.png",
             "assets/brand-text-dark.png",
             "assets/icon-1024.png",
+            "assets/codex-model-template.json",
+            "assets/dream-skin",
         ))
         for relative in assets:
-            self.assertTrue((REPO_ROOT / relative).is_file(), f"构建脚本资源不存在：{relative}")
+            self.assertTrue((REPO_ROOT / relative).exists(), f"构建脚本资源不存在：{relative}")
 
     def test_stale_windows_portable_archive_is_not_checked_in(self):
         """旧 Windows 发布包已移除，必须重新构建后再发布。"""
@@ -202,6 +204,24 @@ class BrandingTest(unittest.TestCase):
             (REPO_ROOT / "dist/Codex助手-Windows-portable.zip").exists(),
             "旧 Windows portable 包不可继续作为可见发布产物；请重新生成",
         )
+
+    def test_runtime_builds_do_not_package_excluded_modules_or_whole_source_trees(self):
+        """发行构建不得重新打入 activation/admin/远程授权模块或整棵源码树。"""
+        scripts = (
+            "build_app.sh",
+            "build_windows.sh",
+            "build_windows.bat",
+            "build.ps1",
+            ".github/workflows/build-windows.yml",
+        )
+        for relative in scripts:
+            content = (REPO_ROOT / relative).read_text(encoding="utf-8")
+            with self.subTest(script=relative):
+                self.assertNotRegex(content, r"--add-data\s+[\"'](?:src|assets)[;:/](?:src|assets)[\"']")
+                self.assertNotRegex(content, r"(?:activation\.py|admin\.py|remote(?:_auth|_authorization)?\.py)")
+
+        portable = (REPO_ROOT / "build_windows_portable.sh").read_text(encoding="utf-8")
+        self.assertIn("activation.py|admin.py|remote*.py)", portable)
 
     def test_pyinstaller_add_data_sources_exist_with_platform_separator(self):
         """解析 --add-data 的 ; 或 : 语法，确保源资源存在。"""

@@ -33,8 +33,8 @@ echo "[2/4] 安装打包依赖 (pyinstaller / tomlkit / pywebview)"
 echo "[3/4] 清理旧 build/dist"
 rm -rf build dist
 
-echo "[4/4] 运行 PyInstaller"
-"$PY" -m PyInstaller --clean --noconfirm CodexSwitch.spec
+echo "[4/4] 运行统一 macOS 构建入口"
+bash "$SCRIPT_DIR/build_app.sh"
 
 APP="dist/Codex助手.app"
 if [ -d "$APP" ]; then

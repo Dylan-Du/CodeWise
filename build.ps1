@@ -28,9 +28,14 @@ Remove-Item -Recurse -Force build, dist -ErrorAction SilentlyContinue
 
 Write-Host "[4/4] 运行 PyInstaller"
 & $PY -m PyInstaller --clean --noconfirm --windowed --name "Codex助手" `
-    --icon "assets\icon-source.png" `
-    --add-data "src;src" `
+    --icon "assets\icon.ico" `
     --add-data "web;web" `
+    --add-data "assets\mascot-3d.png;assets" `
+    --add-data "assets\brand-text.png;assets" `
+    --add-data "assets\brand-text-dark.png;assets" `
+    --add-data "assets\icon-1024.png;assets" `
+    --add-data "assets\codex-model-template.json;assets" `
+    --add-data "assets\dream-skin;assets\dream-skin" `
     "src\web_launcher.py"
 
 $exe = "dist\Codex助手\Codex助手.exe"

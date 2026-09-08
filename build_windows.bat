@@ -37,6 +37,7 @@ python -m PyInstaller ^
   --add-data "assets\brand-text.png;assets" ^
   --add-data "assets\brand-text-dark.png;assets" ^
   --add-data "assets\icon-1024.png;assets" ^
+  --add-data "assets\codex-model-template.json;assets" ^
   --add-data "assets\dream-skin;assets\dream-skin" ^
   --collect-all tomlkit ^
   --collect-all werkzeug ^

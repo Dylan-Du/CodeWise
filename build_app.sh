@@ -77,6 +77,8 @@ mkdir -p "$PYINSTALLER_CONFIG_DIR"
   --add-data "assets/brand-text.png:assets" \
   --add-data "assets/brand-text-dark.png:assets" \
   --add-data "assets/icon-1024.png:assets" \
+  --add-data "assets/dream-skin:assets/dream-skin" \
+  --add-data "assets/codex-model-template.json:assets" \
   --hidden-import "webview" \
   --hidden-import "webview.platforms.cocoa" \
   --hidden-import "werkzeug" \
