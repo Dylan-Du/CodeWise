@@ -18,7 +18,7 @@ mkdir -p "$BUILD_DIR/assets"
 mkdir -p "$BUILD_DIR/web"
 
 # 2. 下载并解压 Python embeddable
- echo "[1/5] 准备 Python embeddable..."
+echo "[1/5] 准备 Python embeddable..."
 PYTHON_EMBED_VERSION="3.10.11"
 PYTHON_EMBED_URL="https://www.python.org/ftp/python/${PYTHON_EMBED_VERSION}/python-${PYTHON_EMBED_VERSION}-embed-amd64.zip"
 PYTHON_EMBED_ZIP="/tmp/python-${PYTHON_EMBED_VERSION}-embed-amd64.zip"
@@ -43,13 +43,22 @@ fi
 echo "[3/5] 下载 get-pip.py..."
 curl -L -o "$BUILD_DIR/python/get-pip.py" "https://bootstrap.pypa.io/get-pip.py" 2>/dev/null
 
-# 5. 复制应用代码
+# 复制应用代码
 echo "[4/5] 复制应用代码..."
 cp -R web/* "$BUILD_DIR/web/"
-cp assets/mascot-3d.png "$BUILD_DIR/assets/" 2>/dev/null || true
-cp assets/brand-text.png "$BUILD_DIR/assets/" 2>/dev/null || true
-cp assets/brand-text-dark.png "$BUILD_DIR/assets/" 2>/dev/null || true
-cp assets/icon-1024.png "$BUILD_DIR/assets/" 2>/dev/null || true
+CORE_BRAND_ASSETS=(
+  "assets/mascot-3d.png"
+  "assets/brand-text.png"
+  "assets/brand-text-dark.png"
+  "assets/icon-1024.png"
+)
+for asset in "${CORE_BRAND_ASSETS[@]}"; do
+  if [ ! -f "$asset" ]; then
+    echo "错误：缺少核心品牌资源：$asset" >&2
+    exit 1
+  fi
+  cp -f "$asset" "$BUILD_DIR/assets/"
+done
 cp -R src "$BUILD_DIR/src"
 
 # 6. 创建启动脚本

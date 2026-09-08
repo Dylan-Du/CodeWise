@@ -182,6 +182,39 @@ class BrandingTest(unittest.TestCase):
                 self.assertTrue(asset.is_file(), f"缺少核心品牌资源：{relative}")
                 self.assertGreater(asset.stat().st_size, 0, f"核心品牌资源为空：{relative}")
 
+    def test_windows_portable_script_copies_existing_core_assets(self):
+        """Windows portable 脚本引用的核心资源必须存在，且失败不能被忽略。"""
+        script = (REPO_ROOT / "build_windows_portable.sh").read_text(encoding="utf-8")
+        self.assertNotRegex(script, r"cp\s+[^\n]*2>/dev/null\s*\|\|\s*true")
+        assets = re.findall(r'^\s+"(assets/[^"].*)"\s*$', script, re.MULTILINE)
+        self.assertEqual(tuple(assets), (
+            "assets/mascot-3d.png",
+            "assets/brand-text.png",
+            "assets/brand-text-dark.png",
+            "assets/icon-1024.png",
+        ))
+        for relative in assets:
+            self.assertTrue((REPO_ROOT / relative).is_file(), f"构建脚本资源不存在：{relative}")
+
+    def test_stale_windows_portable_archive_is_not_checked_in(self):
+        """旧 Windows 发布包已移除，必须重新构建后再发布。"""
+        self.assertFalse(
+            (REPO_ROOT / "dist/Codex助手-Windows-portable.zip").exists(),
+            "旧 Windows portable 包不可继续作为可见发布产物；请重新生成",
+        )
+
+    def test_pyinstaller_add_data_sources_exist_with_platform_separator(self):
+        """解析 --add-data 的 ; 或 : 语法，确保源资源存在。"""
+        scripts = ("build_app.sh", "build_windows.sh", "build_windows.bat", "build_dmg.sh", "build.ps1")
+        add_data = re.compile(r'--add-data\s+["\']([^"\']+)["\']')
+        for relative in scripts:
+            content = (REPO_ROOT / relative).read_text(encoding="utf-8")
+            for argument in add_data.findall(content):
+                source = argument.rsplit(";", 1)[0] if ";" in argument else argument.rsplit(":", 1)[0]
+                source = source.replace("\\", "/")
+                with self.subTest(script=relative, source=source):
+                    self.assertTrue((REPO_ROOT / source).exists(), f"--add-data 源资源不存在：{relative}: {source}")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
