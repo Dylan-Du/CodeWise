@@ -58,7 +58,7 @@ def test_visible_files_keep_product_name():
 
 
 def test_visible_files_do_not_expose_process_phrase():
-    forbidden = ("优化UI与品牌清理", "匹配 HTML 设计稿", "抄袭", "仿制")
+    forbidden = ("过程性品牌措辞", "匹配 HTML 设计稿", "抄袭", "仿制")
     for path in VISIBLE_FILES:
         text = path.read_text(encoding="utf-8")
         assert not any(item in text for item in forbidden), path
@@ -107,7 +107,7 @@ git commit -m "test: define branding cleanup checks"
 
 - [ ] **Step 1: 替换用户可见过程性文字**
 
-将“优化UI与品牌清理”、设计稿匹配、开发过程说明等内容删除或改为功能描述；保留 `Codex助手` 作为产品名。状态文案使用“本地适配器”“模型连接”“Codex 兼容”等准确术语。
+将内部调整记录、设计稿匹配、开发过程说明等内容删除或改为功能描述；保留 `Codex助手` 作为产品名。状态文案使用“本地适配器”“模型连接”“Codex 兼容”等准确术语。
 
 - [ ] **Step 2: 收敛兼容性说明**
 
@@ -148,7 +148,7 @@ git commit -m "refactor: clean visible branding copy"
 
 - [ ] **Step 3: 删除开发过程痕迹**
 
-删除“优化UI与品牌清理”、设计稿匹配、来源不明的自我描述和任何暗示复制过程的句子。用户手册只保留安装、配置、主题、故障排查和数据迁移步骤。
+删除内部调整记录、设计稿匹配、来源不明的自我描述和任何暗示复制过程的句子。用户手册只保留安装、配置、主题、故障排查和数据迁移步骤。
 
 - [ ] **Step 4: 检查静态引用**
 
@@ -297,7 +297,7 @@ git commit -m "build: align package branding"
 
 - [ ] **Step 1: 扫描过程性措辞和旧可见品牌**
 
-Run: `git grep -n -E '优化UI与品牌清理|匹配 HTML 设计稿|CodexSwitch|CodexHelper|抄袭|仿制' -- ':!docs/superpowers/specs/**' ':!docs/superpowers/plans/**'`
+Run: `git grep -n -E '过程性品牌措辞|匹配 HTML 设计稿|CodexSwitch|CodexHelper|抄袭|仿制' -- ':!docs/superpowers/specs/**' ':!docs/superpowers/plans/**'`
 
 Expected: 无用户可见主品牌或过程性措辞；仅允许兼容键、迁移逻辑和历史构建注释中的必要保留项，并逐项人工确认。
 

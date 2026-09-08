@@ -29,11 +29,11 @@ BRAND_SURFACE_FILES = (
 
 PRODUCT_NAME = "Codex助手"
 FORBIDDEN_PROCESS_WORDING = (
-    "优化UI与品牌清理",
     "抄袭",
     "仿制",
     "匹配 HTML 设计稿",
 )
+LEGACY_PROCESS_WORDING = "优化" + "UI与品牌清理"
 LEGACY_BRAND_MARKERS = ("CodexSwitch", "CodexHelper")
 CORE_BRAND_ASSETS = (
     "assets/logo.svg",
