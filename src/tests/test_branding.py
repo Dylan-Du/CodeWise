@@ -66,8 +66,15 @@ COMPATIBILITY_CONTEXTS = {
     ),
 }
 
-# README 需要独立说明产品与 OpenAI/Codex 的真实兼容关系。
-README_REQUIRED_TERMS = ("OpenAI", "Codex")
+# README 需要独立说明产品与 OpenAI/Codex 的真实兼容关系、商标边界，且不能保留旧仓库痕迹。
+README_REQUIRED_TERMS = ("OpenAI", "Codex", "商标", "兼容边界")
+README_FORBIDDEN_LEGACY_REPOSITORY_MARKERS = ("CodeWise", "Dylan-Du/CodeWise")
+USER_GUIDE_REQUIRED_TERMS = (
+    "OpenAI / Codex 兼容边界",
+    "商标与第三方声明",
+    "仅联网下载并安装运行所需的 Python 依赖",
+    "不是登录、激活、遥测、版本检查或模型请求",
+)
 
 
 class BrandingTest(unittest.TestCase):
@@ -84,12 +91,22 @@ class BrandingTest(unittest.TestCase):
                 self.assertIn(PRODUCT_NAME, content)
 
     def test_readme_separately_explains_openai_codex_compatibility(self):
-        """README 单独断言 OpenAI 和 Codex，而非扩大到所有文档。"""
+        """README 单独断言兼容边界、商标说明和旧仓库痕迹清理。"""
         readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
         for term in README_REQUIRED_TERMS:
             with self.subTest(term=term):
                 self.assertIn(term, readme)
+        for marker in README_FORBIDDEN_LEGACY_REPOSITORY_MARKERS:
+            with self.subTest(marker=marker):
+                self.assertNotIn(marker, readme)
         self.assertRegex(readme, r"OpenAI.{0,100}Codex|Codex.{0,100}OpenAI")
+
+    def test_user_guide_explains_compatibility_trademark_and_windows_network_scope(self):
+        """用户手册需说明兼容边界、商标免责和 Windows 首次联网范围。"""
+        guide = (REPO_ROOT / "codex-user-guide/codex-user-guide.html").read_text(encoding="utf-8")
+        for term in USER_GUIDE_REQUIRED_TERMS:
+            with self.subTest(term=term):
+                self.assertIn(term, guide)
 
     def test_brand_surfaces_exclude_exact_forbidden_wording(self):
         """用户可见入口不得暴露品牌整理或仿制等过程性措辞。"""

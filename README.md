@@ -40,6 +40,14 @@
 
 历史第三方会话在适配器关闭后可能仍指向本地端口。重新打开 Codex助手时，内置 gatekeeper 会自动尝试将历史会话迁移到官方 OpenAI，按提示关闭并重新打开对应会话即可继续使用。
 
+## OpenAI / Codex 兼容边界
+
+本项目是独立的本地适配器，不是 OpenAI 或 Codex 的官方产品，也不代表获得其认证或背书。它仅在以下边界内提供兼容：接收 Codex App 使用的 Responses API 请求，并转换为上游 OpenAI Chat Completions 兼容接口；具体模型能力、工具调用、流式行为、上下文长度和错误格式仍取决于上游服务商。OpenAI/Codex 的账号、订阅、客户端功能和官方服务不由本项目提供；遇到官方客户端或协议变更时，兼容性可能需要调整。
+
+## 商标与第三方声明
+
+“OpenAI”“Codex”及相关标识是 OpenAI 的商标或其他权利标识。本项目名称、代码和界面资源与 OpenAI 没有隶属、授权、赞助或背书关系；文档中提及这些名称仅用于准确描述兼容对象。APINest 及其他服务商名称和标识归其各自权利人所有，本项目不主张相关权利。
+
 ## 适配器工作原理
 
 ```text
@@ -61,8 +69,8 @@ Codex助手内置 20 个主题，支持切换、Codex 重启后自动恢复、�
 ## 本地运行和打包
 
 ```bash
-git clone https://github.com/Dylan-Du/CodeWise.git
-cd CodeWise
+# 下载源码后进入项目目录
+cd Codex助手
 pip install -r requirements.txt
 
 # 启动 Web 版
@@ -135,3 +143,5 @@ python3 src/tests/test_core.py
 ## License
 
 [MIT](LICENSE) © 2026 Codex助手
+
+本许可证仅适用于本项目中由项目贡献者提供的代码和文档，不授予任何第三方商标或品牌标识的使用权。

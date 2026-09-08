@@ -472,6 +472,7 @@
     <li><a href="#codex">连接 Codex</a></li>
     <li><a href="#settings">设置功能</a></li>
     <li><a href="#update">获取更新</a></li>
+    <li><a href="#compatibility">兼容边界与商标声明</a></li>
     <li><a href="#faq">常见问题</a></li>
   </ol>
 </div>
@@ -515,12 +516,12 @@
     <li>双击运行安装包</li>
     <li>等待自动解压安装完成（约10秒）</li>
     <li>在桌面找到"Codex助手"快捷方式，双击打开</li>
-    <li>首次启动会自动安装依赖（需联网，约1分钟）</li>
+    <li>首次启动会自动安装运行依赖（如发布包尚未预装，需联网，约1分钟）</li>
   </ol>
 
   <div class="warn">
-    <strong>注意</strong>
-    Windows 用户首次运行需要联网安装依赖。如果杀毒软件拦截了 bat 文件，请选择"允许运行"。
+    <strong>首次联网范围</strong>
+    Windows 发布包首次启动时，如依赖尚未预装，仅联网下载并安装运行所需的 Python 依赖；联网不是登录、激活、遥测、版本检查或模型请求。依赖安装完成后，应用本身保持本地运行，模型请求只会发送到你配置的上游服务。如果杀毒软件拦截 bat 文件，请选择"允许运行"。
   </div>
 </section>
 
@@ -777,9 +778,21 @@
   </div>
 </section>
 
-<!-- 8. 常见问题 -->
+<!-- 8. 兼容边界与商标声明 -->
+<section id="compatibility">
+  <h2><span class="num">8</span> 兼容边界与商标声明</h2>
+
+  <h3>OpenAI / Codex 兼容边界</h3>
+  <p>Codex助手是独立的本地适配器，不是 OpenAI 或 Codex 的官方产品，也不代表获得其认证或背书。它只负责接收 Codex App 的 Responses API 请求，并转换为上游 OpenAI Chat Completions 兼容接口；具体模型能力、工具调用、流式行为、上下文长度和错误格式取决于上游服务商。</p>
+  <p>OpenAI/Codex 的账号、订阅、客户端功能和官方服务不由 Codex助手提供。官方客户端或协议更新后，现有兼容性可能需要调整；使用前请以实际连接结果和上游服务商文档为准。</p>
+
+  <h3>商标与第三方声明</h3>
+  <p>“OpenAI”“Codex”及相关标识是 OpenAI 的商标或其他权利标识；APINest 及其他服务商名称和标识归其各自权利人所有。上述名称仅用于说明兼容对象或服务商，不表示任何隶属、授权、赞助或背书关系。Codex助手不主张相关第三方商标权利。</p>
+</section>
+
+<!-- 9. 常见问题 -->
 <section id="faq">
-  <h2><span class="num">8</span> 常见问题</h2>
+  <h2><span class="num">9</span> 常见问题</h2>
 
   <div class="faq-item">
     <h4>Q: 打开应用提示"无法验证开发者"怎么办？</h4>
@@ -788,7 +801,7 @@
 
   <div class="faq-item">
     <h4>Q: Windows 首次启动很慢？</h4>
-    <p>首次启动会自动安装依赖包，需要联网约1分钟。之后启动就很快了。</p>
+    <p>如果发布包尚未预装依赖，首次启动会仅为安装运行所需依赖而联网，约1分钟；这不是登录、激活、遥测或版本检查。依赖安装完成后，应用本身保持本地运行。</p>
   </div>
 
   <div class="faq-item">
