@@ -53,3 +53,6 @@ docs/AI_PLAYBOOK.md
 
 # ===== Trae 工具临时分享包 =====
 .trae-html-share-packages/
+
+# ===== Git worktrees =====
+.worktrees/
