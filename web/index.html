@@ -3468,7 +3468,7 @@ a:focus-visible,
     if (state.running) { powerBtn.classList.add('on'); statusHero.classList.remove('stopped'); statusLabel.textContent = '运行中'; }
     else { powerBtn.classList.remove('on'); statusHero.classList.add('stopped'); statusLabel.textContent = '已停止'; }
     var el = document.getElementById('current-model-name');
-    if (el) el.textContent = state.modelName || state.model || '未选择';
+    if (el) el.textContent = state.modelName || state.model || '尚未选择';
   }
 
   function renderPills() {
@@ -3902,7 +3902,7 @@ a:focus-visible,
       }
       state.running = resp.running || false;
       state.model = resp.model || null;
-      state.modelName = resp.model_name || resp.model || '未选择';
+      state.modelName = resp.model_name || resp.model || '尚未选择';
       renderStatus();
       renderPills();
     } catch (e) { console.error('加载状态失败:', e); }

@@ -148,7 +148,7 @@ class CodexTUI:
         y += 1
 
         if not self.model_list:
-            self.stdscr.addstr(y, 4, "(无模型, 请按 'a' 添加)", curses.color_pair(3))
+            self.stdscr.addstr(y, 4, "(暂无模型，请按 'a' 添加)", curses.color_pair(3))
             y += 1
         else:
             for i, m in enumerate(self.model_list):
@@ -356,7 +356,7 @@ class CodexTUI:
 def main():
     # 启动 API 服务器
     web_api.start_server()
-    print("控制 API 已启动,正在初始化终端界面...")
+    print("控制 API 已启动，正在准备终端界面...")
     time.sleep(1)
 
     def run_tui(stdscr):

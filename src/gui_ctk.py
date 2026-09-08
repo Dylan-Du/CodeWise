@@ -15,7 +15,7 @@ APP_TITLE = "Codex助手"
 _SYSTEM = platform.system()
 MONO_FONT = "Menlo" if _SYSTEM == "Darwin" else ("Consolas" if _SYSTEM == "Windows" else "Monospace")
 
-# ─── 主题色(匹配 HTML 设计) ───
+# ─── 主题色 ───
 THEMES = {
     "light": {
         "bg": "#EEF1F8",
@@ -564,7 +564,7 @@ class App(ctk.CTk):
     def _do_start(self, model: str, route: str, label: str):
         try:
             core.write_adapter_json(model, route)
-            self._log(f"已写入翻译官配置({label})。")
+            self._log(f"已写入服务配置({label})。")
             if core.backup_config_toml_if_needed():
                 self._log(f"已备份原 Codex 配置 → {core.BACKUP_TOML.name}")
             core.apply_codex_config(model)
@@ -576,7 +576,7 @@ class App(ctk.CTk):
             self._refresh_status()
             return
         if not self.runner.start():
-            messagebox.showerror(APP_TITLE, "翻译官启动失败,看日志。")
+            messagebox.showerror(APP_TITLE, "服务启动失败，请查看日志。")
             self._busy = False
             self._refresh_status()
             return
@@ -599,7 +599,7 @@ class App(ctk.CTk):
             self._busy = False
             self._refresh_status()
             return
-        self._log("✅ 已关闭翻译官 + 切回 OpenAI 原版。重启 Codex App 生效。")
+        self._log("✅ 服务已关闭，已切回 OpenAI 原版。重启 Codex App 后生效。")
         self._busy = False
         self._refresh_status()
 
@@ -681,7 +681,7 @@ class App(ctk.CTk):
         elif cur_model:
             self.status_model.configure(text="Codex · OpenAI 原版")
         else:
-            self.status_model.configure(text="Codex · 未初始化")
+            self.status_model.configure(text="Codex · 尚未配置")
 
         self.after(2000, self._refresh_status)
 
