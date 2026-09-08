@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Codex助手 — 让 Codex 用上你想要的任何大模型</title>
-<meta name="description" content="Codex助手 是一个本地适配器，为 OpenAI Codex 一键接入 DeepSeek、Kimi、智谱、通义等主流大模型，内置 20+ Codex 主题，数据全程不出本机。支持 macOS 与 Windows。">
+<title>Codex助手 — 本地模型适配与配置工具</title>
+<meta name="description" content="Codex助手面向 OpenAI Codex App，提供本地模型适配、配置、请求转发、用量统计和主题注入功能，支持 APINest 及其他 OpenAI 兼容接口。支持 macOS 与 Windows。">
 <link rel="icon" type="image/png" href="assets/app-icon.png">
 <style>
   :root{
@@ -454,8 +454,8 @@
   <div class="wrap">
     <div class="sec-head" data-reveal>
       <div class="sec-eyebrow">Features</div>
-      <h2>为 AI 编码而生，每个细节都顺滑</h2>
-      <p>从模型切换到错误兜底，从主题美化到用量统计，把常用的事做到极致。</p>
+      <h2>面向 AI 编码的实用功能</h2>
+      <p>覆盖模型切换、错误处理、主题注入和用量统计等常用场景。</p>
     </div>
     <div class="feat-grid">
       <div class="feat" data-reveal>
@@ -464,7 +464,7 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
           一键切换模型供应商
         </h3>
-        <p>本地适配器实时转发，在 Codex 里切换模型就像切换输入法一样简单。DeepSeek、Kimi、智谱、通义…即点即用。</p>
+        <p>本地适配器实时转发，可在 Codex 中切换已配置的模型。支持 DeepSeek、Kimi、智谱、通义等历史 provider。</p>
         <span class="tag">本地转发 · 毫秒级切换</span>
       </div>
       <div class="feat" data-reveal>
@@ -491,7 +491,7 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
           用量实时统计
         </h3>
-        <p>Token 消耗、请求次数、花费金额实时统计，每一笔 AI 开销都清清楚楚，月末对账不再头疼。</p>
+        <p>本地记录 Token 消耗、请求次数和花费金额，便于查看调用历史与用量变化。</p>
         <span class="tag">本地统计 · 数据可清空</span>
       </div>
       <div class="feat" data-reveal>
@@ -509,7 +509,7 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
           双平台原生体验
         </h3>
-        <p>基于原生桌面技术构建，macOS 与 Windows 同样顺滑，界面统一、配置互通，随时同步切换。</p>
+        <p>提供 macOS 与 Windows 发布包，配置和本地数据按现有目录保存，便于跨平台使用。</p>
         <span class="tag">macOS · Windows</span>
       </div>
     </div>
@@ -521,8 +521,8 @@
   <div class="wrap">
     <div class="sec-head" data-reveal>
       <div class="sec-eyebrow">Themes</div>
-      <h2>让 Codex 也换上你的心头好</h2>
-      <p>一键切换 20+ 精选主题，Codex 启动自动注入，重启后依然保留。</p>
+      <h2>为 Codex 设置主题</h2>
+      <p>切换内置主题，Codex 启动时自动注入，重启后恢复已保存的主题设置。</p>
     </div>
     <div class="theme-grid" data-reveal>
       <div class="theme-card" style="background-image:url('assets/themes/aurora.jpg')">
@@ -555,7 +555,7 @@
     <div class="sec-head" data-reveal>
       <div class="sec-eyebrow">Quick Start</div>
       <h2>三步开始使用</h2>
-      <p>从下载到开聊，全程不超过三分钟。</p>
+      <p>按步骤完成安装、模型配置和本地服务启动。</p>
     </div>
     <div class="steps" data-reveal>
       <div class="step">
@@ -573,7 +573,7 @@
       <div class="step">
         <div class="n">3</div>
         <h3>选择模型开聊</h3>
-        <p>在 Codex 中选择你想要的模型，开始享受 AI 编码的畅快体验。</p>
+        <p>在 Codex 中选择已配置的模型，并通过本地适配器发送请求。</p>
       </div>
     </div>
   </div>
@@ -584,7 +584,7 @@
   <div class="wrap priv-grid">
     <div data-reveal>
       <div class="sec-eyebrow">Privacy</div>
-      <h2 style="font-size:clamp(26px,3.4vw,36px);font-weight:800;letter-spacing:-.4px;line-height:1.25">你的对话和代码<br>全程留在本机</h2>
+      <h2 style="font-size:clamp(26px,3.4vw,36px);font-weight:800;letter-spacing:-.4px;line-height:1.25">配置与统计<br>保存在本机</h2>
       <ul class="priv-points">
         <li><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>本地适配器，请求直接转发至模型 API，无第三方中转</li>
         <li><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>不需要账号、激活验证或设备绑定，配置和统计均保存在本机</li>
@@ -613,8 +613,8 @@
   <div class="wrap">
     <div class="sec-head" data-reveal>
       <div class="sec-eyebrow">Download</div>
-      <h2>下载 Codex助手</h2>
-      <p>选择你的平台，立即开始。客户端保持纯本地运行，更新包从项目发布页获取。</p>
+      <h2>获取 Codex助手</h2>
+      <p>选择对应平台的发布包。客户端保持纯本地运行，更新包从项目发布页获取。</p>
     </div>
     <div class="dl-grid">
       <div class="dl-card" data-reveal>
@@ -742,7 +742,7 @@
     heroMac.parentNode.insertBefore(order[1], order[0].nextSibling);
   }
 
-  // 发布包通过项目发布页分发，官网不访问版本服务器。
+  // 发布包通过项目发布页分发，页面不访问版本服务器。
   window.handleDownload = function () {
     showToast('正在打开项目发布页…');
     window.location.href = RELEASES_URL;

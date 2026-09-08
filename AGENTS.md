@@ -4,7 +4,7 @@
 
 ## 项目概述
 
-Codex助手是一个纯本地桌面应用，为 OpenAI Codex App 接入 APINest 和其他 OpenAI 兼容大模型。支持 macOS 和 Windows，内置 Codex 主题注入和深色玻璃风 Web UI。客户端无需账号、激活码、设备绑定或远程授权服务。
+Codex助手是一个纯本地桌面应用，面向 OpenAI Codex App 提供 APINest 和其他 OpenAI 兼容接口的模型适配。支持 macOS 和 Windows，提供模型配置、请求转发、用量统计和 Codex 主题注入功能；客户端无需账号、激活码、设备绑定或远程授权服务。
 
 **当前版本**：v1.0.75
 

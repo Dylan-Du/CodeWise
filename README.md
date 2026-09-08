@@ -11,7 +11,7 @@
 
 - **纯本地运行**：无需账号、无需激活、无需设备绑定，不依赖授权服务器
 - **一键切换**：选择模型、填写 API Key 后即可启动本地适配器
-- **一键回滚**：随时切回 OpenAI 原版，自动保留配置备份
+- **配置回滚**：自动保留配置备份，可恢复 OpenAI 配置
 - **新增服务商**：新增模型仅提供 `APINest` 和 `自定义` 两个选项；历史 provider 配置继续兼容
 - **本地存储**：API Key、模型配置、统计和主题配置保存在本机
 - **用量统计**：实时统计输入、输出、缓存 Token，并支持调用历史
@@ -56,9 +56,9 @@ Codex App --[Responses API]--> 127.0.0.1:18667 本地适配器 --[Chat Completio
 
 ## 主题皮肤
 
-Codex助手内置 20 个主题，支持一键切换、Codex 重启后自动恢复、自定义壁纸和玻璃风界面。主题注入依赖 Codex 的 CDP 调试端口。
+Codex助手内置 20 个主题，支持切换、Codex 重启后自动恢复、自定义壁纸和界面主题设置。主题注入依赖 Codex 的 CDP 调试端口。
 
-## 自己运行和打包
+## 本地运行和打包
 
 ```bash
 git clone https://github.com/Dylan-Du/CodeWise.git
@@ -84,7 +84,7 @@ bash build_windows_portable.sh
 ## 项目结构
 
 ```text
-codex-assistant/
+Codex助手/
 ├─ src/
 │  ├─ adapter.py            # Responses API ↔ Chat Completions 适配器
 │  ├─ core.py               # 配置、provider、Key 存储、启停和回滚
