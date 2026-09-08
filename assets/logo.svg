@@ -1,41 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#5A77F5"/>
-      <stop offset="1" stop-color="#3A68DF"/>
+    <linearGradient id="surface" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#172A52"/>
+      <stop offset="1" stop-color="#3157B8"/>
     </linearGradient>
-    <radialGradient id="bgGlow" cx="0.5" cy="0.12" r="0.85">
-      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.14"/>
-      <stop offset="0.55" stop-color="#FFFFFF" stop-opacity="0.03"/>
-      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="glyph" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#F4F8FF"/>
-      <stop offset="1" stop-color="#DCE8FF"/>
+    <linearGradient id="bridge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#71E3C0"/>
+      <stop offset="1" stop-color="#37B9E8"/>
     </linearGradient>
-    <linearGradient id="slash" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#4ADE80"/>
-      <stop offset="1" stop-color="#22C55E"/>
-    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="22" stdDeviation="18" flood-color="#08142F" flood-opacity=".35"/>
+    </filter>
   </defs>
-
-  <!-- App icon background: royal blue gradient sampled from reference -->
-  <rect x="0" y="0" width="1024" height="1024" rx="230" fill="url(#bg)"/>
-  <rect x="0" y="0" width="1024" height="1024" rx="230" fill="url(#bgGlow)"/>
-
-  <!-- Soft drop shadow under the glyph -->
-  <g stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#1D3F9E" opacity="0.30">
-    <path d="M442 372 L258 538 L442 704" stroke-width="76"/>
-    <path d="M582 372 L766 538 L582 704" stroke-width="76"/>
-    <path d="M556 710 L468 330" stroke-width="58"/>
-  </g>
-
-  <!-- Code brackets < > -->
-  <g stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="url(#glyph)">
-    <path d="M442 350 L258 516 L442 682" stroke-width="76"/>
-    <path d="M582 350 L766 516 L582 682" stroke-width="76"/>
-  </g>
-
-  <!-- Slash in fresh green -->
-  <path d="M556 688 L468 308" stroke="url(#slash)" stroke-width="58" stroke-linecap="round" fill="none"/>
+  <!-- Original Codex助手 mark: two nodes joined by a continuous bridge. -->
+  <rect width="1024" height="1024" rx="230" fill="url(#surface)"/>
+  <path d="M176 338 C176 275 227 224 290 224 H366 C430 224 482 276 482 340 V684 C482 748 534 800 598 800 H674 C737 800 788 749 788 686 V622" fill="none" stroke="#EAF3FF" stroke-width="86" stroke-linecap="round" stroke-linejoin="round" filter="url(#shadow)"/>
+  <path d="M236 338 C236 308 260 284 290 284 H366 C397 284 422 309 422 340 V684 C422 781 501 860 598 860 H674 C770 860 848 782 848 686 V622" fill="none" stroke="url(#bridge)" stroke-width="34" stroke-linecap="round"/>
+  <circle cx="176" cy="338" r="58" fill="#71E3C0"/>
+  <circle cx="788" cy="622" r="58" fill="#37B9E8"/>
 </svg>

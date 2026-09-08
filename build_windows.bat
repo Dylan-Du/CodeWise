@@ -33,10 +33,10 @@ python -m PyInstaller ^
   --name "Codex助手" ^
   --icon "assets\icon.ico" ^
   --add-data "web;web" ^
-  --add-data "assets\apinest-logo.png;assets" ^
   --add-data "assets\mascot-3d.png;assets" ^
   --add-data "assets\brand-text.png;assets" ^
   --add-data "assets\brand-text-dark.png;assets" ^
+  --add-data "assets\icon-1024.png;assets" ^
   --add-data "assets\dream-skin;assets\dream-skin" ^
   --collect-all tomlkit ^
   --collect-all werkzeug ^

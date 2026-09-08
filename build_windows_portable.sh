@@ -46,10 +46,10 @@ curl -L -o "$BUILD_DIR/python/get-pip.py" "https://bootstrap.pypa.io/get-pip.py"
 # 5. 复制应用代码
 echo "[4/5] 复制应用代码..."
 cp -R web/* "$BUILD_DIR/web/"
-cp assets/apinest-logo.png "$BUILD_DIR/assets/" 2>/dev/null || true
 cp assets/mascot-3d.png "$BUILD_DIR/assets/" 2>/dev/null || true
 cp assets/brand-text.png "$BUILD_DIR/assets/" 2>/dev/null || true
 cp assets/brand-text-dark.png "$BUILD_DIR/assets/" 2>/dev/null || true
+cp assets/icon-1024.png "$BUILD_DIR/assets/" 2>/dev/null || true
 cp -R src "$BUILD_DIR/src"
 
 # 6. 创建启动脚本
