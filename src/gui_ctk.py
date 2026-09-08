@@ -1,4 +1,4 @@
-"""Codex助手 — 现代化 GUI(CustomTkinter),匹配 HTML 设计稿。"""
+"""Codex助手 — 现代化 GUI(CustomTkinter)。"""
 import platform
 import queue
 import threading
