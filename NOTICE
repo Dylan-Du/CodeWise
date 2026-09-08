@@ -1,12 +1,30 @@
 Codex助手
-============
+=========
 
-本项目为独立开发，所有源代码版权归 Codex助手 所有。
+一、原创代码
+------------
+本项目由 Codex助手 维护的原创源代码，除下述第三方代码、数据和主题资源外，按仓库根目录 LICENSE 文件中的 MIT License 授权。该授权不延伸至第三方代码、数据、字体、图片或主题资源。
 
-本项目使用的第三方依赖库：
-- PyInstaller (MIT/GPL)
-- pywebview (BSD-3-Clause)
-- tomlkit (MIT)
-- certifi (MPL-2.0)
+二、第三方代码与数据
+--------------------
+本项目使用的依赖及其上游许可如下；各依赖的版权声明和许可条件以其发行包或上游项目为准：
 
-以上依赖通过 pip 安装，其各自遵循相应的开源协议。
+- pywebview：BSD-3-Clause
+- customtkinter：MIT
+- tomlkit：MIT
+- certifi：MPL-2.0（按需使用；用于 SSL 根证书）
+- PyInstaller：GPL-2.0-or-later with PyInstaller exception（仅用于打包，不属于运行时业务代码）
+
+主题注入使用的 Codex-Dream-Skin 选择器来源已在 `src/theme_manager.py` 中注明：
+https://github.com/Fei-Away/Codex-Dream-Skin/tools/selectors.json
+相关选择器映射和基础样式不主张为本项目原创；请同时遵守其来源项目及其文件所附的许可和署名要求。
+
+三、主题资源与背景图片
+----------------------
+`assets/dream-skin/builtin-themes/` 下每个主题目录的 `manifest.json` 是该主题的来源、发布者、许可和文件校验信息记录。主题 CSS、配置和背景图片的权利归对应发布者或其他权利人所有，不因随本项目分发而转移至 Codex助手，也不由本项目的 MIT License 重新授权。
+
+其中，manifest 明确标注了 CC BY、CC BY-NC、MIT、All Rights Reserved 或发布者自定义许可的主题；对标注为网络图片、来源不明或未明确授权的背景，manifest 中的 provenance 说明保持原样。本项目不将这些资源伪称为原创，也不删除有效署名或来源说明。使用、再分发或替换主题资源前，请核对对应 manifest 并取得必要授权。
+
+四、商标与名称
+--------------
+OpenAI、Codex、APINest 及其他第三方名称和标识归各自权利人所有。本项目仅在兼容性、技术来源或服务配置语境中使用相关名称，不代表与其存在赞助、认证或关联关系。
