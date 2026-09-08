@@ -213,6 +213,22 @@ class BrandingTest(unittest.TestCase):
                 self.assertIn("com.codexassistant.app", content)
                 self.assertNotIn("com.codexhelper", content)
 
+    def test_ci_windows_installer_migrates_legacy_registry_key(self):
+        """GitHub Actions Windows 安装器需迁移旧注册表键并清理新旧键。"""
+        workflow = (REPO_ROOT / ".github/workflows/build-windows.yml").read_text(encoding="utf-8")
+        # PowerShell 双引号 here-string 需要用反引号转义 NSIS 的 `$`，先还原生成后的文本。
+        workflow = workflow.replace("`$", "$")
+        for statement in (
+            '!define APP_REGKEY "Software\\CodexAssistant\\Codex助手"',
+            '!define APP_LEGACY_REGKEY "Software\\CodexHelper\\Codex助手"',
+            'ReadRegStr $0 HKCU "${APP_LEGACY_REGKEY}" "InstallDir"',
+            'WriteRegStr HKCU "${APP_REGKEY}" "InstallDir" "$0"',
+            'DeleteRegKey HKCU "${APP_LEGACY_REGKEY}"',
+            'DeleteRegKey HKCU "${APP_REGKEY}"',
+        ):
+            with self.subTest(statement=statement):
+                self.assertIn(statement, workflow)
+
     def test_windows_portable_script_copies_existing_core_assets(self):
         """Windows portable 脚本引用的核心资源必须存在，且失败不能被忽略。"""
         script = (REPO_ROOT / "build_windows_portable.sh").read_text(encoding="utf-8")

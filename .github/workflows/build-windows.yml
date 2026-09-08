@@ -55,6 +55,11 @@ jobs:
           # Create NSIS script
           $nsisContent = @"
           !define APPNAME "Codex助手"
+          !define APP_VERSION "1.0.75"
+          !define APP_PUBLISHER "Codex助手"
+          !define APP_REGKEY "Software\CodexAssistant\Codex助手"
+          !define APP_LEGACY_REGKEY "Software\CodexHelper\Codex助手"
+          !include "LogicLib.nsh"
           Unicode true
           Name "`${APPNAME}"
           OutFile "Codex助手-Windows-Setup.exe"
@@ -69,12 +74,24 @@ jobs:
             CreateShortcut "`$DESKTOP\Codex助手.lnk" "`$INSTDIR\Codex助手.exe"
             CreateDirectory "`$SMPROGRAMS\Codex助手"
             CreateShortcut "`$SMPROGRAMS\Codex助手\Codex助手.lnk" "`$INSTDIR\Codex助手.exe"
+            ReadRegStr `$0 HKCU "`${APP_LEGACY_REGKEY}" "InstallDir"
+            `${If} `$0 != ""
+              WriteRegStr HKCU "`${APP_REGKEY}" "InstallDir" "`$0"
+              DeleteRegKey HKCU "`${APP_LEGACY_REGKEY}"
+            `${EndIf}
+            WriteRegStr HKCU "`${APP_REGKEY}" "InstallDir" "`$INSTDIR"
+            WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\`${APPNAME}" "DisplayName" "`${APPNAME}"
+            WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\`${APPNAME}" "DisplayVersion" "`${APP_VERSION}"
+            WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\`${APPNAME}" "Publisher" "`${APP_PUBLISHER}"
             WriteUninstaller "`$INSTDIR\uninstall.exe"
           SectionEnd
           Section "Uninstall"
             Delete "`$DESKTOP\Codex助手.lnk"
             RMDir /r "`$SMPROGRAMS\Codex助手"
             RMDir /r "`$INSTDIR"
+            DeleteRegKey HKCU "`${APP_REGKEY}"
+            DeleteRegKey HKCU "`${APP_LEGACY_REGKEY}"
+            DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\`${APPNAME}"
           SectionEnd
           "@
 
