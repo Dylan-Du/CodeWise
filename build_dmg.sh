@@ -83,7 +83,7 @@ mkdir -p "$PYINSTALLER_CONFIG_DIR"
   --hidden-import markupsafe \
   --hidden-import itsdangerous \
   --hidden-import click \
-  --osx-bundle-identifier com.codexhelper.app \
+  --osx-bundle-identifier com.codexassistant.app \
   --exclude-module tkinter --exclude-module matplotlib \
   --exclude-module numpy --exclude-module pandas --exclude-module PIL \
   --exclude-module scipy --exclude-module wx \

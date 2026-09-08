@@ -70,9 +70,12 @@ if errorlevel 1 (
 echo [4/4] 生成 NSIS 安装脚本...
 (
 echo !define APP_NAME "Codex助手"
-echo !define APP_VERSION "1.0.0"
-echo !define APP_PUBLISHER "CodexHelper"
+echo !define APP_VERSION "1.0.75"
+echo !define APP_PUBLISHER "Codex助手"
 echo !define APP_EXE "Codex助手.exe"
+echo !define APP_REGKEY "Software\CodexAssistant\Codex助手"
+echo !define APP_LEGACY_REGKEY "Software\CodexHelper\Codex助手"
+echo !include "LogicLib.nsh"
 echo Name "${APP_NAME}"
 echo OutFile "Codex助手-Setup.exe"
 echo InstallDir "$LOCALAPPDATA\${APP_NAME}"
@@ -88,7 +91,13 @@ echo   File /r "Codex助手\*.*"
 echo   CreateDirectory "$SMPROGRAMS\${APP_NAME}"
 echo   CreateShortcut "$SMPROGRAMS\${APP_NAME}\${APP_NAME}.lnk" "$INSTDIR\${APP_EXE}"
 echo   CreateShortcut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\${APP_EXE}"
-echo   WriteRegStr HKCU "Software\CodexHelper\Codex助手" "InstallDir" "$INSTDIR"
+echo   ; 兼容并迁移旧版本安装键到新键
+echo   ReadRegStr $0 HKCU "${APP_LEGACY_REGKEY}" "InstallDir"
+echo   ${If} $0 != ""
+echo     WriteRegStr HKCU "${APP_REGKEY}" "InstallDir" "$0"
+echo     DeleteRegKey HKCU "${APP_LEGACY_REGKEY}"
+echo   ${EndIf}
+echo   WriteRegStr HKCU "${APP_REGKEY}" "InstallDir" "$INSTDIR"
 echo   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "DisplayName" "${APP_NAME}"
 echo   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "UninstallString" '"$INSTDIR\uninstall.exe"'
 echo   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "DisplayVersion" "${APP_VERSION}"
@@ -99,7 +108,8 @@ echo Section "Uninstall"
 echo   RMDir /r "$INSTDIR"
 echo   RMDir /r "$SMPROGRAMS\${APP_NAME}"
 echo   Delete "$DESKTOP\${APP_NAME}.lnk"
-echo   DeleteRegKey HKCU "Software\CodexHelper\Codex助手"
+echo   DeleteRegKey HKCU "${APP_REGKEY}"
+echo   DeleteRegKey HKCU "${APP_LEGACY_REGKEY}"
 echo   DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}"
 echo SectionEnd
 ) > dist\installer.nsi

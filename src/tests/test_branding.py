@@ -17,7 +17,10 @@ BRAND_SURFACE_FILES = (
     "src/web_launcher.py",
     "src/terminal_launcher.py",
     "build_app.sh",
+    "build_dmg.sh",
+    "build_windows.sh",
     "build_windows.bat",
+    "build_windows_exe.sh",
     "build_windows_portable.sh",
     "web/index.html",
     "website/index.html",
@@ -181,6 +184,34 @@ class BrandingTest(unittest.TestCase):
                 asset = REPO_ROOT / relative
                 self.assertTrue(asset.is_file(), f"缺少核心品牌资源：{relative}")
                 self.assertGreater(asset.stat().st_size, 0, f"核心品牌资源为空：{relative}")
+
+    def test_packaging_metadata_uses_current_brand_and_legacy_windows_key_compatibility(self):
+        """Windows 安装元数据使用新品牌，同时保留旧注册表键的迁移/卸载兼容。"""
+        windows_scripts = (
+            "build_windows.sh",
+            "build_windows.bat",
+        )
+        for relative in windows_scripts:
+            content = (REPO_ROOT / relative).read_text(encoding="utf-8")
+            with self.subTest(script=relative):
+                self.assertIn('APP_VERSION "1.0.75"', content)
+                self.assertIn('APP_PUBLISHER "Codex助手"', content)
+                self.assertIn(r"Software\CodexAssistant\Codex助手", content)
+                self.assertIn(r"Software\CodexHelper\Codex助手", content)
+                self.assertNotIn('APP_PUBLISHER "CodexHelper"', content)
+                self.assertIn("APP_LEGACY_REGKEY", content)
+                self.assertRegex(content, r"DeleteRegKey[^\n]*APP_LEGACY_REGKEY")
+
+        exe_script = (REPO_ROOT / "build_windows_exe.sh").read_text(encoding="utf-8")
+        self.assertRegex(exe_script, r"(?i)(deprecated|弃用|已停用)")
+        self.assertRegex(exe_script, r"(?i)(build_windows_portable|build_windows\\.bat)")
+        self.assertNotIn("CodexHelper", exe_script)
+
+        for relative in ("build_app.sh", "build_dmg.sh"):
+            content = (REPO_ROOT / relative).read_text(encoding="utf-8")
+            with self.subTest(script=relative):
+                self.assertIn("com.codexassistant.app", content)
+                self.assertNotIn("com.codexhelper", content)
 
     def test_windows_portable_script_copies_existing_core_assets(self):
         """Windows portable 脚本引用的核心资源必须存在，且失败不能被忽略。"""

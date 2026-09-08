@@ -1,4 +1,9 @@
 #!/bin/bash
+# 已弃用：请使用 build_windows_portable.sh 构建便携版，或在 Windows 上运行 build_windows.bat 生成安装包。
+# 本入口仅保留兼容性，不再生成正式发布包。
+echo "[已弃用] build_windows_exe.sh 已停用；请改用 build_windows_portable.sh 或 build_windows.bat。" >&2
+exit 1
+
 # 构建 Windows 自解压 EXE 安装包
 # 原理：用 7z 压缩 + 自解压模块，生成一个 .exe 文件
 # 用户双击后会自动解压到指定目录并运行安装脚本

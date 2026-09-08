@@ -75,10 +75,12 @@ python -m PyInstaller \
 echo "[4/4] 生成 NSIS 安装脚本..."
 cat > dist/installer.nsi << 'NSISEOF'
 !define APP_NAME "Codex助手"
-!define APP_VERSION "1.0.0"
-!define APP_PUBLISHER "CodexHelper"
+!define APP_VERSION "1.0.75"
+!define APP_PUBLISHER "Codex助手"
 !define APP_EXE "Codex助手.exe"
-!define APP_REGKEY "Software\CodexHelper\Codex助手"
+!define APP_REGKEY "Software\CodexAssistant\Codex助手"
+!define APP_LEGACY_REGKEY "Software\CodexHelper\Codex助手"
+!include "LogicLib.nsh"
 
 Name "${APP_NAME}"
 OutFile "Codex助手-Setup.exe"
@@ -102,7 +104,12 @@ Section "Install"
   CreateShortcut "$SMPROGRAMS\${APP_NAME}\${APP_NAME}.lnk" "$INSTDIR\${APP_EXE}"
   CreateShortcut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\${APP_EXE}"
   
-  ; 写入注册表（卸载信息）
+  ; 写入注册表（卸载信息），并迁移旧版本安装键
+  ReadRegStr $0 HKCU "${APP_LEGACY_REGKEY}" "InstallDir"
+  ${If} $0 != ""
+    WriteRegStr HKCU "${APP_REGKEY}" "InstallDir" "$0"
+    DeleteRegKey HKCU "${APP_LEGACY_REGKEY}"
+  ${EndIf}
   WriteRegStr HKCU "${APP_REGKEY}" "InstallDir" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "DisplayName" "${APP_NAME}"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "UninstallString" '"$INSTDIR\uninstall.exe"'
@@ -120,8 +127,9 @@ Section "Uninstall"
   RMDir /r "$SMPROGRAMS\${APP_NAME}"
   Delete "$DESKTOP\${APP_NAME}.lnk"
   
-  ; 清除注册表
+  ; 清除注册表（新旧键均删除，兼容旧版本卸载）
   DeleteRegKey HKCU "${APP_REGKEY}"
+  DeleteRegKey HKCU "${APP_LEGACY_REGKEY}"
   DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}"
 SectionEnd
 NSISEOF
