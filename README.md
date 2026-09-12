@@ -7,6 +7,17 @@
 ![license](https://img.shields.io/badge/license-MIT-green)
 ![version](https://img.shields.io/badge/version-1.0.75-blue)
 
+## 快速下载
+
+无需账号、无需激活码，下载后安装即可使用。
+
+| 平台 | 安装包 | 操作 |
+| --- | --- | --- |
+| macOS | `Codex助手-1.0.75.dmg` | [下载](https://github.com/Dylan-Du/CodeWise/releases/latest/download/Codex.-1.0.75.dmg) |
+| Windows | `Codex助手-Windows-portable.zip` | [下载](https://github.com/Dylan-Du/CodeWise/releases/latest/download/Codex.-Windows-portable.zip) |
+
+> 全部版本与更新内容见 [Releases 页面](https://github.com/Dylan-Du/CodeWise/releases/latest)。后续版本发布后，上面的“下载”链接会自动指向最新安装包。
+
 ## 特性
 
 - **纯本地运行**：无需账号、无需激活、无需设备绑定，不依赖授权服务器
